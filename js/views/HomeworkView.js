@@ -1,6 +1,3 @@
-/* =====================================================================
-   FILE: js/views/HomeworkView.js
-===================================================================== */
 import { ApiService } from '../services/api.js';
 
 const triggerHaptic = () => {
@@ -78,7 +75,9 @@ export class HomeworkView {
             
             const processedTasks = hwTasks.map(item => {
                 const uniqueId = `${item.subject}_${item.date}`;
-                const teacherName = (teachersData && teachersData[item.subject]) ? teachersData[item.subject] : 'Преподаватель не указан';
+                
+                // ИСПРАВЛЕНИЕ: Теперь teachersData содержит объекты {name, avatar}, а не просто строку.
+                const teacherName = (teachersData && teachersData[item.subject]) ? teachersData[item.subject].name : 'Преподаватель не указан';
                 
                 return {
                     ...item,

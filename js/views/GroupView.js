@@ -1,6 +1,3 @@
-/* =====================================================================
-   FILE: js/views/GroupView.js
-===================================================================== */
 import { ApiService } from '../services/api.js';
 
 const triggerHaptic = () => {
@@ -34,14 +31,30 @@ export class GroupView {
 
             this.studentsData = students || [];
             
-            // Преобразуем объект преподавателей в массив для удобного рендера
+            // Умная группировка преподавателей
             if (teachers) {
-                this.teachersData = Object.entries(teachers).map(([subject, name]) => ({
-                    subject, 
-                    name: name.includes('...') ? 'Имя уточняется' : name
-                }));
-                // Сортируем преподов по алфавиту предметов
-                this.teachersData.sort((a, b) => a.subject.localeCompare(b.subject));
+                const groupedTeachers = {};
+
+                Object.entries(teachers).forEach(([subject, data]) => {
+                    const rawName = data.name;
+                    const displayName = rawName.includes('...') ? 'Имя уточняется' : rawName;
+
+                    // Если учитель с таким именем еще не добавлен в объект, создаем его
+                    if (!groupedTeachers[rawName]) {
+                        groupedTeachers[rawName] = {
+                            name: displayName,
+                            rawName: rawName, // Сохраняем оригинал для генерации цвета градиента
+                            avatar: data.avatar || '',
+                            subjects: []
+                        };
+                    }
+                    // Добавляем предмет к этому учителю
+                    groupedTeachers[rawName].subjects.push(subject);
+                });
+
+                // Преобразуем объект обратно в массив и сортируем по алфавиту имен
+                this.teachersData = Object.values(groupedTeachers);
+                this.teachersData.sort((a, b) => a.name.localeCompare(b.name));
             }
 
             this.renderBaseUI();
@@ -120,16 +133,26 @@ export class GroupView {
             `;
 
             html = this.teachersData.map(tch => {
-                // Берем первую букву Имени (а не предмета). Если имени нет - ставим ?
+                // Берем первую букву Имени. Если имени нет - ставим ?
                 const initial = tch.name !== 'Имя уточняется' ? tch.name.charAt(0).toUpperCase() : '?';
-                const avatar = `<div class="person-avatar" style="background: ${this.getGradient(tch.subject)}">${initial}</div>`;
                 
+                // Рендер фото, если есть, иначе градиент на основе уникального имени
+                const avatar = !tch.avatar ? 
+                    `<div class="person-avatar" style="background: ${this.getGradient(tch.rawName)}">${initial}</div>` : 
+                    `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${tch.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${tch.name}"></div>`;
+                
+                // Рендерим бейджики всех предметов этого учителя
+                const subjectsHtml = tch.subjects.map(subj => `<span class="person-badge teacher-subject">${subj}</span>`).join('');
+
                 return `
                     <li class="person-card">
                         ${avatar}
                         <div class="person-info">
                             <div class="person-name-row">${tch.name}</div>
-                            <div class="person-sub"><span class="person-badge teacher-subject">${tch.subject}</span></div>
+                            <!-- white-space: normal и flex-wrap позволяют бейджикам аккуратно переноситься на новую строку -->
+                            <div class="person-sub" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; white-space: normal;">
+                                ${subjectsHtml}
+                            </div>
                         </div>
                     </li>`;
             }).join('');

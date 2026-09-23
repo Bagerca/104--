@@ -1,6 +1,6 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 23.09.2026 18:12:09
+  Дата сборки: 23.09.2026 19:57:11
 ================================================================================
 
 
@@ -97,7 +97,10 @@
    LINES: 58
 ===================================================================== */
 
-const CACHE_NAME = 'student-hub-v2'; // Поменяли версию кэша
+/* =====================================================================
+   FILE: sw.js
+===================================================================== */
+const CACHE_NAME = 'student-hub-v3'; // Поменяли версию кэша на v3
 
 const ASSETS = [
     './',
@@ -112,18 +115,18 @@ const ASSETS = [
     './js/router.js',
     './data/bells.json',
     './data/schedule.json',
-    './data/students.json'
+    './data/students.json',
+    './data/teachers.json' // Добавили новый файл в кэш
 ];
 
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // Заставляем SW обновиться сразу
+    self.skipWaiting(); 
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
     );
 });
 
 self.addEventListener('activate', (event) => {
-    // Удаляем старые кэши при обновлении версии
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
@@ -137,12 +140,10 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Стратегия: NETWORK FIRST (Сначала сеть, если нет инета - берем из кэша)
 self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)
             .then(response => {
-                // Если запрос успешен, кладем свежую копию в кэш
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then(cache => {
                     cache.put(event.request, responseClone);
@@ -150,7 +151,6 @@ self.addEventListener('fetch', (event) => {
                 return response;
             })
             .catch(() => {
-                // Если интернета нет, достаем из кэша
                 return caches.match(event.request);
             })
     );
@@ -356,28 +356,87 @@ main { padding: var(--spacing-main); }
 
 /* =====================================================================
    FILE: css/views/group.css
-   LINES: 15
+   LINES: 74
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/views/group.css
 ===================================================================== */
-.group-stats { display: flex; justify-content: space-between; background: var(--glass-bg); border: var(--glass-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 0.9rem; color: var(--text-secondary); }
+.group-container { animation: fadeIn 0.3s ease; }
+
+/* Переключатель вкладок */
+.group-segmented-control { 
+    display: flex; position: relative; background: rgba(255, 255, 255, 0.05); 
+    border: var(--glass-border); border-radius: var(--radius-md); 
+    padding: 4px; width: 100%; height: 46px; margin-bottom: 20px; 
+}
+.group-segment-slider { 
+    position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); 
+    background: var(--color-burgundy); border-radius: calc(var(--radius-md) - 2px); 
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    box-shadow: 0 4px 12px var(--color-burgundy-glow); 
+}
+.group-segmented-control[data-active="teachers"] .group-segment-slider { transform: translateX(100%); }
+.group-segment-btn { 
+    flex: 1; border: none; background: transparent; color: var(--text-secondary); 
+    font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; 
+    transition: color 0.3s ease; font-family: inherit; 
+}
+.group-segment-btn.active { color: #fff; }
+
+/* Статистика */
+.group-stats { 
+    display: flex; justify-content: space-between; background: var(--glass-bg); 
+    border: var(--glass-border); padding: 16px; border-radius: var(--radius-md); 
+    margin-bottom: 20px; font-size: 0.9rem; color: var(--text-secondary); 
+}
 .group-stats span strong { color: var(--text-primary); font-size: 1.1rem; }
-.students-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
-.student-card { display: flex; align-items: center; background: var(--glass-bg); border: var(--glass-border); padding: 12px 16px; border-radius: var(--radius-md); gap: 16px; transition: transform var(--transition-fast); }
-.student-card:active { transform: scale(0.98); }
-.student-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; color: #fff; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-.student-info { flex-grow: 1; overflow: hidden; }
-.student-name { font-weight: 600; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; }
-.student-role { font-size: 0.65rem; background: var(--color-burgundy); color: #fff; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-.student-nickname { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
-.student-tg-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(33, 150, 243, 0.1); color: #2196F3; border-radius: 50%; text-decoration: none; transition: all var(--transition-fast); flex-shrink: 0; }
-.student-tg-btn:hover { background: #2196F3; color: #fff; }
+
+/* Списки */
+.list-wrapper { transition: opacity 0.2s ease; }
+.list-wrapper.fading { opacity: 0; pointer-events: none; }
+
+.persons-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
+.person-card { 
+    display: flex; align-items: center; background: var(--glass-bg); 
+    border: var(--glass-border); padding: 12px 16px; border-radius: var(--radius-md); 
+    gap: 16px; transition: transform var(--transition-fast); 
+}
+.person-card:active { transform: scale(0.98); }
+
+/* Аватарка */
+.person-avatar { 
+    width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; 
+    justify-content: center; font-size: 1.2rem; font-weight: bold; color: #fff; 
+    flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+}
+
+/* Инфа */
+.person-info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+.person-name-row { 
+    font-weight: 600; font-size: 1.05rem; white-space: nowrap; overflow: hidden; 
+    text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; 
+}
+.person-badge { 
+    font-size: 0.65rem; background: var(--color-burgundy); color: #fff; 
+    padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; 
+}
+.person-badge.teacher-subject {
+    background: rgba(255,255,255,0.1); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.05);
+}
+.person-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Кнопка ТГ */
+.person-action-btn { 
+    display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; 
+    background: rgba(33, 150, 243, 0.1); color: #64B5F6; border-radius: 50%; 
+    text-decoration: none; transition: all var(--transition-fast); flex-shrink: 0; 
+}
+.person-action-btn:active { background: rgba(33, 150, 243, 0.2); transform: scale(0.9); }
 
 /* =====================================================================
    FILE: css/views/homework.css
-   LINES: 36
+   LINES: 101
 ===================================================================== */
 
 /* =====================================================================
@@ -385,7 +444,6 @@ main { padding: var(--spacing-main); }
 ===================================================================== */
 .hw-container { animation: fadeIn 0.3s ease; }
 
-/* Шапка с кнопкой Назад (для страницы истории) */
 .hw-history-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
 .hw-back-btn { background: rgba(255,255,255,0.05); border: var(--glass-border); color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition-fast); }
 .hw-back-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
@@ -393,29 +451,95 @@ main { padding: var(--spacing-main); }
 .hw-history-title h2 { font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
 .hw-history-title span { font-size: 0.75rem; color: var(--text-muted); }
 
-/* Карточка предмета */
 .hw-subject-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
 .hw-subject-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
 .hw-subject-name { font-size: 1.1rem; font-weight: 600; color: var(--color-burgundy-text); line-height: 1.2; }
 .hw-teacher-name { font-size: 0.75rem; color: var(--text-muted); }
 
-/* Кнопка "Все задания" */
 .hw-show-all-btn { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary); padding: 10px 16px; border-radius: var(--radius-md); font-size: 0.85rem; font-family: inherit; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); width: 100%; margin-top: 4px; }
 .hw-show-all-btn:active { background: rgba(255,255,255,0.08); transform: scale(0.98); }
 
-/* Сама карточка задания (с чекбоксом) */
 .hw-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
-.hw-card { display: flex; gap: 16px; align-items: flex-start; padding: 12px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); border: 1px solid transparent; transition: all var(--transition-fast); }
+.hw-card { display: flex; gap: 16px; align-items: flex-start; padding: 12px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); border: 1px solid transparent; transition: all var(--transition-fast); cursor: pointer; }
 .hw-card.history-item { background: var(--glass-bg); border: var(--glass-border); }
-.hw-checkbox { width: 24px; height: 24px; border: 2px solid var(--text-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; margin-top: 2px; }
+.hw-checkbox { width: 24px; height: 24px; border: 2px solid var(--text-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; margin-top: 2px; }
 .hw-checkbox.checked { background: var(--color-burgundy); border-color: var(--color-burgundy); }
 .hw-checkbox svg { opacity: 0; transform: scale(0.5); transition: all 0.2s; }
 .hw-checkbox.checked svg { opacity: 1; transform: scale(1); }
 
-.hw-content { flex-grow: 1; }
-.hw-task { font-size: 0.95rem; color: var(--text-primary); line-height: 1.4; margin-bottom: 8px; }
-.hw-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+.hw-content { flex-grow: 1; width: 100%; min-width: 0; }
+
+.hw-task { font-size: 0.95rem; color: var(--text-primary); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; word-break: break-word; }
 .hw-card.completed .hw-task { color: var(--text-muted); text-decoration: line-through; }
+
+/* Ресурсы (Ссылки, Файлы, Фото) */
+.hw-resources { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+/* Ссылки */
+.hw-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: rgba(33, 150, 243, 0.1); border: 1px solid rgba(33, 150, 243, 0.2); border-radius: var(--radius-md); color: #64B5F6; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all var(--transition-fast); }
+.hw-link:active { transform: scale(0.98); background: rgba(33, 150, 243, 0.2); }
+.hw-link svg { flex-shrink: 0; }
+.hw-link span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Вложения (PDF) */
+.hw-attachment { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: var(--glass-border); border-radius: var(--radius-md); text-decoration: none; color: var(--text-primary); transition: all var(--transition-fast); }
+.hw-attachment:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
+.hw-file-icon { width: 32px; height: 32px; background: rgba(147, 0, 46, 0.2); color: var(--color-burgundy-text); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hw-file-info { display: flex; flex-direction: column; overflow: hidden; }
+.hw-file-name { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all var(--transition-fast); }
+.hw-file-meta { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+
+/* Фотографии (Сетка) */
+.hw-image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin-top: 4px; }
+.hw-image-thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.5); cursor: zoom-in; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; position: relative; }
+.hw-image-thumb:active { transform: scale(0.95); }
+.hw-image-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Состояние: Ошибка (Файл отсутствует на сервере) */
+.hw-broken { 
+    background: rgba(255, 0, 0, 0.05) !important; 
+    border-color: rgba(255, 0, 0, 0.3) !important; 
+    pointer-events: none; /* Запрет клика */
+}
+.hw-broken .hw-file-name { text-decoration: line-through; color: #ff6b6b; }
+.hw-broken .hw-file-icon { background: rgba(255,0,0,0.1); color: #ff6b6b; }
+.hw-broken::after { content: 'Файл не найден'; display: block; font-size: 0.65rem; color: #ff6b6b; margin-top: 2px; }
+.hw-image-thumb.hw-broken { border-color: rgba(255,0,0,0.5); display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.6rem; color: #ff6b6b; background: rgba(255,0,0,0.1); pointer-events: none; }
+.hw-image-thumb.hw-broken::after { content: 'Нет фото'; }
+
+.hw-card.completed .hw-resources { opacity: 0.5; filter: grayscale(1); }
+.hw-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+
+/* Модальное окно просмотра фото (Lightbox) */
+.hw-lightbox { 
+    border: none; background: rgba(0,0,0,0.95); 
+    width: 100vw; height: 100vh; max-width: none; max-height: none; 
+    position: fixed; top: 0; left: 0; padding: 0; margin: 0; z-index: 9999;
+}
+.hw-lightbox::backdrop { background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); }
+
+/* Панель управления (Крестик и Скачать) */
+.hw-lightbox-controls {
+    position: absolute; top: calc(16px + env(safe-area-inset-top)); right: 16px;
+    display: flex; gap: 12px; z-index: 10;
+}
+
+.hw-lightbox-btn { 
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
+    color: #fff; width: 44px; height: 44px; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; 
+    cursor: pointer; text-decoration: none; backdrop-filter: blur(4px);
+    transition: all 0.2s ease; padding: 0;
+}
+.hw-lightbox-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+
+/* Контейнер картинки */
+.hw-lightbox-body {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+}
+.hw-lightbox img { 
+    max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; 
+}
 
 /* =====================================================================
    FILE: css/views/schedule.css
@@ -589,70 +713,226 @@ main { padding: var(--spacing-main); }
 ===================================================================== */
 
 [
-  { "id": 1, "name": "Авдеев Кирилл", "nickname": "h9vwe_78", "tg": "", "role": "", "avatar": "" },
-  { "id": 2, "name": "Ахмеров Сергей", "nickname": "Katsu", "tg": "", "role": "", "avatar": "" },
-  { "id": 3, "name": "Бебия Баграт", "nickname": "Bagerca", "tg": "", "role": "", "avatar": "" },
-  { "id": 4, "name": "Борисов Тимофей", "nickname": "Некто", "tg": "", "role": "", "avatar": "" },
-  { "id": 5, "name": "Григорьева Ангелина", "nickname": "xanax", "tg": "", "role": "", "avatar": "" },
-  { "id": 6, "name": "Евдокимов Ян", "nickname": "ян", "tg": "", "role": "", "avatar": "" },
-  { "id": 7, "name": "Ерофеев Михаил", "nickname": "Qnferenko", "tg": "", "role": "", "avatar": "" },
+  { "id": 1, "name": "Авдеев Кирилл", "nickname": "h9vwe_78", "tg": "h9vwe_147", "role": "", "avatar": "img/avatars/Авдеев Кирилл.png" },
+  { "id": 2, "name": "Ахмеров Сергей", "nickname": "Katsu", "tg": "Sergay1267", "role": "", "avatar": "" },
+  { "id": 3, "name": "Бебия Баграт", "nickname": "Bagerca", "tg": "bagerca", "role": "", "avatar": "img/avatars/Бебия Баграт.png" },
+  { "id": 4, "name": "Борисов Тимофей", "nickname": "Некто", "tg": "Lak33490", "role": "", "avatar": "img/avatars/Борисов Тимофей.png" },
+  { "id": 5, "name": "Григорьева Ангелина", "nickname": "xanax", "tg": "Boykovalinka", "role": "", "avatar": "img/avatars/Григорьева Ангелина.png" },
+  { "id": 6, "name": "Евдокимов Ян", "nickname": "ян", "tg": "YYaa3cls", "role": "", "avatar": "" },
+  { "id": 7, "name": "Ерофеев Михаил", "nickname": "Qnferenko", "tg": "Qnferenko", "role": "", "avatar": "" },
   { "id": 8, "name": "Жаринов Александр", "nickname": "Саня", "tg": "", "role": "", "avatar": "" },
-  { "id": 9, "name": "Зайцева Виктория", "nickname": "𝕳𝖆𝖘𝖑)", "tg": "", "role": "", "avatar": "" },
-  { "id": 10, "name": "Иванов Алексей", "nickname": "Алексей", "tg": "", "role": "", "avatar": "" },
-  { "id": 11, "name": "Казаков Максим", "nickname": "YaPonchick", "tg": "", "role": "Староста", "avatar": "" },
-  { "id": 12, "name": "Калачев Александр", "nickname": "§Motokife§", "tg": "", "role": "", "avatar": "" },
-  { "id": 13, "name": "Коломин Никита", "nickname": "Чучхелка", "tg": "", "role": "Зам. старосты", "avatar": "" },
-  { "id": 14, "name": "Котовский Даниил", "nickname": "Sharks", "tg": "", "role": "", "avatar": "" },
-  { "id": 15, "name": "Красько Данила", "nickname": "🕊", "tg": "", "role": "", "avatar": "" },
+  { "id": 9, "name": "Зайцева Виктория", "nickname": "𝕳𝖆𝖘𝖑)", "tg": "Kotova_Hasl", "role": "", "avatar": "" },
+  { "id": 10, "name": "Иванов Алексей", "nickname": "Алексей", "tg": "GupkaChek", "role": "", "avatar": "" },
+  { "id": 11, "name": "Казаков Максим", "nickname": "YaPonchick", "tg": "YaPonchick1487", "role": "Староста", "avatar": "" },
+  { "id": 12, "name": "Калачев Александр", "nickname": "§Motokife§", "tg": "Mafia_MOTO", "role": "", "avatar": "" },
+  { "id": 13, "name": "Коломин Никита", "nickname": "Чучхелка", "tg": "Shidou_gei", "role": "Зам. старосты", "avatar": "" },
+  { "id": 14, "name": "Котовский Даниил", "nickname": "Sharks", "tg": "Sharkss11", "role": "", "avatar": "img/avatars/Котовский Даниил.png" },
+  { "id": 15, "name": "Красько Данила", "nickname": "🕊", "tg": "Horseshock", "role": "", "avatar": "" },
   { "id": 16, "name": "Мордвихин Алексей", "nickname": "Леша", "tg": "", "role": "", "avatar": "" },
-  { "id": 17, "name": "Москвин Матвей", "nickname": "SMERTY", "tg": "", "role": "", "avatar": "" },
-  { "id": 18, "name": "Нефедовский Максим", "nickname": "Максим", "tg": "", "role": "", "avatar": "" },
-  { "id": 19, "name": "Никольц Иван", "nickname": "Ванька", "tg": "", "role": "", "avatar": "" },
+  { "id": 17, "name": "Москвин Матвей", "nickname": "SMERTY", "tg": "Smerty333", "role": "", "avatar": "" },
+  { "id": 18, "name": "Нефедовский Максим", "nickname": "Максим", "tg": "FFFFGOGOK", "role": "", "avatar": "" },
+  { "id": 19, "name": "Никольц Иван", "nickname": "Ванька", "tg": "vana_sperma", "role": "", "avatar": "" },
   { "id": 20, "name": "Олейник Кирилл", "nickname": "Кирилл", "tg": "", "role": "", "avatar": "" },
   { "id": 21, "name": "Павлов Дмитрий", "nickname": "Дима", "tg": "", "role": "", "avatar": "" },
   { "id": 22, "name": "Павлов Никита", "nickname": "Никита", "tg": "", "role": "", "avatar": "" },
   { "id": 23, "name": "Федин Андрей", "nickname": "Андрей", "tg": "", "role": "", "avatar": "" },
-  { "id": 24, "name": "Фролов Николай", "nickname": "Колябик", "tg": "", "role": "", "avatar": "" },
+  { "id": 24, "name": "Фролов Николай", "nickname": "Колябик", "tg": "", "role": "", "avatar": "img/avatars/Фролов Николай.png" },
   { "id": 25, "name": "Хмыков Кирилл", "nickname": "ШĒノノøV", "tg": "", "role": "", "avatar": "" },
   { "id": 26, "name": "Чепрасов Иван", "nickname": "Ваня", "tg": "", "role": "", "avatar": "" },
-  { "id": 27, "name": "Шагалов Денис", "nickname": "sphinx", "tg": "", "role": "Зам. старосты", "avatar": "" },
-  { "id": 28, "name": "Щепелин Сергей", "nickname": "Trofi", "tg": "", "role": "", "avatar": "" }
+  { "id": 27, "name": "Шагалов Денис", "nickname": "sphinx", "tg": "shponxxx", "role": "Зам. старосты", "avatar": "" },
+  { "id": 28, "name": "Щепелин Сергей", "nickname": "Trofi", "tg": "Flopik_Sq", "role": "", "avatar": "" }
 ]
 
 /* =====================================================================
-   FILE: data/homework/09-2026.json
-   LINES: 29
+   FILE: data/teachers.json
+   LINES: 17
 ===================================================================== */
 
 {
-  "teachers": {
-    "Математика": "Иванова А.И.",
-    "Информатика": "Сидоров К.В.",
-    "Физика": "Петров В.В."
-  },
-  "tasks": [
-    {
-      "subject": "Математика",
-      "date": "24-09-2026",
-      "task": "Решить №145, 147 (стр 45). Подготовиться к тесту."
-    },
-    {
-      "subject": "Информатика",
-      "date": "23-09-2026",
-      "task": "Дописать практическую работу в Word."
-    },
-    {
-      "subject": "Физика",
-      "date": "22-09-2026",
-      "task": "Выучить формулы кинематики."
-    },
-    {
-      "subject": "Математика",
-      "date": "20-09-2026",
-      "task": "Выучить теорему Пифагора. Подготовиться к диктанту."
-    }
-  ]
+  "Обществознание": "Софья Михайловна...",
+  "Математика": "Сусоева Елена Валентиновна",
+  "Информатика": "Вадим Викторович Нефедьев",
+  "Физика": "Гребенкина Елена Анатольевна",
+  "История": "Успенская...",
+  "Русский язык": "Ким Евгения...",
+  "Литература": "Ким Евгения...",
+  "География": "Тетерина...",
+  "Химия": "Белобородова...",
+  "Биология": "Белобородова...",
+  "Ангийский 1г": "Федорова Светлана Николаевна",
+  "Английский 2г": "...",
+  "Классный руководитель": "Горохова Ангелина Дмитриевна",
+  "Физкультура": "Крутиков...",
+  "ОБиЗР": "Шафранский..."
 }
+
+/* =====================================================================
+   FILE: data/homework/07-09-2026.json
+   LINES: 68
+===================================================================== */
+
+[
+  {
+    "subject": "Математика",
+    "date": "11-09-2026",
+    "task": "ДЗ 11.09.2026 прочитать п.3, с.21-26, выполнить упр. 60, с.27, упр.141 (11,12,13,14), с.52 Алимов Ш.А. Математика для СПО",
+    "links": [
+      { "title": "znanium.ru (с.21)", "url": "https://znanium.ru/read?id=467621&pagenum=21" }
+    ],
+    "images": [
+      { "url": "docs/math_11-09-2026_photo1.jpg" },
+      { "url": "docs/math_11-09-2026_photo2.jpg" }
+    ]
+  },
+  {
+    "subject": "Математика",
+    "date": "10-09-2026",
+    "task": "ДЗ 10.09.2026 решить примеры №17-№20 (тренажер), прочитать п.2, с.13-18, выполнить упр. 31(2), с.19, упр.47(3), с.20, Алимов Ш.А. Математика для СПО",
+    "links": [
+      { "title": "znanium.ru (с.13)", "url": "https://znanium.ru/read?id=467621&pagenum=13" }
+    ],
+    "images": [
+      { "url": "docs/math_10-09-2026_photo1.jpg" },
+      { "url": "docs/math_10-09-2026_photo2.jpg" },
+      { "url": "docs/math_10-09-2026_photo3.jpg" }
+    ]
+  },
+  {
+    "subject": "ОБИЗР",
+    "date": "09-09-2026",
+    "task": "Правила подгонки противогазов ГП-5, ГП-7.\nОформить тетрадь. Выписать в тетрадь правила подгонки противогазов и свои размеры противогазов.",
+    "attachments": [
+      {
+        "name": "Тетрадь +.docx",
+        "type": "docx",
+        "url": "docs/obzh_09-09-2026_1.docx"
+      },
+      {
+        "name": "Подгонка противогазов ГП 5 ГП 7 +.docx",
+        "type": "pdf",
+        "url": "docs/obzh_09-09-2026_2.docx"
+      }
+    ]
+  },
+  {
+    "subject": "Математика",
+    "date": "09-09-2026",
+    "task": "ДЗ 09.09.2026 решить задание №5 (слайд), прочитать п.1, с.4-9, выполнить упр. 5(2,5,8,11), упр.14(1,4,9,12) Алимов Ш.А. Математика для СПО",
+    "links": [
+      { "title": "znanium.ru (с.4)", "url": "https://znanium.ru/read?id=467621&pagenum=4" }
+    ],
+    "images": [
+      { "url": "docs/math_09-09-2026_photo1.jpg" },
+      { "url": "docs/math_09-09-2026_photo2.jpg" },
+      { "url": "docs/math_09-09-2026_photo3.jpg" }
+    ]
+  },
+  {
+    "subject": "Математика",
+    "date": "08-09-2026",
+    "task": "ДЗ 08.09.2026 прочитать п.12, с.77-81, выполнить упр. 234, 235, 236, с.82 Алимов Ш.А. Математика для СПО",
+    "links": [
+      { "title": "znanium.ru (с.77)", "url": "https://znanium.ru/read?id=467621&pagenum=77" }
+    ],
+    "images": [
+      { "url": "docs/math_08-09-2026_photo1.jpg" }
+    ]
+  }
+]
+
+/* =====================================================================
+   FILE: data/homework/14-09-2026.json
+   LINES: 58
+===================================================================== */
+
+[
+  {
+    "subject": "Математика",
+    "date": "18-09-2026",
+    "task": "ДИСТАНТ 18.09.2026 Линейные неравенства и их система\n1. Просмотреть видеоролики по теме занятия\n2. Переписать таблицу в тетрадь (прикрепленный скриншот)\n3. Выполнить практическое задание",
+    "links": [
+      { "title": "Решение линейных неравенств", "url": "https://rutube.ru/video/45d9443ba715e5a442aa2219dd0e20aa/?r=wd" },
+      { "title": "Решение систем линейных", "url": "https://rutube.ru/video/f039a0c205337e4ae96f2aa1aba2948f/?r=plwd" },
+      { "title": "Решение квадратных неравенств", "url": "https://rutube.ru/video/820d5a2b8e061798afcab654e91e8b14/?r=plwd" }
+    ],
+    "images": [
+      { "url": "docs/math_18-09-2026_photo1.jpg" },
+      { "url": "docs/math_18-09-2026_photo2.jpg" }
+    ]
+  },
+  {
+    "subject": "Информатика",
+    "date": "18-09-2026",
+    "task": "Изучить конспект, записать в тетрадь формулы с пояснениями. Выполнить задания для самостоятельного выполнения в тетрадях",
+    "attachments": [
+      {
+        "name": "Задания.docx",
+        "type": "docx",
+        "url": "docs/info_18-09-2026.docx"
+      }
+    ]
+  },
+  {
+    "subject": "Математика",
+    "date": "17-09-2026",
+    "task": "ДИСТАНТ 17.09.2026 Используя конспекты занятий за 11.09.2026 выполнить задание рабочего листа. В чат ничего отправлять не нужно, сдать мне тетради с выполненными заданиями во вторник 22.09.2026",
+    "images": [
+      { "url": "docs/math_17-09-2026_photo1.jpg" }
+    ]
+  },
+  {
+    "subject": "Информатика",
+    "date": "17-09-2026",
+    "task": "Задача на правило произведения: В кафе предлагают 4 вида супа, 6 видов горячего и 3 вида напитка. Сколькими способами можно выбрать обед из трех блюд?\n\nЗадача на перестановки: Сколькими способами можно расставить на полке 6 разных учебников?\n\nЗадача на размещения: В соревнованиях участвуют 12 человек. Сколькими способами могут распределиться золотая, серебряная и бронзовая медали?\n\nЗадача на сочетания: Из 15 членов студенческого совета нужно выбрать комитет из 4 человек. Сколькими способами это можно сделать?"
+  },
+  {
+    "subject": "Русский язык",
+    "date": "15-09-2026",
+    "task": "Упражнение 5 задание 2."
+  },
+  {
+    "subject": "ОБИЗР",
+    "date": "15-09-2026",
+    "task": "Блок НАТО - источник военных угроз России\nВыписать в тетрадь страны блока НАТО (страна (официальное название)-столица-год вступления-официальный язык). Ознакомиться с географическим положением на карте мира.",
+    "attachments": [
+      {
+        "name": "БЛОК НАТО.docx",
+        "type": "docx",
+        "url": "docs/obzh_15-09-2026.docx"
+      }
+    ]
+  }
+]
+
+/* =====================================================================
+   FILE: data/homework/21-09-2026.json
+   LINES: 24
+===================================================================== */
+
+[
+  {
+    "subject": "Обществознание",
+    "date": "23-09-2026",
+    "task": "дублирую домашнее задние:\n\nнаписать конспект на тему: знание познание и истина\n\nзнать что такое «мнение» «знание» «познание» «истина»\n\nзнать что такое чувственное и рациональное познание\n\nзнать что такое субъект познания\n\nзаписать в тетрадь формы чувственного познания:\n1. Ощущение (что это?)\n2. Восприятие (что это?)\n3. Представление (что это?)\n\nзаписать рациональные познания:\n1. Понятие (что это?)\n2. Суждение (что это?)\n3. Умозаключение (что это?)\n\nи записать виды истины:\n1. Абсолютная (что это?)\n2. Относительная (что это?)"
+  },
+  {
+    "subject": "Математика",
+    "date": "23-09-2026",
+    "task": "ДИСТАНТ 23.06.2026 ПРОЦЕНТНЫЕ РАСЧЕТЫ\nПросмотрите видеоурок по теме. Прочитайте п.6 §1 с.9-10 «Три задачи на проценты» Алимов Ш.А. Математика для СПО, составьте опорный конспект и выполните решение текстовых задач.",
+    "links": [
+      { "title": "Видеоурок по теме", "url": "https://rutube.ru/video/f553047add9da263c16c8fb52af86620/?r=plwd" },
+      { "title": "Материал учебника", "url": "https://znanium.ru/read?id=467621&pagenum=9" }
+    ],
+    "attachments": [
+      { "name": "Текстовые_задачи.pdf", "type": "pdf", "url": "docs/math_23-09-2026.pdf" }
+    ]
+  },
+  {
+    "subject": "Русский язык",
+    "date": "22-09-2026",
+    "task": "Выучить наизусть высказывание И.С. Тургенева о роли языка.\nупр.4,6"
+  }
+]
 
 /* =====================================================================
    FILE: data/overrides/23-09-2026.json
@@ -789,7 +1069,7 @@ export class Router {
 
 /* =====================================================================
    FILE: js/services/api.js
-   LINES: 66
+   LINES: 81
 ===================================================================== */
 
 /* =====================================================================
@@ -811,7 +1091,7 @@ async function fetchJson(url, useCache = true, fetchOptions = {}) {
         
         return data;
     } catch (error) {
-        // Убрали warning, чтобы не засорять консоль, если файла за прошлый месяц нет
+        // Тихо возвращаем null, если файла за эту неделю пока нет
         return null; 
     }
 }
@@ -820,42 +1100,57 @@ export const ApiService = {
     getBells: () => fetchJson('data/bells.json'),
     getSchedule: () => fetchJson('data/schedule.json'),
     getStudents: () => fetchJson('data/students.json'),
+    getTeachers: () => fetchJson('data/teachers.json'),
     getEvents: () => fetchJson('data/events.json', true, { cache: 'no-cache' }),
     
     getOverride: (dateStr) => fetchJson(`data/overrides/${dateStr}.json`, true, { cache: 'no-cache' }),
 
-    // Умная загрузка ДЗ: берет текущий и прошлый месяц и склеивает их
+    // Загрузка ДЗ: Считает понедельники и грузит 3 недели (текущая и две прошлые)
     getHomework: async () => {
-        const now = new Date();
-        
-        // Текущий месяц (например 09-2026)
-        const currM = String(now.getMonth() + 1).padStart(2, '0');
-        const currY = now.getFullYear();
-        
-        // Прошлый месяц (для страховки на стыке месяцев)
-        let prevM = now.getMonth(); 
-        let prevY = currY;
-        if (prevM === 0) { prevM = 12; prevY--; }
-        const prevMStr = String(prevM).padStart(2, '0');
+        // Вспомогательная функция: находит понедельник для любой даты
+        const getMonday = (date) => {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        };
 
-        const [currData, prevData] = await Promise.all([
-            fetchJson(`data/homework/${currM}-${currY}.json`, true, { cache: 'no-cache' }),
-            fetchJson(`data/homework/${prevMStr}-${prevY}.json`, true, { cache: 'no-cache' })
+        // Вспомогательная функция: форматирует в ДД-ММ-ГГГГ
+        const formatDate = (date) => {
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            return `${dd}-${mm}-${yyyy}`;
+        };
+
+        const today = new Date();
+        
+        // 1. Понедельник текущей недели
+        const currentMonday = getMonday(today);
+        
+        // 2. Понедельник прошлой недели (-7 дней)
+        const prevMonday1 = new Date(currentMonday);
+        prevMonday1.setDate(prevMonday1.getDate() - 7);
+        
+        // 3. Понедельник позапрошлой недели (-14 дней)
+        const prevMonday2 = new Date(currentMonday);
+        prevMonday2.setDate(prevMonday2.getDate() - 14);
+
+        // Грузим 3 файла параллельно
+        const [dataWeek0, dataWeek1, dataWeek2] = await Promise.all([
+            fetchJson(`data/homework/${formatDate(currentMonday)}.json`, true, { cache: 'no-cache' }),
+            fetchJson(`data/homework/${formatDate(prevMonday1)}.json`, true, { cache: 'no-cache' }),
+            fetchJson(`data/homework/${formatDate(prevMonday2)}.json`, true, { cache: 'no-cache' })
         ]);
 
-        // Склеиваем словари учителей и массивы заданий
-        const combined = { teachers: {}, tasks: [] };
+        const combinedTasks = [];
         
-        if (prevData) {
-            Object.assign(combined.teachers, prevData.teachers);
-            combined.tasks.push(...prevData.tasks);
-        }
-        if (currData) {
-            Object.assign(combined.teachers, currData.teachers);
-            combined.tasks.push(...currData.tasks);
-        }
+        // Склеиваем от старых к новым (сортировка по дате все равно отработает во View)
+        if (Array.isArray(dataWeek2)) combinedTasks.push(...dataWeek2);
+        if (Array.isArray(dataWeek1)) combinedTasks.push(...dataWeek1);
+        if (Array.isArray(dataWeek0)) combinedTasks.push(...dataWeek0);
 
-        return combined;
+        return combinedTasks;
     }
 };
 
@@ -1002,7 +1297,7 @@ export class EventsView {
 
 /* =====================================================================
    FILE: js/views/GroupView.js
-   LINES: 66
+   LINES: 170
 ===================================================================== */
 
 /* =====================================================================
@@ -1010,13 +1305,22 @@ export class EventsView {
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 
+const triggerHaptic = () => {
+    if (navigator.vibrate) navigator.vibrate(15);
+};
+
 export class GroupView {
     constructor(container) {
         this.container = container;
+        this.currentTab = 'students'; // По умолчанию показываем студентов
+        this.studentsData = [];
+        this.teachersData = [];
     }
 
     async mount() {
+        // Скелетоны при загрузке
         this.container.innerHTML = `
+            <div class="skeleton" style="height: 46px; width: 100%; margin-bottom: 20px;"></div>
             <div class="skeleton" style="height: 60px; width: 100%; margin-bottom: 20px;"></div>
             <div class="skeleton" style="height: 72px; width: 100%; margin-bottom: 12px;"></div>
             <div class="skeleton" style="height: 72px; width: 100%; margin-bottom: 12px;"></div>
@@ -1024,49 +1328,144 @@ export class GroupView {
         `;
         
         try {
-            const students = await ApiService.getStudents();
-            if (!students) throw new Error("Нет данных");
+            // Грузим оба списка параллельно
+            const [students, teachers] = await Promise.all([
+                ApiService.getStudents(),
+                ApiService.getTeachers()
+            ]);
 
-            const getGradient = (name) => {
-                const charCode = name.charCodeAt(0) + (name.charCodeAt(1) || 0);
-                const hue = charCode % 360;
-                return `linear-gradient(135deg, hsl(${hue}, 70%, 60%), hsl(${hue + 40}, 70%, 40%))`;
-            };
+            this.studentsData = students || [];
+            
+            // Преобразуем объект преподавателей в массив для удобного рендера
+            if (teachers) {
+                this.teachersData = Object.entries(teachers).map(([subject, name]) => ({
+                    subject, 
+                    name: name.includes('...') ? 'Имя уточняется' : name
+                }));
+                // Сортируем преподов по алфавиту предметов
+                this.teachersData.sort((a, b) => a.subject.localeCompare(b.subject));
+            }
 
-            const html = students.map(st => {
+            this.renderBaseUI();
+            this.renderList();
+            this.bindEvents();
+
+        } catch (error) {
+            console.error('[GroupView] Ошибка:', error);
+            this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки данных.</div>`;
+        }
+    }
+
+    // Генерация случайного, но фиксированного цвета для аватарки
+    getGradient(text) {
+        const charCode = text.charCodeAt(0) + (text.charCodeAt(1) || 0) + (text.charCodeAt(2) || 0);
+        const hue = charCode % 360;
+        return `linear-gradient(135deg, hsl(${hue}, 70%, 60%), hsl(${hue + 40}, 70%, 40%))`;
+    }
+
+    // Базовый каркас страницы (Переключатель и контейнер для списка)
+    renderBaseUI() {
+        this.container.innerHTML = `
+            <div class="group-container">
+                <div class="group-segmented-control" id="group-toggle" data-active="${this.currentTab}">
+                    <div class="group-segment-slider"></div>
+                    <button class="group-segment-btn ${this.currentTab === 'students' ? 'active' : ''}" data-tab="students">Студенты</button>
+                    <button class="group-segment-btn ${this.currentTab === 'teachers' ? 'active' : ''}" data-tab="teachers">Преподаватели</button>
+                </div>
+                
+                <section class="group-stats" id="group-stats"></section>
+                
+                <div class="list-wrapper" id="list-wrapper">
+                    <ul class="persons-list" id="persons-list"></ul>
+                </div>
+            </div>
+        `;
+    }
+
+    // Рендер конкретного списка в зависимости от выбранной вкладки
+    renderList() {
+        const statsContainer = document.getElementById('group-stats');
+        const listContainer = document.getElementById('persons-list');
+        
+        let html = '';
+
+        if (this.currentTab === 'students') {
+            statsContainer.innerHTML = `
+                <span>Всего: <strong>${this.studentsData.length}</strong> чел.</span>
+                <span>104к</span>
+            `;
+
+            html = this.studentsData.map(st => {
                 const initial = st.name.charAt(0).toUpperCase();
-                
-                // Если картинка есть — показываем её, если нет — красивую букву
                 const avatar = !st.avatar ? 
-                    `<div class="student-avatar" style="background: ${getGradient(st.name)}">${initial}</div>` : 
-                    `<div class="student-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${st.name}"></div>`;
+                    `<div class="person-avatar" style="background: ${this.getGradient(st.name)}">${initial}</div>` : 
+                    `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${st.name}"></div>`;
                 
-                // Кнопка ТГ появляется только если юзернейм заполнен
-                const tgBtn = st.tg ? `<a href="https://t.me/${st.tg}" target="_blank" class="student-tg-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></a>` : '';
-                const role = st.role ? `<span class="student-role">${st.role}</span>` : '';
+                const role = st.role ? `<span class="person-badge">${st.role}</span>` : '';
+                const tgBtn = st.tg ? `<a href="https://t.me/${st.tg}" target="_blank" class="person-action-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></a>` : '';
                 
                 return `
-                    <li class="student-card">
+                    <li class="person-card">
                         ${avatar}
-                        <div class="student-info">
-                            <div class="student-name">${st.name} ${role}</div>
-                            <div class="student-nickname">@${st.nickname}</div>
+                        <div class="person-info">
+                            <div class="person-name-row">${st.name} ${role}</div>
+                            <div class="person-sub">@${st.nickname}</div>
                         </div>
                         ${tgBtn}
                     </li>`;
             }).join('');
-
-            this.container.innerHTML = `
-                <section class="group-stats">
-                    <span>Всего: <strong>${students.length}</strong> чел.</span>
-                    <span>104к</span>
-                </section>
-                <ul class="students-list">${html}</ul>
+        } 
+        else if (this.currentTab === 'teachers') {
+            statsContainer.innerHTML = `
+                <span>Преподавателей: <strong>${this.teachersData.length}</strong></span>
+                <span>104к</span>
             `;
-        } catch (error) {
-            console.error('[GroupView] Ошибка:', error);
-            this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки списка.</div>`;
+
+            html = this.teachersData.map(tch => {
+                // Берем первую букву Имени (а не предмета). Если имени нет - ставим ?
+                const initial = tch.name !== 'Имя уточняется' ? tch.name.charAt(0).toUpperCase() : '?';
+                const avatar = `<div class="person-avatar" style="background: ${this.getGradient(tch.subject)}">${initial}</div>`;
+                
+                return `
+                    <li class="person-card">
+                        ${avatar}
+                        <div class="person-info">
+                            <div class="person-name-row">${tch.name}</div>
+                            <div class="person-sub"><span class="person-badge teacher-subject">${tch.subject}</span></div>
+                        </div>
+                    </li>`;
+            }).join('');
         }
+
+        listContainer.innerHTML = html || `<li class="placeholder-card" style="text-align:center;">Список пуст</li>`;
+    }
+
+    bindEvents() {
+        const toggle = document.getElementById('group-toggle');
+        const wrapper = document.getElementById('list-wrapper');
+        const btns = this.container.querySelectorAll('.group-segment-btn');
+
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetTab = e.currentTarget.getAttribute('data-tab');
+                if (this.currentTab === targetTab) return; // Уже активна
+                
+                triggerHaptic();
+                this.currentTab = targetTab;
+
+                // Обновляем визуальное состояние кнопок и ползунка
+                toggle.setAttribute('data-active', this.currentTab);
+                btns.forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+
+                // Анимация затухания списка
+                wrapper.classList.add('fading');
+                setTimeout(() => {
+                    this.renderList();
+                    wrapper.classList.remove('fading');
+                }, 200); // 200ms должно совпадать с transition в CSS
+            });
+        });
     }
 
     unmount() {} 
@@ -1074,7 +1473,7 @@ export class GroupView {
 
 /* =====================================================================
    FILE: js/views/HomeworkView.js
-   LINES: 196
+   LINES: 335
 ===================================================================== */
 
 /* =====================================================================
@@ -1093,6 +1492,42 @@ export class HomeworkView {
         this.groupedData = {}; 
     }
 
+    // Инициализация просмотрщика фото (Lightbox)
+    initLightbox() {
+        // Очищаем старый диалог, если он остался в DOM после переходов
+        const oldDialog = document.getElementById('hw-lightbox');
+        if (oldDialog) oldDialog.remove();
+
+        const dialog = document.createElement('dialog');
+        dialog.id = 'hw-lightbox';
+        dialog.className = 'hw-lightbox';
+        
+        // Используем нативную форму form method="dialog" для 100% рабочего крестика
+        dialog.innerHTML = `
+            <div class="hw-lightbox-controls">
+                <a id="hw-lightbox-download" href="" download class="hw-lightbox-btn" aria-label="Скачать">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </a>
+                <form method="dialog" style="margin: 0; padding: 0;">
+                    <button class="hw-lightbox-btn" type="submit" aria-label="Закрыть">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </form>
+            </div>
+            <div class="hw-lightbox-body" id="hw-lightbox-body">
+                <img id="hw-lightbox-img" src="" alt="Фото">
+            </div>
+        `;
+        document.body.appendChild(dialog);
+
+        // Закрытие при клике на пустое пространство вокруг картинки
+        dialog.querySelector('#hw-lightbox-body').addEventListener('click', (e) => {
+            if (e.target.id === 'hw-lightbox-body') {
+                dialog.close();
+            }
+        });
+    }
+
     parseDateStr(dateStr) {
         const [d, m, y] = dateStr.split('-');
         return new Date(y, m - 1, d).getTime();
@@ -1105,25 +1540,28 @@ export class HomeworkView {
         `;
         
         try {
-            const hwData = await ApiService.getHomework();
+            this.initLightbox(); // Создаем окно при загрузке страницы
+
+            const [hwTasks, teachersData] = await Promise.all([
+                ApiService.getHomework(),
+                ApiService.getTeachers()
+            ]);
             
-            // Проверка на пустоту (если нет массива tasks или он пуст)
-            if (!hwData || !hwData.tasks || hwData.tasks.length === 0) {
+            if (!hwTasks || hwTasks.length === 0) {
                 this.container.innerHTML = `<div class="placeholder-card" style="text-align: center; color: var(--text-muted)">Домашки пока нет 🎉</div>`;
                 return;
             }
 
             const savedState = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
             
-            // Преобразуем данные: подставляем учителя и создаем авто-ID
-            const processedTasks = hwData.tasks.map(item => {
-                // Генерируем уникальный ID для галочки: "Математика_24-09-2026"
+            const processedTasks = hwTasks.map(item => {
                 const uniqueId = `${item.subject}_${item.date}`;
+                const teacherName = (teachersData && teachersData[item.subject]) ? teachersData[item.subject] : 'Преподаватель не указан';
                 
                 return {
                     ...item,
                     id: uniqueId,
-                    teacher: hwData.teachers[item.subject] || 'Преподаватель не указан',
+                    teacher: teacherName,
                     done: savedState[uniqueId] || false
                 };
             });
@@ -1144,6 +1582,59 @@ export class HomeworkView {
             console.error('[HomeworkView] Ошибка:', error);
             this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки ДЗ.</div>`;
         }
+    }
+
+    generateResourcesHTML(task) {
+        let extraHtml = '';
+        const hasLinks = task.links && task.links.length > 0;
+        const hasAttachments = task.attachments && task.attachments.length > 0;
+        const hasImages = task.images && task.images.length > 0;
+
+        if (hasLinks || hasAttachments || hasImages) {
+            extraHtml += `<div class="hw-resources">`;
+            
+            if (hasLinks) {
+                task.links.forEach(link => {
+                    extraHtml += `
+                        <a href="${link.url}" target="_blank" class="hw-link interactive-element">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            <span>${link.title}</span>
+                        </a>
+                    `;
+                });
+            }
+
+            if (hasAttachments) {
+                task.attachments.forEach(file => {
+                    extraHtml += `
+                        <a href="${file.url}" target="_blank" class="hw-attachment interactive-element local-file-check" data-url="${file.url}">
+                            <div class="hw-file-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            </div>
+                            <div class="hw-file-info">
+                                <span class="hw-file-name">${file.name}</span>
+                                <span class="hw-file-meta">${file.type} Документ</span>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+
+            if (hasImages) {
+                extraHtml += `<div class="hw-image-grid">`;
+                task.images.forEach(img => {
+                    extraHtml += `
+                        <div class="hw-image-thumb interactive-element" data-full="${img.url}">
+                            <img src="${img.url}" loading="lazy" onerror="this.parentElement.classList.add('hw-broken'); this.remove();">
+                        </div>
+                    `;
+                });
+                extraHtml += `</div>`;
+            }
+            
+            extraHtml += `</div>`;
+        }
+        return extraHtml;
     }
 
     renderMainList() {
@@ -1169,6 +1660,7 @@ export class HomeworkView {
                         </div>
                         <div class="hw-content">
                             <div class="hw-task">${latestTask.task}</div>
+                            ${this.generateResourcesHTML(latestTask)}
                             <div class="hw-meta">
                                 <span>Задано: ${latestTask.date}</span>
                             </div>
@@ -1191,6 +1683,7 @@ export class HomeworkView {
         html += '</div>';
         this.container.innerHTML = html;
         this.bindEvents('main');
+        this.validateLocalFiles();
     }
 
     renderSubjectHistory(subject) {
@@ -1219,6 +1712,7 @@ export class HomeworkView {
                     </div>
                     <div class="hw-content">
                         <div class="hw-task">${task.task}</div>
+                        ${this.generateResourcesHTML(task)}
                         <div class="hw-meta">
                             <span>Задано: ${task.date}</span>
                         </div>
@@ -1230,11 +1724,51 @@ export class HomeworkView {
         html += `</div></div>`;
         this.container.innerHTML = html;
         this.bindEvents('history');
+        this.validateLocalFiles();
+    }
+
+    async validateLocalFiles() {
+        const filesToCheck = this.container.querySelectorAll('.local-file-check');
+        for (let el of filesToCheck) {
+            const url = el.getAttribute('data-url');
+            if (url) {
+                try {
+                    const res = await fetch(url, { method: 'HEAD' });
+                    if (!res.ok) el.classList.add('hw-broken');
+                } catch (e) {
+                    el.classList.add('hw-broken');
+                }
+            }
+        }
     }
 
     bindEvents(viewType) {
+        // Открытие фоток и настройка ссылки скачивания
+        this.container.querySelectorAll('.hw-image-thumb').forEach(thumb => {
+            thumb.addEventListener('click', (e) => {
+                if (thumb.classList.contains('hw-broken')) return;
+                triggerHaptic();
+                
+                const fullSrc = thumb.getAttribute('data-full');
+                const dialog = document.getElementById('hw-lightbox');
+                const img = document.getElementById('hw-lightbox-img');
+                const downloadBtn = document.getElementById('hw-lightbox-download');
+                
+                img.src = fullSrc;
+                downloadBtn.href = fullSrc;
+                
+                // Вытаскиваем имя файла из пути для скачивания (например "photo.jpg")
+                const fileName = fullSrc.split('/').pop() || 'photo.jpg';
+                downloadBtn.setAttribute('download', fileName);
+                
+                dialog.showModal();
+            });
+        });
+
         this.container.querySelectorAll('.hw-card').forEach(card => {
             card.addEventListener('click', (e) => {
+                if (e.target.closest('.interactive-element')) return;
+
                 triggerHaptic();
                 const isCompleted = card.classList.toggle('completed');
                 card.querySelector('.hw-checkbox').classList.toggle('checked');
@@ -1271,7 +1805,11 @@ export class HomeworkView {
         }
     }
 
-    unmount() {}
+    unmount() {
+        // Зачищаем диалог при уходе со страницы, чтобы он не висел в DOM мертвым грузом
+        const dialog = document.getElementById('hw-lightbox');
+        if (dialog) dialog.remove();
+    }
 }
 
 /* =====================================================================
