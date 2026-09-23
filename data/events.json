@@ -1,0 +1,22 @@
+[
+  {
+    "id": "clash_royale",
+    "title": "Клан Clash Royale",
+    "description": "",
+    "date": "Актуально",
+    "time": "24/7",
+    "location": "",
+    "image": "img/cr-clan.webp",
+    "link": "https://link.clashroyale.com/invite/clan/ru?tag=GRVJV2UR&token=x6cmxps6&platform=android"
+  },
+  {
+    "id": "volleyball",
+    "title": "Сбор на волейбол",
+    "description": "",
+    "date": "ПН и ЧТ",
+    "time": "19:00 - 21:00",
+    "location": "Сп. зал",
+    "image": "img/volleyball.webp",
+    "link": ""
+  }
+]

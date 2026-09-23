@@ -1,0 +1,101 @@
+/* =====================================================================
+   FILE: css/views/homework.css
+===================================================================== */
+.hw-container { animation: fadeIn 0.3s ease; }
+
+.hw-history-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.hw-back-btn { background: rgba(255,255,255,0.05); border: var(--glass-border); color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition-fast); }
+.hw-back-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+.hw-history-title { display: flex; flex-direction: column; }
+.hw-history-title h2 { font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
+.hw-history-title span { font-size: 0.75rem; color: var(--text-muted); }
+
+.hw-subject-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+.hw-subject-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
+.hw-subject-name { font-size: 1.1rem; font-weight: 600; color: var(--color-burgundy-text); line-height: 1.2; }
+.hw-teacher-name { font-size: 0.75rem; color: var(--text-muted); }
+
+.hw-show-all-btn { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary); padding: 10px 16px; border-radius: var(--radius-md); font-size: 0.85rem; font-family: inherit; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); width: 100%; margin-top: 4px; }
+.hw-show-all-btn:active { background: rgba(255,255,255,0.08); transform: scale(0.98); }
+
+.hw-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
+.hw-card { display: flex; gap: 16px; align-items: flex-start; padding: 12px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); border: 1px solid transparent; transition: all var(--transition-fast); cursor: pointer; }
+.hw-card.history-item { background: var(--glass-bg); border: var(--glass-border); }
+.hw-checkbox { width: 24px; height: 24px; border: 2px solid var(--text-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; margin-top: 2px; }
+.hw-checkbox.checked { background: var(--color-burgundy); border-color: var(--color-burgundy); }
+.hw-checkbox svg { opacity: 0; transform: scale(0.5); transition: all 0.2s; }
+.hw-checkbox.checked svg { opacity: 1; transform: scale(1); }
+
+.hw-content { flex-grow: 1; width: 100%; min-width: 0; }
+
+.hw-task { font-size: 0.95rem; color: var(--text-primary); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; word-break: break-word; }
+.hw-card.completed .hw-task { color: var(--text-muted); text-decoration: line-through; }
+
+/* Ресурсы (Ссылки, Файлы, Фото) */
+.hw-resources { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+/* Ссылки */
+.hw-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: rgba(33, 150, 243, 0.1); border: 1px solid rgba(33, 150, 243, 0.2); border-radius: var(--radius-md); color: #64B5F6; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all var(--transition-fast); }
+.hw-link:active { transform: scale(0.98); background: rgba(33, 150, 243, 0.2); }
+.hw-link svg { flex-shrink: 0; }
+.hw-link span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Вложения (PDF) */
+.hw-attachment { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: var(--glass-border); border-radius: var(--radius-md); text-decoration: none; color: var(--text-primary); transition: all var(--transition-fast); }
+.hw-attachment:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
+.hw-file-icon { width: 32px; height: 32px; background: rgba(147, 0, 46, 0.2); color: var(--color-burgundy-text); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hw-file-info { display: flex; flex-direction: column; overflow: hidden; }
+.hw-file-name { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all var(--transition-fast); }
+.hw-file-meta { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+
+/* Фотографии (Сетка) */
+.hw-image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin-top: 4px; }
+.hw-image-thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.5); cursor: zoom-in; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; position: relative; }
+.hw-image-thumb:active { transform: scale(0.95); }
+.hw-image-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Состояние: Ошибка (Файл отсутствует на сервере) */
+.hw-broken { 
+    background: rgba(255, 0, 0, 0.05) !important; 
+    border-color: rgba(255, 0, 0, 0.3) !important; 
+    pointer-events: none; /* Запрет клика */
+}
+.hw-broken .hw-file-name { text-decoration: line-through; color: #ff6b6b; }
+.hw-broken .hw-file-icon { background: rgba(255,0,0,0.1); color: #ff6b6b; }
+.hw-broken::after { content: 'Файл не найден'; display: block; font-size: 0.65rem; color: #ff6b6b; margin-top: 2px; }
+.hw-image-thumb.hw-broken { border-color: rgba(255,0,0,0.5); display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.6rem; color: #ff6b6b; background: rgba(255,0,0,0.1); pointer-events: none; }
+.hw-image-thumb.hw-broken::after { content: 'Нет фото'; }
+
+.hw-card.completed .hw-resources { opacity: 0.5; filter: grayscale(1); }
+.hw-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+
+/* Модальное окно просмотра фото (Lightbox) */
+.hw-lightbox { 
+    border: none; background: rgba(0,0,0,0.95); 
+    width: 100vw; height: 100vh; max-width: none; max-height: none; 
+    position: fixed; top: 0; left: 0; padding: 0; margin: 0; z-index: 9999;
+}
+.hw-lightbox::backdrop { background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); }
+
+/* Панель управления (Крестик и Скачать) */
+.hw-lightbox-controls {
+    position: absolute; top: calc(16px + env(safe-area-inset-top)); right: 16px;
+    display: flex; gap: 12px; z-index: 10;
+}
+
+.hw-lightbox-btn { 
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
+    color: #fff; width: 44px; height: 44px; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; 
+    cursor: pointer; text-decoration: none; backdrop-filter: blur(4px);
+    transition: all 0.2s ease; padding: 0;
+}
+.hw-lightbox-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+
+/* Контейнер картинки */
+.hw-lightbox-body {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+}
+.hw-lightbox img { 
+    max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; 
+}

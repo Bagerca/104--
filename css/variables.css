@@ -1,0 +1,33 @@
+/* =====================================================================
+   FILE: css/variables.css
+===================================================================== */
+:root {
+    /* Цветовая палитра */
+    --color-night: #151515;          
+    --color-night-light: #1e1e1e;    
+    --color-burgundy: #93002E;       
+    --color-burgundy-glow: rgba(147, 0, 46, 0.4);
+    
+    /* Улучшенный контраст для текстов (WCAG AA) */
+    --color-burgundy-text: #FF4D7D; 
+    
+    /* Тексты (улучшена читаемость muted текста) */
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --text-muted: rgba(255, 255, 255, 0.55);
+
+    /* Эффекты стекла */
+    --glass-bg: rgba(30, 30, 32, 0.65);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(20px);
+
+    /* Типографика и отступы */
+    --font-main: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --spacing-main: 16px;
+
+    /* Переходы */
+    --transition-fast: 0.2s ease;
+    --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}

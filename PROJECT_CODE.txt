@@ -1,0 +1,1655 @@
+================================================================================
+  ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
+  Дата сборки: 23.09.2026 18:12:09
+================================================================================
+
+
+/* =====================================================================
+   FILE: index.html
+   LINES: 60
+===================================================================== */
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#151515">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Student Hub</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+    <!-- CSS Architecture -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/views/schedule.css">
+    <link rel="stylesheet" href="css/views/group.css">
+    <link rel="stylesheet" href="css/views/homework.css">
+    <link rel="stylesheet" href="css/views/events.css">
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <div class="app-container">
+        <header class="app-header glass">
+            <h1 id="page-title">Расписание</h1>
+            <button class="icon-btn" aria-label="Профиль">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </button>
+        </header>
+
+        <main id="app-content" class="fade-in">
+            <!-- Контент инжектируется через Views -->
+        </main>
+
+        <nav class="bottom-nav glass">
+            <a href="#/schedule" class="nav-item active" data-title="Расписание">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>Уроки</span>
+            </a>
+            <a href="#/homework" class="nav-item" data-title="Домашка">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>ДЗ</span>
+            </a>
+            <a href="#/group" class="nav-item" data-title="Группа">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Группа</span>
+            </a>
+            <a href="#/events" class="nav-item" data-title="События">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span>Ивенты</span>
+            </a>
+        </nav>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
+
+/* =====================================================================
+   FILE: manifest.json
+   LINES: 16
+===================================================================== */
+
+{
+  "name": "Student Hub",
+  "short_name": "Hub",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#151515",
+  "theme_color": "#151515",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%2393002E%22/><text y=%2250%22 x=%2250%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22>SH</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+
+/* =====================================================================
+   FILE: sw.js
+   LINES: 58
+===================================================================== */
+
+const CACHE_NAME = 'student-hub-v2'; // Поменяли версию кэша
+
+const ASSETS = [
+    './',
+    './index.html',
+    './css/variables.css',
+    './css/style.css',
+    './css/views/schedule.css',
+    './css/views/group.css',
+    './css/views/homework.css',
+    './css/views/events.css',
+    './js/app.js',
+    './js/router.js',
+    './data/bells.json',
+    './data/schedule.json',
+    './data/students.json'
+];
+
+self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Заставляем SW обновиться сразу
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    );
+});
+
+self.addEventListener('activate', (event) => {
+    // Удаляем старые кэши при обновлении версии
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+});
+
+// Стратегия: NETWORK FIRST (Сначала сеть, если нет инета - берем из кэша)
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        fetch(event.request)
+            .then(response => {
+                // Если запрос успешен, кладем свежую копию в кэш
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                    cache.put(event.request, responseClone);
+                });
+                return response;
+            })
+            .catch(() => {
+                // Если интернета нет, достаем из кэша
+                return caches.match(event.request);
+            })
+    );
+});
+
+/* =====================================================================
+   FILE: css/style.css
+   LINES: 104
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/style.css
+===================================================================== */
+html { scrollbar-width: none; }
+
+* {
+    margin: 0; padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+body {
+    -ms-overflow-style: none;
+    font-family: var(--font-main);
+    background-color: var(--color-night);
+    color: var(--text-primary);
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+/* ИСПРАВЛЕНИЕ: Аппаратное ускорение (GPU) для моментальной отрисовки */
+.ambient-glow {
+    position: fixed; 
+    top: -20vh; 
+    left: 50%;
+    /* translate3d заставляет браузер использовать видеокарту */
+    transform: translate3d(-50%, 0, 0);
+    width: 120vw; 
+    height: 70vh;
+    /* Градиент стал мягче сам по себе, чтобы снизить нагрузку на фильтр */
+    background: radial-gradient(ellipse at 50% 50%, rgba(147, 0, 46, 0.4) 0%, rgba(147, 0, 46, 0.1) 45%, transparent 70%);
+    filter: blur(40px); 
+    z-index: -1;
+    pointer-events: none; 
+    will-change: transform, opacity;
+}
+
+.app-container {
+    max-width: 600px; margin: 0 auto; min-height: 100vh; position: relative;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom));
+}
+
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+}
+
+.app-header {
+    position: sticky; top: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: calc(16px + env(safe-area-inset-top)) var(--spacing-main) 16px;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    border-top: none; z-index: 100;
+}
+
+.app-header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.5px; }
+
+.icon-btn { background: none; border: none; color: var(--text-primary); cursor: pointer; padding: 8px; display: flex; }
+
+main { padding: var(--spacing-main); }
+
+.fade-in { animation: fadeIn var(--transition-smooth) forwards; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Скелетоны для загрузки */
+@keyframes skeleton-loading {
+    0% { background-color: rgba(255, 255, 255, 0.05); }
+    50% { background-color: rgba(255, 255, 255, 0.12); }
+    100% { background-color: rgba(255, 255, 255, 0.05); }
+}
+
+.skeleton {
+    animation: skeleton-loading 1.5s infinite ease-in-out;
+    border-radius: var(--radius-md);
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 568px;
+    display: flex; justify-content: space-around;
+    padding: 12px 0; border-radius: 30px; z-index: 100;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    text-decoration: none; color: var(--text-secondary);
+    font-size: 0.65rem; font-weight: 500;
+    transition: color var(--transition-fast); width: 25%;
+}
+
+.nav-item svg { margin-bottom: 4px; transition: transform var(--transition-fast), stroke var(--transition-fast); }
+.nav-item.active { color: var(--color-burgundy); }
+.nav-item.active svg { transform: translateY(-2px); stroke: var(--color-burgundy); }
+
+.placeholder-card { background: var(--color-night-light); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; border: var(--glass-border); }
+
+/* =====================================================================
+   FILE: css/variables.css
+   LINES: 33
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/variables.css
+===================================================================== */
+:root {
+    /* Цветовая палитра */
+    --color-night: #151515;          
+    --color-night-light: #1e1e1e;    
+    --color-burgundy: #93002E;       
+    --color-burgundy-glow: rgba(147, 0, 46, 0.4);
+    
+    /* Улучшенный контраст для текстов (WCAG AA) */
+    --color-burgundy-text: #FF4D7D; 
+    
+    /* Тексты (улучшена читаемость muted текста) */
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --text-muted: rgba(255, 255, 255, 0.55);
+
+    /* Эффекты стекла */
+    --glass-bg: rgba(30, 30, 32, 0.65);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(20px);
+
+    /* Типографика и отступы */
+    --font-main: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --spacing-main: 16px;
+
+    /* Переходы */
+    --transition-fast: 0.2s ease;
+    --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* =====================================================================
+   FILE: css/views/events.css
+   LINES: 43
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/views/events.css
+===================================================================== */
+.events-list { display: grid; gap: 16px; }
+.event-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); overflow: hidden; position: relative; }
+
+/* ИСПРАВЛЕНИЕ: Увеличили высоту картинки со 140px до 220px */
+.event-image { height: 220px; background: rgba(0,0,0,0.5); position: relative; display: flex; align-items: center; justify-content: center; }
+.event-image img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+
+/* ИСПРАВЛЕНИЕ: Более плавный градиент. Сверху прозрачный, снизу плавно уходит в цвет карточки */
+.event-image-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(30,30,32,0) 40%, rgba(30,30,32,1) 100%); z-index: 2; }
+
+.event-date-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); padding: 6px 12px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); z-index: 3; }
+.event-date-badge .day { font-size: 0.85rem; font-weight: 600; color: #fff; line-height: 1; text-transform: uppercase; }
+
+.event-body { padding: 16px; position: relative; z-index: 3; }
+.event-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 6px; }
+.event-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4; }
+
+.event-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; }
+/* Выравнивание текста и иконок */
+.event-footer span { display: flex; align-items: center; gap: 6px; }
+
+.event-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: rgba(147, 0, 46, 0.15);
+    color: var(--color-burgundy-text);
+    text-align: center;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid rgba(147, 0, 46, 0.4);
+    transition: all var(--transition-fast);
+}
+
+.event-btn:active {
+    background: var(--color-burgundy);
+    color: #fff;
+    transform: scale(0.98);
+}
+
+/* =====================================================================
+   FILE: css/views/group.css
+   LINES: 15
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/views/group.css
+===================================================================== */
+.group-stats { display: flex; justify-content: space-between; background: var(--glass-bg); border: var(--glass-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 0.9rem; color: var(--text-secondary); }
+.group-stats span strong { color: var(--text-primary); font-size: 1.1rem; }
+.students-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
+.student-card { display: flex; align-items: center; background: var(--glass-bg); border: var(--glass-border); padding: 12px 16px; border-radius: var(--radius-md); gap: 16px; transition: transform var(--transition-fast); }
+.student-card:active { transform: scale(0.98); }
+.student-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; color: #fff; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.student-info { flex-grow: 1; overflow: hidden; }
+.student-name { font-weight: 600; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; }
+.student-role { font-size: 0.65rem; background: var(--color-burgundy); color: #fff; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.student-nickname { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+.student-tg-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(33, 150, 243, 0.1); color: #2196F3; border-radius: 50%; text-decoration: none; transition: all var(--transition-fast); flex-shrink: 0; }
+.student-tg-btn:hover { background: #2196F3; color: #fff; }
+
+/* =====================================================================
+   FILE: css/views/homework.css
+   LINES: 36
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/views/homework.css
+===================================================================== */
+.hw-container { animation: fadeIn 0.3s ease; }
+
+/* Шапка с кнопкой Назад (для страницы истории) */
+.hw-history-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.hw-back-btn { background: rgba(255,255,255,0.05); border: var(--glass-border); color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition-fast); }
+.hw-back-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+.hw-history-title { display: flex; flex-direction: column; }
+.hw-history-title h2 { font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
+.hw-history-title span { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Карточка предмета */
+.hw-subject-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+.hw-subject-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
+.hw-subject-name { font-size: 1.1rem; font-weight: 600; color: var(--color-burgundy-text); line-height: 1.2; }
+.hw-teacher-name { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Кнопка "Все задания" */
+.hw-show-all-btn { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary); padding: 10px 16px; border-radius: var(--radius-md); font-size: 0.85rem; font-family: inherit; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); width: 100%; margin-top: 4px; }
+.hw-show-all-btn:active { background: rgba(255,255,255,0.08); transform: scale(0.98); }
+
+/* Сама карточка задания (с чекбоксом) */
+.hw-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
+.hw-card { display: flex; gap: 16px; align-items: flex-start; padding: 12px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); border: 1px solid transparent; transition: all var(--transition-fast); }
+.hw-card.history-item { background: var(--glass-bg); border: var(--glass-border); }
+.hw-checkbox { width: 24px; height: 24px; border: 2px solid var(--text-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; margin-top: 2px; }
+.hw-checkbox.checked { background: var(--color-burgundy); border-color: var(--color-burgundy); }
+.hw-checkbox svg { opacity: 0; transform: scale(0.5); transition: all 0.2s; }
+.hw-checkbox.checked svg { opacity: 1; transform: scale(1); }
+
+.hw-content { flex-grow: 1; }
+.hw-task { font-size: 0.95rem; color: var(--text-primary); line-height: 1.4; margin-bottom: 8px; }
+.hw-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+.hw-card.completed .hw-task { color: var(--text-muted); text-decoration: line-through; }
+
+/* =====================================================================
+   FILE: css/views/schedule.css
+   LINES: 44
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/views/schedule.css
+===================================================================== */
+.live-widget { background: linear-gradient(145deg, rgba(30, 30, 32, 0.8) 0%, rgba(20, 20, 22, 0.9) 100%); border: 1px solid var(--color-burgundy); box-shadow: 0 0 20px var(--color-burgundy-glow); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden; }
+.live-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.live-status { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-burgundy-text); font-weight: 700; }
+.live-time { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.live-subject { font-size: 1.1rem; margin-bottom: 16px; color: var(--text-secondary); }
+.progress-track { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; transform: translateZ(0); }
+.progress-fill { height: 100%; background: var(--color-burgundy); width: 0%; border-radius: 4px; transition: width 1s linear; }
+
+.schedule-controls-container { display: flex; flex-direction: column; }
+.days-wrapper { margin: 0 calc(var(--spacing-main) * -1) 16px; padding: 0 var(--spacing-main); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.days-wrapper::-webkit-scrollbar { display: none; }
+
+/* Улучшенная адаптивность кнопок дней */
+.days-group { display: flex; gap: 8px; width: 100%; padding-bottom: 8px; }
+.day-tab { flex: 1; text-align: center; background: var(--color-night-light); border: var(--glass-border); color: var(--text-secondary); padding: 10px 0 12px; border-radius: var(--radius-md); font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: all var(--transition-fast); position: relative; }
+.day-tab.active { background: var(--color-burgundy); color: #fff; border-color: transparent; box-shadow: 0 4px 12px var(--color-burgundy-glow); }
+.day-tab.today::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: var(--color-burgundy); border-radius: 2px; }
+.day-tab.today.active::after { background: #fff; box-shadow: 0 1px 6px rgba(255, 255, 255, 0.6); }
+
+.segmented-control { display: flex; position: relative; background: rgba(255, 255, 255, 0.05); border: var(--glass-border); border-radius: var(--radius-md); padding: 4px; width: 100%; height: 46px; margin-bottom: 24px; animation: fadeIn 0.3s ease; }
+.segment-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--color-burgundy); border-radius: calc(var(--radius-md) - 2px); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 12px var(--color-burgundy-glow); }
+.segmented-control[data-active="actual"] .segment-slider { transform: translateX(100%); }
+.segment-btn { flex: 1; border: none; background: transparent; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; transition: color 0.3s ease; font-family: inherit; }
+.segment-btn.active { color: #fff; }
+
+.schedule-list { display: flex; flex-direction: column; gap: 12px; list-style: none; transition: opacity var(--transition-fast); }
+.schedule-list.updating { opacity: 0.5; pointer-events: none; }
+.pair-card { display: flex; background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; transition: transform var(--transition-fast), border-color 0.3s; }
+.pair-time { min-width: 75px; border-right: 1px solid rgba(255, 255, 255, 0.1); padding-right: 12px; margin-right: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+.pair-time .number { font-size: 1.1rem; font-weight: 700; color: var(--color-burgundy-text); }
+.pair-time .hours { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.pair-info { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
+.lesson-row { display: flex; align-items: center; justify-content: space-between; }
+.lesson-details { display: flex; flex-direction: column; }
+.lesson-num { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.pair-subject { font-weight: 500; font-size: 0.95rem; line-height: 1.3; }
+.pair-room { font-size: 0.75rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; text-align: right; }
+.lesson-divider { height: 1px; background: rgba(255, 255, 255, 0.05); width: 100%; }
+
+.pair-card.past { opacity: 0.5; }
+.pair-card.current { border-color: var(--color-burgundy); background: rgba(147, 0, 46, 0.05); }
+
+/* =====================================================================
+   FILE: data/bells.json
+   LINES: 38
+===================================================================== */
+
+[
+  { 
+    "pair": 1, 
+    "start": "08:30", "end": "10:05",
+    "lesson1": { "start": "08:30", "end": "09:15" },
+    "lesson2": { "start": "09:20", "end": "10:05" }
+  },
+  { 
+    "pair": 2, 
+    "start": "10:15", "end": "11:50",
+    "lesson1": { "start": "10:15", "end": "11:00" },
+    "lesson2": { "start": "11:05", "end": "11:50" }
+  },
+  { 
+    "pair": 3, 
+    "start": "12:20", "end": "13:55",
+    "lesson1": { "start": "12:20", "end": "13:05" },
+    "lesson2": { "start": "13:10", "end": "13:55" }
+  },
+  { 
+    "pair": 4, 
+    "start": "14:10", "end": "15:45",
+    "lesson1": { "start": "14:10", "end": "14:55" },
+    "lesson2": { "start": "15:00", "end": "15:45" }
+  },
+  { 
+    "pair": 5, 
+    "start": "16:00", "end": "17:35",
+    "lesson1": { "start": "16:00", "end": "16:45" },
+    "lesson2": { "start": "16:50", "end": "17:35" }
+  },
+  { 
+    "pair": 6, 
+    "start": "17:40", "end": "19:15",
+    "lesson1": { "start": "17:40", "end": "18:25" },
+    "lesson2": { "start": "18:30", "end": "19:15" }
+  }
+]
+
+/* =====================================================================
+   FILE: data/events.json
+   LINES: 22
+===================================================================== */
+
+[
+  {
+    "id": "clash_royale",
+    "title": "Клан Clash Royale",
+    "description": "",
+    "date": "Актуально",
+    "time": "24/7",
+    "location": "",
+    "image": "img/cr-clan.webp",
+    "link": "https://link.clashroyale.com/invite/clan/ru?tag=GRVJV2UR&token=x6cmxps6&platform=android"
+  },
+  {
+    "id": "volleyball",
+    "title": "Сбор на волейбол",
+    "description": "",
+    "date": "ПН и ЧТ",
+    "time": "19:00 - 21:00",
+    "location": "Сп. зал",
+    "image": "img/volleyball.webp",
+    "link": ""
+  }
+]
+
+/* =====================================================================
+   FILE: data/schedule.json
+   LINES: 38
+===================================================================== */
+
+{
+  "1": [
+    {
+      "pair": 1,
+      "lesson1": null,
+      "lesson2": { "subject": "Разговоры о важном", "room": "Актовый зал" }
+    },
+    { "pair": 2, "subject": "География", "room": "2/20" },
+    { "pair": 3, "subject": "Биология", "room": "1/22" },
+    { "pair": 4, "subject": "История", "room": "2/18" }
+  ],
+  "2": [
+    { "pair": 1, "subject": "Иностр. язык", "room": "2/16, 23" },
+    { "pair": 2, "subject": "Физкультура", "room": "Сп.зал" },
+    { "pair": 3, "subject": "Русский язык", "room": "1/17" },
+    { "pair": 4, "subject": "ОБЗР", "room": "1/19" }
+  ],
+  "3": [
+    { "pair": 1, "subject": "История", "room": "2/18" },
+    { "pair": 2, "subject": "Обществознание", "room": "метод" },
+    { "pair": 3, "subject": "Физика", "room": "1/16" },
+    { "pair": 4, "subject": "Математика", "room": "1/27" }
+  ],
+  "4": [
+    {
+      "pair": 1,
+      "lesson1": null,
+      "lesson2": { "subject": "Информатика", "room": "1/20" }
+    },
+    { "pair": 2, "subject": "Литература", "room": "1/17" },
+    { "pair": 3, "subject": "Математика", "room": "1/27" },
+    { "pair": 4, "subject": "Химия", "room": "1/22" }
+  ],
+  "5": [
+    { "pair": 1, "subject": "Информатика", "room": "1/20" },
+    { "pair": 2, "subject": "Математика", "room": "1/27" }
+  ]
+}
+
+/* =====================================================================
+   FILE: data/students.json
+   LINES: 30
+===================================================================== */
+
+[
+  { "id": 1, "name": "Авдеев Кирилл", "nickname": "h9vwe_78", "tg": "", "role": "", "avatar": "" },
+  { "id": 2, "name": "Ахмеров Сергей", "nickname": "Katsu", "tg": "", "role": "", "avatar": "" },
+  { "id": 3, "name": "Бебия Баграт", "nickname": "Bagerca", "tg": "", "role": "", "avatar": "" },
+  { "id": 4, "name": "Борисов Тимофей", "nickname": "Некто", "tg": "", "role": "", "avatar": "" },
+  { "id": 5, "name": "Григорьева Ангелина", "nickname": "xanax", "tg": "", "role": "", "avatar": "" },
+  { "id": 6, "name": "Евдокимов Ян", "nickname": "ян", "tg": "", "role": "", "avatar": "" },
+  { "id": 7, "name": "Ерофеев Михаил", "nickname": "Qnferenko", "tg": "", "role": "", "avatar": "" },
+  { "id": 8, "name": "Жаринов Александр", "nickname": "Саня", "tg": "", "role": "", "avatar": "" },
+  { "id": 9, "name": "Зайцева Виктория", "nickname": "𝕳𝖆𝖘𝖑)", "tg": "", "role": "", "avatar": "" },
+  { "id": 10, "name": "Иванов Алексей", "nickname": "Алексей", "tg": "", "role": "", "avatar": "" },
+  { "id": 11, "name": "Казаков Максим", "nickname": "YaPonchick", "tg": "", "role": "Староста", "avatar": "" },
+  { "id": 12, "name": "Калачев Александр", "nickname": "§Motokife§", "tg": "", "role": "", "avatar": "" },
+  { "id": 13, "name": "Коломин Никита", "nickname": "Чучхелка", "tg": "", "role": "Зам. старосты", "avatar": "" },
+  { "id": 14, "name": "Котовский Даниил", "nickname": "Sharks", "tg": "", "role": "", "avatar": "" },
+  { "id": 15, "name": "Красько Данила", "nickname": "🕊", "tg": "", "role": "", "avatar": "" },
+  { "id": 16, "name": "Мордвихин Алексей", "nickname": "Леша", "tg": "", "role": "", "avatar": "" },
+  { "id": 17, "name": "Москвин Матвей", "nickname": "SMERTY", "tg": "", "role": "", "avatar": "" },
+  { "id": 18, "name": "Нефедовский Максим", "nickname": "Максим", "tg": "", "role": "", "avatar": "" },
+  { "id": 19, "name": "Никольц Иван", "nickname": "Ванька", "tg": "", "role": "", "avatar": "" },
+  { "id": 20, "name": "Олейник Кирилл", "nickname": "Кирилл", "tg": "", "role": "", "avatar": "" },
+  { "id": 21, "name": "Павлов Дмитрий", "nickname": "Дима", "tg": "", "role": "", "avatar": "" },
+  { "id": 22, "name": "Павлов Никита", "nickname": "Никита", "tg": "", "role": "", "avatar": "" },
+  { "id": 23, "name": "Федин Андрей", "nickname": "Андрей", "tg": "", "role": "", "avatar": "" },
+  { "id": 24, "name": "Фролов Николай", "nickname": "Колябик", "tg": "", "role": "", "avatar": "" },
+  { "id": 25, "name": "Хмыков Кирилл", "nickname": "ШĒノノøV", "tg": "", "role": "", "avatar": "" },
+  { "id": 26, "name": "Чепрасов Иван", "nickname": "Ваня", "tg": "", "role": "", "avatar": "" },
+  { "id": 27, "name": "Шагалов Денис", "nickname": "sphinx", "tg": "", "role": "Зам. старосты", "avatar": "" },
+  { "id": 28, "name": "Щепелин Сергей", "nickname": "Trofi", "tg": "", "role": "", "avatar": "" }
+]
+
+/* =====================================================================
+   FILE: data/homework/09-2026.json
+   LINES: 29
+===================================================================== */
+
+{
+  "teachers": {
+    "Математика": "Иванова А.И.",
+    "Информатика": "Сидоров К.В.",
+    "Физика": "Петров В.В."
+  },
+  "tasks": [
+    {
+      "subject": "Математика",
+      "date": "24-09-2026",
+      "task": "Решить №145, 147 (стр 45). Подготовиться к тесту."
+    },
+    {
+      "subject": "Информатика",
+      "date": "23-09-2026",
+      "task": "Дописать практическую работу в Word."
+    },
+    {
+      "subject": "Физика",
+      "date": "22-09-2026",
+      "task": "Выучить формулы кинематики."
+    },
+    {
+      "subject": "Математика",
+      "date": "20-09-2026",
+      "task": "Выучить теорему Пифагора. Подготовиться к диктанту."
+    }
+  ]
+}
+
+/* =====================================================================
+   FILE: data/overrides/23-09-2026.json
+   LINES: 8
+===================================================================== */
+
+{
+  "id": "23-09-2026",
+  "lessons": [
+    { "pair": 1, "subject": "История", "room": "2/18" },
+    { "pair": 2, "subject": "Обществознание", "room": "метод" },
+    { "pair": 3, "subject": "Физика", "room": "1/16" }
+  ]
+}
+
+/* =====================================================================
+   FILE: data/overrides/24-09-2026.json
+   LINES: 9
+===================================================================== */
+
+{
+  "id": "24-09-2026",
+  "lessons": [
+    { "pair": 1, "subject": "ВПР: История", "room": "Неизвестно" },
+    { "pair": 2, "subject": "Литература", "room": "1/17" },
+    { "pair": 3, "subject": "География", "room": "2/20" },
+    { "pair": 4, "subject": "Химия", "room": "1/22" }
+  ]
+}
+
+/* =====================================================================
+   FILE: js/app.js
+   LINES: 22
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/app.js
+===================================================================== */
+import { Router } from './router.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        console.log('[App] Инициализация приложения...');
+        
+        // Регистрация Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('[ServiceWorker] Зарегистрирован:', reg.scope))
+                .catch(err => console.warn('[ServiceWorker] Ошибка регистрации:', err));
+        }
+
+        const router = new Router();
+        router.init();
+    } catch (error) {
+        console.error('[App Error] Критическая ошибка:', error);
+    }
+});
+
+/* =====================================================================
+   FILE: js/router.js
+   LINES: 70
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/router.js
+===================================================================== */
+import { ScheduleView } from './views/ScheduleView.js';
+import { GroupView } from './views/GroupView.js';
+import { HomeworkView } from './views/HomeworkView.js';
+import { EventsView } from './views/EventsView.js';
+
+export class Router {
+    constructor() {
+        this.contentContainer = document.getElementById('app-content');
+        this.pageTitle = document.getElementById('page-title');
+        this.navItems = document.querySelectorAll('.nav-item');
+        
+        // Инициализация Views
+        this.views = {
+            '/schedule': new ScheduleView(this.contentContainer),
+            '/group': new GroupView(this.contentContainer),
+            '/homework': new HomeworkView(this.contentContainer),
+            '/events': new EventsView(this.contentContainer)
+        };
+        
+        this.currentView = null;
+        window.addEventListener('hashchange', this.handleRoute.bind(this));
+    }
+
+    init() {
+        if (!window.location.hash) window.location.hash = '#/schedule';
+        else this.handleRoute();
+    }
+
+    async handleRoute() {
+        const path = window.location.hash.slice(1);
+        const view = this.views[path];
+
+        try {
+            this.contentContainer.classList.remove('fade-in');
+            
+            // Ждем завершения CSS анимации
+            await new Promise(res => setTimeout(res, 100));
+
+            if (this.currentView) {
+                this.currentView.unmount(); // Очистка таймеров и событий старой View
+            }
+
+            if (view) {
+                this.currentView = view;
+                await view.mount(); // Рендер новой View
+                this.updateNavUI(path);
+            } else {
+                window.location.hash = '#/schedule';
+            }
+            
+            this.contentContainer.classList.add('fade-in');
+        } catch (error) {
+            console.error(`[Router Error] Ошибка перехода на ${path}:`, error);
+        }
+    }
+
+    updateNavUI(currentPath) {
+        this.navItems.forEach(item => {
+            if (item.getAttribute('href').slice(1) === currentPath) {
+                item.classList.add('active');
+                this.pageTitle.textContent = item.getAttribute('data-title');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+}
+
+/* =====================================================================
+   FILE: js/services/api.js
+   LINES: 66
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/services/api.js
+===================================================================== */
+const cache = new Map();
+
+async function fetchJson(url, useCache = true, fetchOptions = {}) {
+    if (useCache && cache.has(url)) {
+        return cache.get(url);
+    }
+    
+    try {
+        const response = await fetch(url, fetchOptions);
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        
+        const data = await response.json();
+        if (useCache) cache.set(url, data);
+        
+        return data;
+    } catch (error) {
+        // Убрали warning, чтобы не засорять консоль, если файла за прошлый месяц нет
+        return null; 
+    }
+}
+
+export const ApiService = {
+    getBells: () => fetchJson('data/bells.json'),
+    getSchedule: () => fetchJson('data/schedule.json'),
+    getStudents: () => fetchJson('data/students.json'),
+    getEvents: () => fetchJson('data/events.json', true, { cache: 'no-cache' }),
+    
+    getOverride: (dateStr) => fetchJson(`data/overrides/${dateStr}.json`, true, { cache: 'no-cache' }),
+
+    // Умная загрузка ДЗ: берет текущий и прошлый месяц и склеивает их
+    getHomework: async () => {
+        const now = new Date();
+        
+        // Текущий месяц (например 09-2026)
+        const currM = String(now.getMonth() + 1).padStart(2, '0');
+        const currY = now.getFullYear();
+        
+        // Прошлый месяц (для страховки на стыке месяцев)
+        let prevM = now.getMonth(); 
+        let prevY = currY;
+        if (prevM === 0) { prevM = 12; prevY--; }
+        const prevMStr = String(prevM).padStart(2, '0');
+
+        const [currData, prevData] = await Promise.all([
+            fetchJson(`data/homework/${currM}-${currY}.json`, true, { cache: 'no-cache' }),
+            fetchJson(`data/homework/${prevMStr}-${prevY}.json`, true, { cache: 'no-cache' })
+        ]);
+
+        // Склеиваем словари учителей и массивы заданий
+        const combined = { teachers: {}, tasks: [] };
+        
+        if (prevData) {
+            Object.assign(combined.teachers, prevData.teachers);
+            combined.tasks.push(...prevData.tasks);
+        }
+        if (currData) {
+            Object.assign(combined.teachers, currData.teachers);
+            combined.tasks.push(...currData.tasks);
+        }
+
+        return combined;
+    }
+};
+
+/* =====================================================================
+   FILE: js/utils/time.js
+   LINES: 59
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/utils/time.js
+===================================================================== */
+export function parseTimeToMinutes(timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+}
+
+export function getDateStringForDay(targetDayNum) {
+    const now = new Date();
+    let currentDay = now.getDay();
+    if (currentDay === 0) currentDay = 7; // Вс = 7
+    
+    let diff = targetDayNum - currentDay;
+    
+    // ИСПРАВЛЕНИЕ: Если сегодня выходной (СБ, ВС), показываем расписание на следующую неделю.
+    if (currentDay > 5) {
+        diff += 7;
+    }
+    
+    const targetDate = new Date(now);
+    targetDate.setDate(now.getDate() + diff);
+    
+    const dd = String(targetDate.getDate()).padStart(2, '0');
+    const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = targetDate.getFullYear();
+    
+    return `${dd}-${mm}-${yyyy}`;
+}
+
+export function getCurrentScheduleStatus(bellsData) {
+    const now = new Date();
+    // Вычисляем общее количество секунд для максимально плавного прогресс-бара
+    const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    const currentMinutes = Math.floor(currentTotalSeconds / 60);
+
+    for (let i = 0; i < bellsData.length; i++) {
+        const bell = bellsData[i];
+        const startMins = parseTimeToMinutes(bell.start);
+        const endMins = parseTimeToMinutes(bell.end);
+        
+        const startSecs = startMins * 60;
+        const endSecs = endMins * 60;
+
+        if (currentTotalSeconds < startSecs) {
+            if (i === 0) return { status: 'before_classes', nextPair: bell, timeToNext: startMins - currentMinutes };
+            
+            const prevEndSecs = parseTimeToMinutes(bellsData[i - 1].end) * 60;
+            if (currentTotalSeconds >= prevEndSecs) return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes };
+        }
+
+        if (currentTotalSeconds >= startSecs && currentTotalSeconds <= endSecs) {
+            const progressPercent = ((currentTotalSeconds - startSecs) / (endSecs - startSecs)) * 100;
+            // Возвращаем точный процент и округленные минуты до конца
+            return { status: 'active', currentPair: bell, timeLeft: endMins - currentMinutes, progressPercent };
+        }
+    }
+    return { status: 'ended' };
+}
+
+/* =====================================================================
+   FILE: js/views/EventsView.js
+   LINES: 70
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/views/EventsView.js
+===================================================================== */
+import { ApiService } from '../services/api.js';
+
+export class EventsView {
+    constructor(container) {
+        this.container = container;
+    }
+
+    async mount() {
+        this.container.innerHTML = `
+            <div class="skeleton" style="height: 300px; width: 100%; margin-bottom: 16px;"></div>
+            <div class="skeleton" style="height: 250px; width: 100%;"></div>
+        `;
+        
+        try {
+            const events = await ApiService.getEvents();
+            
+            if (!events || events.length === 0) {
+                this.container.innerHTML = `<div class="placeholder-card" style="text-align: center; color: var(--text-muted)">Нет активных событий</div>`;
+                return;
+            }
+
+            this.container.innerHTML = `
+                <div class="events-list">
+                    ${events.map(ev => `
+                        <article class="event-card">
+                            <div class="event-image">
+                                ${ev.image ? `<img src="${ev.image}" alt="${ev.title}">` : ''}
+                                ${ev.image ? `<div class="event-image-overlay"></div>` : ''}
+                                <div class="event-date-badge">
+                                    <div class="day">${ev.date}</div>
+                                </div>
+                            </div>
+                            <div class="event-body">
+                                <h3 class="event-title">${ev.title}</h3>
+                                ${ev.description ? `<p class="event-desc">${ev.description}</p>` : ''}
+                                
+                                ${(ev.location || ev.time) ? `
+                                    <div class="event-footer">
+                                        ${ev.location ? `
+                                            <span>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                                ${ev.location}
+                                            </span>
+                                        ` : ''}
+                                        ${ev.time ? `
+                                            <span>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                                ${ev.time}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+                                ` : ''}
+
+                                ${ev.link ? `<a href="${ev.link}" target="_blank" class="event-btn">Подробнее / Вступить</a>` : ''}
+                            </div>
+                        </article>
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            console.error('[EventsView] Ошибка:', error);
+            this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки ивентов.</div>`;
+        }
+    }
+
+    unmount() {}
+}
+
+/* =====================================================================
+   FILE: js/views/GroupView.js
+   LINES: 66
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/views/GroupView.js
+===================================================================== */
+import { ApiService } from '../services/api.js';
+
+export class GroupView {
+    constructor(container) {
+        this.container = container;
+    }
+
+    async mount() {
+        this.container.innerHTML = `
+            <div class="skeleton" style="height: 60px; width: 100%; margin-bottom: 20px;"></div>
+            <div class="skeleton" style="height: 72px; width: 100%; margin-bottom: 12px;"></div>
+            <div class="skeleton" style="height: 72px; width: 100%; margin-bottom: 12px;"></div>
+            <div class="skeleton" style="height: 72px; width: 100%; margin-bottom: 12px;"></div>
+        `;
+        
+        try {
+            const students = await ApiService.getStudents();
+            if (!students) throw new Error("Нет данных");
+
+            const getGradient = (name) => {
+                const charCode = name.charCodeAt(0) + (name.charCodeAt(1) || 0);
+                const hue = charCode % 360;
+                return `linear-gradient(135deg, hsl(${hue}, 70%, 60%), hsl(${hue + 40}, 70%, 40%))`;
+            };
+
+            const html = students.map(st => {
+                const initial = st.name.charAt(0).toUpperCase();
+                
+                // Если картинка есть — показываем её, если нет — красивую букву
+                const avatar = !st.avatar ? 
+                    `<div class="student-avatar" style="background: ${getGradient(st.name)}">${initial}</div>` : 
+                    `<div class="student-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${st.name}"></div>`;
+                
+                // Кнопка ТГ появляется только если юзернейм заполнен
+                const tgBtn = st.tg ? `<a href="https://t.me/${st.tg}" target="_blank" class="student-tg-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></a>` : '';
+                const role = st.role ? `<span class="student-role">${st.role}</span>` : '';
+                
+                return `
+                    <li class="student-card">
+                        ${avatar}
+                        <div class="student-info">
+                            <div class="student-name">${st.name} ${role}</div>
+                            <div class="student-nickname">@${st.nickname}</div>
+                        </div>
+                        ${tgBtn}
+                    </li>`;
+            }).join('');
+
+            this.container.innerHTML = `
+                <section class="group-stats">
+                    <span>Всего: <strong>${students.length}</strong> чел.</span>
+                    <span>104к</span>
+                </section>
+                <ul class="students-list">${html}</ul>
+            `;
+        } catch (error) {
+            console.error('[GroupView] Ошибка:', error);
+            this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки списка.</div>`;
+        }
+    }
+
+    unmount() {} 
+}
+
+/* =====================================================================
+   FILE: js/views/HomeworkView.js
+   LINES: 196
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/views/HomeworkView.js
+===================================================================== */
+import { ApiService } from '../services/api.js';
+
+const triggerHaptic = () => {
+    if (navigator.vibrate) navigator.vibrate(20);
+};
+
+export class HomeworkView {
+    constructor(container) {
+        this.container = container;
+        this.storageKey = 'sh_homework_state';
+        this.groupedData = {}; 
+    }
+
+    parseDateStr(dateStr) {
+        const [d, m, y] = dateStr.split('-');
+        return new Date(y, m - 1, d).getTime();
+    }
+
+    async mount() {
+        this.container.innerHTML = `
+            <div class="skeleton" style="height: 150px; width: 100%; margin-bottom: 16px;"></div>
+            <div class="skeleton" style="height: 150px; width: 100%;"></div>
+        `;
+        
+        try {
+            const hwData = await ApiService.getHomework();
+            
+            // Проверка на пустоту (если нет массива tasks или он пуст)
+            if (!hwData || !hwData.tasks || hwData.tasks.length === 0) {
+                this.container.innerHTML = `<div class="placeholder-card" style="text-align: center; color: var(--text-muted)">Домашки пока нет 🎉</div>`;
+                return;
+            }
+
+            const savedState = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+            
+            // Преобразуем данные: подставляем учителя и создаем авто-ID
+            const processedTasks = hwData.tasks.map(item => {
+                // Генерируем уникальный ID для галочки: "Математика_24-09-2026"
+                const uniqueId = `${item.subject}_${item.date}`;
+                
+                return {
+                    ...item,
+                    id: uniqueId,
+                    teacher: hwData.teachers[item.subject] || 'Преподаватель не указан',
+                    done: savedState[uniqueId] || false
+                };
+            });
+
+            this.groupedData = processedTasks.reduce((acc, item) => {
+                if (!acc[item.subject]) acc[item.subject] = [];
+                acc[item.subject].push(item);
+                return acc;
+            }, {});
+
+            for (let subject in this.groupedData) {
+                this.groupedData[subject].sort((a, b) => this.parseDateStr(b.date) - this.parseDateStr(a.date));
+            }
+
+            this.renderMainList();
+
+        } catch (error) {
+            console.error('[HomeworkView] Ошибка:', error);
+            this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки ДЗ.</div>`;
+        }
+    }
+
+    renderMainList() {
+        let html = '<div class="hw-container">';
+        
+        for (let subject in this.groupedData) {
+            const tasks = this.groupedData[subject];
+            const latestTask = tasks[0]; 
+            const teacher = latestTask.teacher;
+            
+            html += `
+                <div class="hw-subject-card">
+                    <div class="hw-subject-header">
+                        <div>
+                            <div class="hw-subject-name">${subject}</div>
+                            <div class="hw-teacher-name">${teacher}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hw-card ${latestTask.done ? 'completed' : ''}" data-id="${latestTask.id}">
+                        <div class="hw-checkbox ${latestTask.done ? 'checked' : ''}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div class="hw-content">
+                            <div class="hw-task">${latestTask.task}</div>
+                            <div class="hw-meta">
+                                <span>Задано: ${latestTask.date}</span>
+                            </div>
+                        </div>
+                    </div>
+            `;
+
+            if (tasks.length > 1) {
+                html += `
+                    <button class="hw-show-all-btn" data-subject="${subject}">
+                        Все задания (${tasks.length})
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                `;
+            }
+            
+            html += `</div>`;
+        }
+        
+        html += '</div>';
+        this.container.innerHTML = html;
+        this.bindEvents('main');
+    }
+
+    renderSubjectHistory(subject) {
+        const tasks = this.groupedData[subject];
+        const teacher = tasks[0].teacher;
+
+        let html = `
+            <div class="hw-container">
+                <div class="hw-history-header">
+                    <button class="hw-back-btn" id="hw-back-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <div class="hw-history-title">
+                        <h2>${subject}</h2>
+                        <span>${teacher}</span>
+                    </div>
+                </div>
+                <div class="hw-list">
+        `;
+
+        tasks.forEach(task => {
+            html += `
+                <div class="hw-card history-item ${task.done ? 'completed' : ''}" data-id="${task.id}">
+                    <div class="hw-checkbox ${task.done ? 'checked' : ''}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <div class="hw-content">
+                        <div class="hw-task">${task.task}</div>
+                        <div class="hw-meta">
+                            <span>Задано: ${task.date}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+        this.container.innerHTML = html;
+        this.bindEvents('history');
+    }
+
+    bindEvents(viewType) {
+        this.container.querySelectorAll('.hw-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                triggerHaptic();
+                const isCompleted = card.classList.toggle('completed');
+                card.querySelector('.hw-checkbox').classList.toggle('checked');
+                
+                const hwId = card.getAttribute('data-id');
+                this.updateStorage(hwId, isCompleted);
+            });
+        });
+
+        if (viewType === 'main') {
+            this.container.querySelectorAll('.hw-show-all-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    triggerHaptic();
+                    const subject = e.currentTarget.getAttribute('data-subject');
+                    this.renderSubjectHistory(subject);
+                });
+            });
+        } else if (viewType === 'history') {
+            document.getElementById('hw-back-btn').addEventListener('click', () => {
+                triggerHaptic();
+                this.renderMainList();
+            });
+        }
+    }
+
+    updateStorage(id, isCompleted) {
+        const currentState = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+        currentState[id] = isCompleted;
+        localStorage.setItem(this.storageKey, JSON.stringify(currentState));
+        
+        for (let subj in this.groupedData) {
+            const task = this.groupedData[subj].find(t => t.id === id);
+            if (task) task.done = isCompleted;
+        }
+    }
+
+    unmount() {}
+}
+
+/* =====================================================================
+   FILE: js/views/ScheduleView.js
+   LINES: 374
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/views/ScheduleView.js
+===================================================================== */
+import { ApiService } from '../services/api.js';
+import { getCurrentScheduleStatus, getDateStringForDay, parseTimeToMinutes } from '../utils/time.js';
+
+const triggerHaptic = () => {
+    if (navigator.vibrate) navigator.vibrate(30);
+};
+
+export class ScheduleView {
+    constructor(container) {
+        this.container = container;
+        this.liveTimerId = null;
+        this.state = {
+            bells: [], base: {}, currentDayNum: 1, selectedDay: 1,
+            selectedDayOverride: null, todayOverride: null, showActual: true
+        };
+    }
+
+    async mount() {
+        this.container.innerHTML = `
+            <div class="skeleton" style="height: 120px; width: 100%; margin-bottom: 24px;"></div>
+            <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 24px;"></div>
+            <div class="skeleton" style="height: 80px; width: 100%; margin-bottom: 12px;"></div>
+            <div class="skeleton" style="height: 80px; width: 100%;"></div>
+        `;
+        
+        try {
+            const [bells, baseSchedule] = await Promise.all([
+                ApiService.getBells(),
+                ApiService.getSchedule()
+            ]);
+
+            this.state.bells = bells || [];
+            this.state.base = baseSchedule || {};
+            
+            const currentDayReal = new Date().getDay();
+            this.state.currentDayNum = (currentDayReal >= 1 && currentDayReal <= 5) ? currentDayReal : 1;
+            this.state.selectedDay = this.state.currentDayNum;
+
+            const todayStr = getDateStringForDay(this.state.currentDayNum);
+            this.state.todayOverride = await ApiService.getOverride(todayStr);
+
+            this.renderLayout();
+            this.bindEvents();
+            await this.loadSelectedDayData();
+            this.fullRenderUI();
+
+            this.liveTimerId = setInterval(() => this.refreshLiveState(), 1000);
+        } catch (error) {
+            console.error('[ScheduleView] Ошибка монтирования:', error);
+            this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки расписания.</div>`;
+        }
+    }
+
+    unmount() {
+        if (this.liveTimerId) {
+            clearInterval(this.liveTimerId);
+            this.liveTimerId = null;
+        }
+    }
+
+    renderLayout() {
+        this.container.innerHTML = `
+            <section id="live-widget-container"></section>
+            
+            <div class="schedule-controls-container">
+                <nav class="days-wrapper">
+                    <div class="days-group" role="tablist">
+                        ${[1,2,3,4,5].map(d => `
+                            <button class="day-tab ${this.state.selectedDay === d ? 'active' : ''} ${this.state.currentDayNum === d ? 'today' : ''}" 
+                                    data-day="${d}" role="tab">
+                                ${['ПН','ВТ','СР','ЧТ','ПТ'][d-1]}
+                            </button>
+                        `).join('')}
+                    </div>
+                </nav>
+
+                <div class="segmented-control" id="schedule-toggle-container" data-active="actual" style="display: none;">
+                    <div class="segment-slider"></div>
+                    <button class="segment-btn" data-type="base">Обычное</button>
+                    <button class="segment-btn active" data-type="actual">Фактическое</button>
+                </div>
+            </div>
+
+            <ul id="schedule-list" class="schedule-list"></ul>
+        `;
+    }
+
+    bindEvents() {
+        this.container.querySelectorAll('.day-tab').forEach(tab => {
+            tab.addEventListener('click', async (e) => {
+                triggerHaptic();
+                this.container.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+                const target = e.currentTarget;
+                target.classList.add('active');
+                
+                const listContainer = document.getElementById('schedule-list');
+                listContainer.classList.add('updating');
+
+                this.state.selectedDay = parseInt(target.getAttribute('data-day'));
+                await this.loadSelectedDayData();
+                this.fullRenderUI();
+                
+                setTimeout(() => listContainer.classList.remove('updating'), 150);
+            });
+        });
+
+        this.container.querySelectorAll('.segment-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                triggerHaptic();
+                if (!this.state.selectedDayOverride) return;
+                this.state.showActual = e.currentTarget.dataset.type === 'actual';
+                this.fullRenderUI();
+            });
+        });
+    }
+
+    async loadSelectedDayData() {
+        const dateStr = getDateStringForDay(this.state.selectedDay);
+        this.state.selectedDayOverride = await ApiService.getOverride(dateStr);
+        this.state.showActual = !!this.state.selectedDayOverride;
+    }
+
+    fullRenderUI() {
+        const { selectedDayOverride, showActual, selectedDay, base, bells } = this.state;
+        const toggleContainer = document.getElementById('schedule-toggle-container');
+        
+        if (selectedDayOverride) {
+            toggleContainer.style.display = 'flex';
+            toggleContainer.setAttribute('data-active', showActual ? 'actual' : 'base');
+            
+            this.container.querySelectorAll('.segment-btn').forEach(btn => {
+                btn.classList.toggle('active', 
+                    (btn.dataset.type === 'actual' && showActual) || 
+                    (btn.dataset.type === 'base' && !showActual)
+                );
+            });
+        } else {
+            toggleContainer.style.display = 'none';
+        }
+
+        const listData = (showActual && selectedDayOverride) ? selectedDayOverride.lessons : (base[selectedDay] || []);
+        
+        this.generateListDOM(listData, bells);
+        this.updateLiveWidget();
+        this.refreshLiveState();
+    }
+
+    generateListDOM(dayScheduleArray, bellsData) {
+        const listContainer = document.getElementById('schedule-list');
+        if (!dayScheduleArray || dayScheduleArray.length === 0) {
+            listContainer.innerHTML = `<li class="placeholder-card" style="text-align:center; list-style:none; color: var(--text-muted)">Пар нет</li>`;
+            return;
+        }
+
+        listContainer.innerHTML = dayScheduleArray.map(pairItem => {
+            const bell = bellsData.find(b => b.pair === pairItem.pair);
+            const l1Time = bell?.lesson1 ? `${bell.lesson1.start} - ${bell.lesson1.end}` : '';
+            const l2Time = bell?.lesson2 ? `${bell.lesson2.start} - ${bell.lesson2.end}` : '';
+
+            const hasL1 = pairItem.lesson1 !== null;
+            const l1Subj = pairItem.lesson1 ? pairItem.lesson1.subject : (pairItem.subject || '');
+            const l1Room = pairItem.lesson1 ? pairItem.lesson1.room : (pairItem.room || '');
+
+            const hasL2 = pairItem.lesson2 !== null;
+            const l2Subj = pairItem.lesson2 ? pairItem.lesson2.subject : (pairItem.subject || '');
+            const l2Room = pairItem.lesson2 ? pairItem.lesson2.room : (pairItem.room || '');
+
+            const l1Html = hasL1 ? `
+                <div class="lesson-row">
+                    <div class="lesson-details">
+                        <span class="lesson-num">Урок ${pairItem.pair * 2 - 1} &bull; ${l1Time}</span>
+                        <span class="pair-subject">${l1Subj}</span>
+                    </div>
+                    ${l1Room ? `<span class="pair-room">${l1Room}</span>` : ''}
+                </div>
+            ` : `
+                <div class="lesson-row" style="opacity: 0.4;">
+                    <div class="lesson-details">
+                        <span class="lesson-num">Урок ${pairItem.pair * 2 - 1} &bull; ${l1Time}</span>
+                        <span class="pair-subject" style="font-style: italic;">Ко 2-му уроку (окно)</span>
+                    </div>
+                </div>
+            `;
+
+            const l2Html = hasL2 ? `
+                <div class="lesson-row">
+                    <div class="lesson-details">
+                        <span class="lesson-num">Урок ${pairItem.pair * 2} &bull; ${l2Time}</span>
+                        <span class="pair-subject">${l2Subj}</span>
+                    </div>
+                    ${l2Room ? `<span class="pair-room">${l2Room}</span>` : ''}
+                </div>
+            ` : `
+                <div class="lesson-row" style="opacity: 0.4;">
+                    <div class="lesson-details">
+                        <span class="lesson-num">Урок ${pairItem.pair * 2} &bull; ${l2Time}</span>
+                        <span class="pair-subject" style="font-style: italic;">Урока нет</span>
+                    </div>
+                </div>
+            `;
+
+            return `
+                <li class="pair-card" data-pair="${pairItem.pair}">
+                    <div class="pair-time">
+                        <div class="number">${pairItem.pair} пара</div>
+                        <div class="hours">${bell ? `${bell.start} - ${bell.end}` : ''}</div>
+                    </div>
+                    <div class="pair-info">
+                        ${l1Html}
+                        <div class="lesson-divider"></div>
+                        ${l2Html}
+                    </div>
+                </li>
+            `;
+        }).join('');
+    }
+
+    getSmartStatus() {
+        let status = getCurrentScheduleStatus(this.state.bells);
+        const todaySchedule = this.state.todayOverride ? this.state.todayOverride.lessons : (this.state.base[this.state.currentDayNum] || []);
+        
+        if (todaySchedule.length === 0) {
+            return { status: 'no_classes' };
+        }
+
+        const maxPair = Math.max(...todaySchedule.map(l => l.pair));
+
+        if ((status.status === 'active' && status.currentPair.pair > maxPair) || 
+            (status.status === 'break' && status.nextPair.pair > maxPair)) {
+            return { status: 'ended' };
+        }
+
+        if (status.status === 'active') {
+             const currentPairData = todaySchedule.find(l => l.pair === status.currentPair.pair);
+             if (!currentPairData) {
+                 return { ...status, status: 'window' };
+             }
+        }
+
+        return status;
+    }
+
+    updateLiveWidget() {
+        const container = document.getElementById('live-widget-container');
+        if (!container) return;
+
+        const currentDayReal = new Date().getDay();
+        if (currentDayReal === 0 || currentDayReal === 6) {
+            container.innerHTML = `
+                <article class="live-widget" style="border-color: rgba(255,255,255,0.1); box-shadow: none;">
+                    <div class="live-subject" style="margin:0; text-align:center;">Выходной</div>
+                </article>`;
+            return;
+        }
+
+        const status = this.getSmartStatus();
+        const todaySchedule = this.state.todayOverride ? this.state.todayOverride.lessons : (this.state.base[this.state.currentDayNum] || []);
+
+        if (status.status === 'no_classes') {
+            container.innerHTML = `
+                <article class="live-widget" style="border-color: #4CAF50; box-shadow: 0 0 15px rgba(76, 175, 80, 0.1);">
+                    <div class="live-subject" style="margin: 0; text-align: center; color: #4CAF50;">Пар нет</div>
+                </article>`;
+        } else if (status.status === 'ended') {
+            container.innerHTML = `
+                <article class="live-widget" style="border-color: #4CAF50; box-shadow: 0 0 15px rgba(76, 175, 80, 0.1);">
+                    <div class="live-subject" style="margin: 0; text-align: center; color: #4CAF50;">Пары закончились</div>
+                </article>`;
+        } else if (status.status === 'window') {
+            container.innerHTML = `
+                <article class="live-widget" style="border-color: rgba(255,255,255,0.1); box-shadow: none; opacity: 0.8;">
+                    <div class="live-header">
+                        <span class="live-status" style="color: var(--text-muted);">Окно (Свободная пара)</span>
+                        <span class="live-time" id="widget-time">${status.timeLeft} мин</span>
+                    </div>
+                    <div class="live-subject" style="margin:0;">Свободное время</div>
+                    <div class="progress-track" style="margin-top: 16px;">
+                        <div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: rgba(255,255,255,0.2);"></div>
+                    </div>
+                </article>`;
+        } else if (status.status === 'active') {
+            const currentPairData = todaySchedule.find(l => l.pair === status.currentPair.pair);
+            let subjectName = currentPairData.subject || 'Урок';
+
+            if (currentPairData.lesson1 !== undefined || currentPairData.lesson2 !== undefined) {
+                const now = new Date();
+                const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                const l1End = parseTimeToMinutes(status.currentPair.lesson1.end);
+
+                if (currentMinutes <= l1End) {
+                    subjectName = currentPairData.lesson1 ? currentPairData.lesson1.subject : 'Ко 2-му уроку (окно)';
+                } else {
+                    subjectName = currentPairData.lesson2 ? currentPairData.lesson2.subject : 'Урока нет';
+                }
+            }
+
+            container.innerHTML = `
+                <article class="live-widget">
+                    <div class="live-header">
+                        <span class="live-status">Идет ${status.currentPair.pair} пара</span>
+                        <span class="live-time" id="widget-time">${status.timeLeft} мин</span>
+                    </div>
+                    <div class="live-subject">${subjectName}</div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%"></div>
+                    </div>
+                </article>`;
+        } else if (status.status === 'break') {
+            let nextSubj = `Пара ${status.nextPair.pair}`;
+            const nextPairData = todaySchedule.find(l => l.pair >= status.nextPair.pair);
+            
+            if (nextPairData) {
+                if (nextPairData.lesson1 || nextPairData.lesson2) {
+                    nextSubj = nextPairData.lesson1 ? nextPairData.lesson1.subject : nextPairData.lesson2.subject;
+                } else {
+                    nextSubj = nextPairData.subject;
+                }
+            }
+
+            container.innerHTML = `
+                <article class="live-widget" style="border-color: #2196F3; box-shadow: 0 0 15px rgba(33, 150, 243, 0.2);">
+                    <div class="live-header">
+                        <span class="live-status" style="color: #2196F3;">Перемена</span>
+                        <span class="live-time" id="widget-time">${status.timeToNext} мин</span>
+                    </div>
+                    <div class="live-subject" style="margin:0;">След: ${nextSubj}</div>
+                </article>`;
+        } else {
+            container.innerHTML = `
+                <article class="live-widget" style="border-color: rgba(255,255,255,0.2); box-shadow: none;">
+                    <div class="live-header">
+                        <span class="live-status" style="color: #fff;">До начала занятий</span>
+                        <span class="live-time" id="widget-time">${status.timeToNext} мин</span>
+                    </div>
+                </article>`;
+        }
+    }
+
+    refreshLiveState() {
+        if (new Date().getDay() === 0 || new Date().getDay() === 6) return;
+        
+        const status = this.getSmartStatus();
+        const timeEl = document.getElementById('widget-time');
+        const progressEl = document.getElementById('widget-progress');
+        
+        if (timeEl) {
+            timeEl.textContent = (status.status === 'active' || status.status === 'window') ? `${status.timeLeft} мин` : `${status.timeToNext} мин`;
+        }
+        if (progressEl && (status.status === 'active' || status.status === 'window')) {
+            progressEl.style.width = `${status.progressPercent}%`;
+        }
+
+        if ((status.status === 'active' && !progressEl) || 
+            (status.status === 'break' && progressEl) || 
+            (status.status === 'ended' && timeEl) ||
+            (status.status === 'window' && (!progressEl || progressEl.style.background !== 'rgba(255, 255, 255, 0.2)'))) {
+            this.updateLiveWidget();
+        }
+
+        if (this.state.selectedDay === this.state.currentDayNum) {
+            document.querySelectorAll('.pair-card').forEach(card => {
+                const pNum = parseInt(card.getAttribute('data-pair'));
+                card.classList.remove('current', 'past');
+
+                if ((status.status === 'active' || status.status === 'window') && status.currentPair.pair === pNum) card.classList.add('current');
+                else if ((status.status === 'active' || status.status === 'window') && pNum < status.currentPair.pair) card.classList.add('past');
+                else if (status.status === 'ended' || (status.status === 'break' && pNum < status.nextPair.pair)) card.classList.add('past');
+            });
+        }
+    }
+}

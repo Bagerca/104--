@@ -1,0 +1,38 @@
+{
+  "1": [
+    {
+      "pair": 1,
+      "lesson1": null,
+      "lesson2": { "subject": "Разговоры о важном", "room": "Актовый зал" }
+    },
+    { "pair": 2, "subject": "География", "room": "2/20" },
+    { "pair": 3, "subject": "Биология", "room": "1/22" },
+    { "pair": 4, "subject": "История", "room": "2/18" }
+  ],
+  "2": [
+    { "pair": 1, "subject": "Иностр. язык", "room": "2/16, 23" },
+    { "pair": 2, "subject": "Физкультура", "room": "Сп.зал" },
+    { "pair": 3, "subject": "Русский язык", "room": "1/17" },
+    { "pair": 4, "subject": "ОБЗР", "room": "1/19" }
+  ],
+  "3": [
+    { "pair": 1, "subject": "История", "room": "2/18" },
+    { "pair": 2, "subject": "Обществознание", "room": "метод" },
+    { "pair": 3, "subject": "Физика", "room": "1/16" },
+    { "pair": 4, "subject": "Математика", "room": "1/27" }
+  ],
+  "4": [
+    {
+      "pair": 1,
+      "lesson1": null,
+      "lesson2": { "subject": "Информатика", "room": "1/20" }
+    },
+    { "pair": 2, "subject": "Литература", "room": "1/17" },
+    { "pair": 3, "subject": "Математика", "room": "1/27" },
+    { "pair": 4, "subject": "Химия", "room": "1/22" }
+  ],
+  "5": [
+    { "pair": 1, "subject": "Информатика", "room": "1/20" },
+    { "pair": 2, "subject": "Математика", "room": "1/27" }
+  ]
+}
