@@ -1,14 +1,11 @@
 /* =====================================================================
    FILE: js/utils/theme.js
-   ОПТИМИЗАЦИЯ: Де-хардкод. Цвета Favicon и Meta-тегов читаются из CSS-переменных
+   ОПТИМИЗАЦИЯ: Оптимизирован рендеринг частиц (DocumentFragment)
 ===================================================================== */
 import { PrefsManager } from './prefs.js';
 
 export const ThemeManager = {
-    storageKey: 'sh_theme',
-    customStorageKey: 'sh_custom_theme',
-    
-    // Цвета (color, bg) тут нужны ТОЛЬКО для отрисовки кружков превью в Настройках
+    storageKey: 'sh_theme', customStorageKey: 'sh_custom_theme',
     baseThemes: [
         { id: 'burgundy', name: 'Бордовая (Dark)', color: '#93002E', bg: '#151515' },
         { id: 'monochrome', name: 'Black & White', color: '#ffffff', bg: '#0a0a0a' },
@@ -19,12 +16,10 @@ export const ThemeManager = {
         { id: 'factory-orange', name: 'Factory Orange', color: '#FF5E00', bg: '#1E2032' },
         { id: 'deep-blue', name: 'Deep Blue', color: '#2374E1', bg: '#02203c' }
     ],
-
     seasonalThemes: {
         'halloween': { id: 'halloween', name: 'Halloween', color: '#F86903', bg: '#110300', start: {m: 10, d: 24}, end: {m: 11, d: 7} },
         'new-year': { id: 'new-year', name: 'Новый Год', color: '#00E5FF', bg: '#070B19', start: {m: 12, d: 20}, end: {m: 1, d: 10} }
     },
-
     icons: {
         'default': {
             'schedule': '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
@@ -49,15 +44,10 @@ export const ThemeManager = {
     getCurrentSeason() {
         const d = new Date();
         const current = (d.getMonth() + 1) * 100 + d.getDate(); 
-
         for (const [key, season] of Object.entries(this.seasonalThemes)) {
-            const s = season.start.m * 100 + season.start.d;
-            const e = season.end.m * 100 + season.end.d;
-            if (s <= e) {
-                if (current >= s && current <= e) return key;
-            } else {
-                if (current >= s || current <= e) return key;
-            }
+            const s = season.start.m * 100 + season.start.d, e = season.end.m * 100 + season.end.d;
+            if (s <= e) { if (current >= s && current <= e) return key; } 
+            else { if (current >= s || current <= e) return key; }
         }
         return null;
     },
@@ -82,47 +72,29 @@ export const ThemeManager = {
     },
 
     generateFavicon(accentHex, bgHex) {
-        const svg = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                <rect width="512" height="512" fill="${bgHex}"/>
-                <circle cx="256" cy="256" r="180" fill="${accentHex}" opacity="0.8"/>
-                <path d="M256 24 L448 109 L448 311 C448 417 256 498 256 498 C256 498 64 417 64 311 L64 109 Z" fill="${bgHex}" stroke="${accentHex}" stroke-width="24" stroke-linejoin="round"/>
-                <text x="256" y="405" font-family="system-ui, sans-serif" font-weight="900" font-size="420" fill="#fff" text-anchor="middle">4</text>
-            </svg>
-        `;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="${bgHex}"/><circle cx="256" cy="256" r="180" fill="${accentHex}" opacity="0.8"/><path d="M256 24 L448 109 L448 311 C448 417 256 498 256 498 C256 498 64 417 64 311 L64 109 Z" fill="${bgHex}" stroke="${accentHex}" stroke-width="24" stroke-linejoin="round"/><text x="256" y="405" font-family="system-ui, sans-serif" font-weight="900" font-size="420" fill="#fff" text-anchor="middle">4</text></svg>`;
         const encodedSvg = encodeURIComponent(svg.trim());
-        
         let link = document.querySelector("link[rel*='icon']");
-        if (!link) {
-            link = document.createElement('link');
-            link.rel = 'icon';
-            document.head.appendChild(link);
-        }
-        link.type = 'image/svg+xml';
-        link.href = `data:image/svg+xml,${encodedSvg}`;
+        if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+        link.type = 'image/svg+xml'; link.href = `data:image/svg+xml,${encodedSvg}`;
     },
 
     init() {
         const currentSeason = this.getCurrentSeason();
         const savedThemeId = localStorage.getItem(this.storageKey);
-
         if (currentSeason) {
-            const year = new Date().getFullYear();
-            const appliedKey = `sh_season_applied_${currentSeason}_${year}`;
-            
+            const appliedKey = `sh_season_applied_${currentSeason}_${new Date().getFullYear()}`;
             if (!localStorage.getItem(appliedKey)) {
                 localStorage.setItem(appliedKey, 'true');
                 this.setTheme(currentSeason);
                 return;
             }
         } 
-        
         this.setTheme(savedThemeId || 'burgundy');
     },
 
     setTheme(themeId) {
         const root = document.documentElement;
-
         if (themeId === 'custom') {
             const customData = this.getCustomTheme();
             root.removeAttribute('data-theme');
@@ -139,19 +111,14 @@ export const ThemeManager = {
             root.setAttribute('data-theme', tObj.id);
             themeId = tObj.id; 
         }
-
         localStorage.setItem(this.storageKey, themeId);
-        
-        // Ждем 1 кадр, чтобы CSS применился к document.documentElement
         requestAnimationFrame(() => {
             const computedStyle = getComputedStyle(root);
             const actualBg = computedStyle.getPropertyValue('--theme-bg-main').trim();
             const actualAccent = computedStyle.getPropertyValue('--theme-accent').trim();
-            
             this.updateMetaColor(actualBg);
             this.generateFavicon(actualAccent, actualBg);
         });
-
         this.applySeasonalEffects(themeId);
     },
 
@@ -162,12 +129,11 @@ export const ThemeManager = {
             container.id = 'seasonal-fx-container';
             document.body.appendChild(container);
         }
-        
         container.innerHTML = '';
         
         const prefs = PrefsManager.getPrefs();
-
         if (prefs.particles) {
+            const frag = document.createDocumentFragment();
             if (themeId === 'halloween') {
                 for (let i = 0; i < 15; i++) {
                     const el = document.createElement('div');
@@ -175,27 +141,27 @@ export const ThemeManager = {
                     el.style.left = `${Math.random() * 100}vw`;
                     el.style.animationDuration = `${3 + Math.random() * 4}s`;
                     el.style.animationDelay = `${Math.random() * 2}s`;
-                    container.appendChild(el);
+                    frag.appendChild(el);
                 }
             } else if (themeId === 'new-year') {
                 for (let i = 0; i < 20; i++) {
                     const el = document.createElement('div');
                     el.className = 'new-year-snow';
                     el.style.left = `${Math.random() * 100}vw`;
-                    el.style.animationDuration = `${4 + Math.random() * 6}s, 2s`;
-                    el.style.animationDelay = `${Math.random() * 5}s, 0s`;
-                    container.appendChild(el);
+                    // Добавляем случайную задержку для уникальности амплитуды (translate3d)
+                    el.style.animationDuration = `${4 + Math.random() * 6}s, 3s`;
+                    el.style.animationDelay = `${Math.random() * 5}s, ${Math.random() * 2}s`;
+                    frag.appendChild(el);
                 }
             }
+            container.appendChild(frag);
         }
 
         const iconSet = this.icons[themeId] ? this.icons[themeId] : this.icons['default'];
         document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
             const href = item.getAttribute('href').slice(2); 
             const svgEl = item.querySelector('svg');
-            if (svgEl && iconSet[href]) {
-                svgEl.innerHTML = iconSet[href];
-            }
+            if (svgEl && iconSet[href]) svgEl.innerHTML = iconSet[href];
         });
     },
 
@@ -203,28 +169,16 @@ export const ThemeManager = {
         let metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) metaThemeColor.setAttribute('content', colorHex);
     },
-
     saveCustomTheme(bgHex, accentHex) {
         localStorage.setItem(this.customStorageKey, JSON.stringify({ bg: bgHex, accent: accentHex }));
         this.setTheme('custom');
     },
-
-    getCustomTheme() {
-        return JSON.parse(localStorage.getItem(this.customStorageKey) || '{"bg":"#151515", "accent":"#ffffff"}');
-    },
-
-    getCurrent() {
-        return localStorage.getItem(this.storageKey) || 'burgundy';
-    },
-
+    getCustomTheme() { return JSON.parse(localStorage.getItem(this.customStorageKey) || '{"bg":"#151515", "accent":"#ffffff"}'); },
+    getCurrent() { return localStorage.getItem(this.storageKey) || 'burgundy'; },
     getThemes() {
         let available = [...this.baseThemes];
-        const isAdmin = PrefsManager.isAdmin();
-
         for (const key in this.seasonalThemes) {
-            if (isAdmin || this.getCurrentSeason() === key) {
-                available.push(this.seasonalThemes[key]);
-            }
+            if (PrefsManager.isAdmin() || this.getCurrentSeason() === key) available.push(this.seasonalThemes[key]);
         }
         return available;
     }

@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: js/views/ScheduleView.js
-   ОПТИМИЗАЦИЯ: Внедрен Dirty Checking, formatMinutes и премиум-дизайн виджета.
+   ОПТИМИЗАЦИЯ: Внедрены свайпы Touch Events, Dirty Checking, formatMinutes
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { getCurrentScheduleStatus, getDateStringForDay, parseTimeToMinutes, formatMinutes } from '../utils/time.js';
@@ -10,22 +10,16 @@ export class ScheduleView {
     constructor(container) {
         this.container = container;
         this.liveTimerId = null;
-        
-        // Кэшированные элементы DOM для быстрых обновлений без querySelector
-        this.cached = {
-            widgetContainer: null,
-            timeEl: null,
-            progressEl: null,
-            pairCards: []
-        };
-        
-        // Сигнатура текущего состояния виджета, чтобы не перерисовывать его зря
+        this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null; 
-        
         this.state = {
             bells: [], base: {}, currentDayNum: 1, selectedDay: 1,
             selectedDayOverride: null, todayOverride: null, showActual: true
         };
+        
+        // Переменные для свайпов
+        this.touchStartX = 0;
+        this.touchEndX = 0;
     }
 
     async mount() {
@@ -33,7 +27,6 @@ export class ScheduleView {
             <div class="skeleton" style="height: 120px; width: 100%; margin-bottom: 24px;"></div>
             <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 24px;"></div>
             <div class="skeleton" style="height: 80px; width: 100%; margin-bottom: 12px;"></div>
-            <div class="skeleton" style="height: 80px; width: 100%;"></div>
         `;
         
         try {
@@ -54,23 +47,19 @@ export class ScheduleView {
 
             this.renderLayout();
             this.bindEvents();
+            this.bindSwipeEvents();
             await this.loadSelectedDayData();
             this.fullRenderUI();
 
-            // Таймер 1 сек, логика внутри оптимизирована (Dirty Checking)
             this.liveTimerId = setInterval(() => this.refreshLiveState(), 1000);
         } catch (error) {
-            console.error('[ScheduleView] Ошибка монтирования:', error);
+            console.error('[ScheduleView] Ошибка:', error);
             this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки расписания.</div>`;
         }
     }
 
     unmount() {
-        if (this.liveTimerId) {
-            clearInterval(this.liveTimerId);
-            this.liveTimerId = null;
-        }
-        // Очищаем кэш ссылок на DOM для предотвращения утечек памяти
+        if (this.liveTimerId) clearInterval(this.liveTimerId);
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null;
     }
@@ -83,8 +72,7 @@ export class ScheduleView {
                 <nav class="days-wrapper">
                     <div class="days-group" role="tablist">
                         ${[1,2,3,4,5].map(d => `
-                            <button class="day-tab ${this.state.selectedDay === d ? 'active' : ''} ${this.state.currentDayNum === d ? 'today' : ''}" 
-                                    data-day="${d}" role="tab">
+                            <button class="day-tab ${this.state.selectedDay === d ? 'active' : ''} ${this.state.currentDayNum === d ? 'today' : ''}" data-day="${d}">
                                 ${['ПН','ВТ','СР','ЧТ','ПТ'][d-1]}
                             </button>
                         `).join('')}
@@ -100,27 +88,66 @@ export class ScheduleView {
 
             <ul id="schedule-list" class="schedule-list"></ul>
         `;
-        
-        // Кэшируем контейнер виджета один раз
         this.cached.widgetContainer = document.getElementById('live-widget-container');
+    }
+
+    async changeDay(newDay, direction) {
+        if (newDay < 1 || newDay > 5 || newDay === this.state.selectedDay) return;
+        
+        PrefsManager.vibrate(15);
+        this.state.selectedDay = newDay;
+
+        // Обновляем UI кнопок
+        this.container.querySelectorAll('.day-tab').forEach(t => {
+            t.classList.toggle('active', parseInt(t.getAttribute('data-day')) === newDay);
+        });
+
+        // Анимация ухода старого списка
+        const listContainer = document.getElementById('schedule-list');
+        listContainer.classList.add('updating');
+
+        await this.loadSelectedDayData();
+        this.fullRenderUI();
+
+        // Анимация прихода нового списка (слайд)
+        listContainer.classList.remove('slide-left', 'slide-right');
+        void listContainer.offsetWidth; // Force reflow
+        listContainer.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
+        listContainer.classList.remove('updating');
+    }
+
+    bindSwipeEvents() {
+        const area = document.getElementById('schedule-list'); // Свайпаем только по списку
+        
+        area.addEventListener('touchstart', e => {
+            this.touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        area.addEventListener('touchend', e => {
+            this.touchEndX = e.changedTouches[0].screenX;
+            this.handleSwipe();
+        }, { passive: true });
+    }
+
+    handleSwipe() {
+        const threshold = 50; 
+        const swipeDist = this.touchEndX - this.touchStartX;
+        
+        if (swipeDist < -threshold) {
+            // Свайп ВЛЕВО -> Следующий день
+            this.changeDay(this.state.selectedDay + 1, 'right'); 
+        } else if (swipeDist > threshold) {
+            // Свайп ВПРАВО -> Предыдущий день
+            this.changeDay(this.state.selectedDay - 1, 'left');
+        }
     }
 
     bindEvents() {
         this.container.querySelectorAll('.day-tab').forEach(tab => {
-            tab.addEventListener('click', async (e) => {
-                PrefsManager.vibrate();
-                this.container.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
-                const target = e.currentTarget;
-                target.classList.add('active');
-                
-                const listContainer = document.getElementById('schedule-list');
-                listContainer.classList.add('updating');
-
-                this.state.selectedDay = parseInt(target.getAttribute('data-day'));
-                await this.loadSelectedDayData();
-                this.fullRenderUI();
-                
-                setTimeout(() => listContainer.classList.remove('updating'), 150);
+            tab.addEventListener('click', (e) => {
+                const targetDay = parseInt(e.currentTarget.getAttribute('data-day'));
+                const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
+                this.changeDay(targetDay, direction);
             });
         });
 
@@ -147,22 +174,16 @@ export class ScheduleView {
         if (selectedDayOverride) {
             toggleContainer.style.display = 'flex';
             toggleContainer.setAttribute('data-active', showActual ? 'actual' : 'base');
-            
             this.container.querySelectorAll('.segment-btn').forEach(btn => {
-                btn.classList.toggle('active', 
-                    (btn.dataset.type === 'actual' && showActual) || 
-                    (btn.dataset.type === 'base' && !showActual)
-                );
+                btn.classList.toggle('active', (btn.dataset.type === 'actual' && showActual) || (btn.dataset.type === 'base' && !showActual));
             });
         } else {
             toggleContainer.style.display = 'none';
         }
 
         const listData = (showActual && selectedDayOverride) ? selectedDayOverride.lessons : (base[selectedDay] || []);
-        
         this.generateListDOM(listData, bells);
         
-        // Принудительный сброс стейта виджета для его перерисовки при смене дня
         this.currentWidgetState = null; 
         this.refreshLiveState();
     }
@@ -171,12 +192,11 @@ export class ScheduleView {
         const listContainer = document.getElementById('schedule-list');
         if (!dayScheduleArray || dayScheduleArray.length === 0) {
             listContainer.innerHTML = `<li class="placeholder-card" style="text-align:center; list-style:none; color: var(--text-muted)">Пар нет</li>`;
-            this.cached.pairCards = []; // Обнуляем кэш
+            this.cached.pairCards = [];
             return;
         }
 
         const userSubgroup = PrefsManager.getPrefs().subgroup;
-
         const isSubjectVisible = (subjectName) => {
             if (!subjectName) return true; 
             const str = subjectName.toLowerCase();
@@ -189,7 +209,6 @@ export class ScheduleView {
             const bell = bellsData.find(b => b.pair === pairItem.pair);
             const l1Time = bell?.lesson1 ? `${bell.lesson1.start} - ${bell.lesson1.end}` : '';
             const l2Time = bell?.lesson2 ? `${bell.lesson2.start} - ${bell.lesson2.end}` : '';
-
             const l1Subj = pairItem.lesson1 ? pairItem.lesson1.subject : (pairItem.subject || '');
             const l2Subj = pairItem.lesson2 ? pairItem.lesson2.subject : (pairItem.subject || '');
 
@@ -199,39 +218,20 @@ export class ScheduleView {
             const l1Room = pairItem.lesson1 ? pairItem.lesson1.room : (pairItem.room || '');
             const l2Room = pairItem.lesson2 ? pairItem.lesson2.room : (pairItem.room || '');
 
-            const l1Html = hasL1 ? `
+            const renderRow = (hasLesson, num, time, subj, room) => hasLesson ? `
                 <div class="lesson-row">
                     <div class="lesson-details">
-                        <span class="lesson-num">Урок ${pairItem.pair * 2 - 1} &bull; ${l1Time}</span>
-                        <span class="pair-subject">${l1Subj}</span>
+                        <span class="lesson-num">Урок ${num} &bull; ${time}</span>
+                        <span class="pair-subject">${subj}</span>
                     </div>
-                    ${l1Room ? `<span class="pair-room">${l1Room}</span>` : ''}
-                </div>
-            ` : `
+                    ${room ? `<span class="pair-room">${room}</span>` : ''}
+                </div>` : `
                 <div class="lesson-row" style="opacity: 0.4;">
                     <div class="lesson-details">
-                        <span class="lesson-num">Урок ${pairItem.pair * 2 - 1} &bull; ${l1Time}</span>
+                        <span class="lesson-num">Урок ${num} &bull; ${time}</span>
                         <span class="pair-subject" style="font-style: italic;">Подгруппа отдыхает (Окно)</span>
                     </div>
-                </div>
-            `;
-
-            const l2Html = hasL2 ? `
-                <div class="lesson-row">
-                    <div class="lesson-details">
-                        <span class="lesson-num">Урок ${pairItem.pair * 2} &bull; ${l2Time}</span>
-                        <span class="pair-subject">${l2Subj}</span>
-                    </div>
-                    ${l2Room ? `<span class="pair-room">${l2Room}</span>` : ''}
-                </div>
-            ` : `
-                <div class="lesson-row" style="opacity: 0.4;">
-                    <div class="lesson-details">
-                        <span class="lesson-num">Урок ${pairItem.pair * 2} &bull; ${l2Time}</span>
-                        <span class="pair-subject" style="font-style: italic;">Подгруппа отдыхает (Окно)</span>
-                    </div>
-                </div>
-            `;
+                </div>`;
 
             return `
                 <li class="pair-card" data-pair="${pairItem.pair}">
@@ -240,15 +240,14 @@ export class ScheduleView {
                         <div class="hours">${bell ? `${bell.start} - ${bell.end}` : ''}</div>
                     </div>
                     <div class="pair-info">
-                        ${l1Html}
+                        ${renderRow(hasL1, pairItem.pair * 2 - 1, l1Time, l1Subj, l1Room)}
                         <div class="lesson-divider"></div>
-                        ${l2Html}
+                        ${renderRow(hasL2, pairItem.pair * 2, l2Time, l2Subj, l2Room)}
                     </div>
                 </li>
             `;
         }).join('');
         
-        // ЕДИНОРАЗОВОЕ кэширование списка пар для подсветки активной
         this.cached.pairCards = Array.from(listContainer.querySelectorAll('.pair-card'));
     }
 
@@ -256,149 +255,65 @@ export class ScheduleView {
         let status = getCurrentScheduleStatus(this.state.bells);
         const todaySchedule = this.state.todayOverride ? this.state.todayOverride.lessons : (this.state.base[this.state.currentDayNum] || []);
         
-        if (todaySchedule.length === 0) {
-            return { status: 'no_classes' };
-        }
-
+        if (todaySchedule.length === 0) return { status: 'no_classes' };
         const maxPair = Math.max(...todaySchedule.map(l => l.pair));
 
         if ((status.status === 'active' && status.currentPair.pair > maxPair) || 
-            (status.status === 'break' && status.nextPair.pair > maxPair)) {
-            return { status: 'ended' };
-        }
+            (status.status === 'break' && status.nextPair.pair > maxPair)) return { status: 'ended' };
 
         if (status.status === 'active') {
              const currentPairData = todaySchedule.find(l => l.pair === status.currentPair.pair);
-             if (!currentPairData) {
-                 return { ...status, status: 'window' };
-             }
-             // Пробрасываем данные о текущей паре
+             if (!currentPairData) return { ...status, status: 'window' };
              status.currentPairData = currentPairData;
         }
         
         if (status.status === 'break') {
             status.nextPairData = todaySchedule.find(l => l.pair >= status.nextPair.pair);
         }
-
         return status;
     }
 
     renderWidgetHTML(status) {
         if (!this.cached.widgetContainer) return;
         const currentDayReal = new Date().getDay();
-        
         if (currentDayReal === 0 || currentDayReal === 6) {
-            this.cached.widgetContainer.innerHTML = `
-                <article class="live-widget widget-idle">
-                    <div class="live-subject" style="margin:0; text-align:center;">Выходной</div>
-                </article>`;
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-subject" style="margin:0; text-align:center;">Выходной</div></article>`;
             return;
         }
 
-        if (status.status === 'no_classes') {
-            this.cached.widgetContainer.innerHTML = `
-                <article class="live-widget widget-success">
-                    <div class="live-status-group" style="justify-content: center;">
-                        <div class="pulse-dot"></div>
-                        <span class="live-status">Пар нет</span>
-                    </div>
-                </article>`;
-        } else if (status.status === 'ended') {
-            this.cached.widgetContainer.innerHTML = `
-                <article class="live-widget widget-success">
-                    <div class="live-status-group" style="justify-content: center;">
-                        <div class="pulse-dot"></div>
-                        <span class="live-status">Пары закончились</span>
-                    </div>
-                </article>`;
+        if (status.status === 'no_classes' || status.status === 'ended') {
+            const txt = status.status === 'ended' ? 'Пары закончились' : 'Пар нет';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-success"><div class="live-status-group" style="justify-content: center;"><div class="pulse-dot"></div><span class="live-status">${txt}</span></div></article>`;
         } else if (status.status === 'window') {
-            this.cached.widgetContainer.innerHTML = `
-                <article class="live-widget widget-idle">
-                    <div class="live-header">
-                        <div class="live-status-group">
-                            <div class="pulse-dot"></div>
-                            <span class="live-status">Окно (Свободно)</span>
-                        </div>
-                        <span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span>
-                    </div>
-                    <div class="live-subject" style="margin:0;">Свободное время</div>
-                    <div class="progress-track" style="margin-top: 16px;">
-                        <div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: var(--text-muted);"></div>
-                    </div>
-                </article>`;
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Окно (Свободно)</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject" style="margin:0;">Свободное время</div><div class="progress-track" style="margin-top: 16px;"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: var(--text-muted);"></div></div></article>`;
         } else if (status.status === 'active') {
             let subjectName = status.currentPairData.subject || 'Урок';
             if (status.currentPairData.lesson1 !== undefined || status.currentPairData.lesson2 !== undefined) {
                 const now = new Date();
                 const currentMinutes = now.getHours() * 60 + now.getMinutes();
                 const l1End = parseTimeToMinutes(status.currentPair.lesson1.end);
-                subjectName = (currentMinutes <= l1End) 
-                    ? (status.currentPairData.lesson1 ? status.currentPairData.lesson1.subject : 'Окно') 
-                    : (status.currentPairData.lesson2 ? status.currentPairData.lesson2.subject : 'Окно');
+                subjectName = (currentMinutes <= l1End) ? (status.currentPairData.lesson1 ? status.currentPairData.lesson1.subject : 'Окно') : (status.currentPairData.lesson2 ? status.currentPairData.lesson2.subject : 'Окно');
             }
-
-            this.cached.widgetContainer.innerHTML = `
-                <article class="live-widget widget-active">
-                    <div class="live-header">
-                        <div class="live-status-group">
-                            <div class="pulse-dot"></div>
-                            <span class="live-status">Идет ${status.currentPair.pair} пара</span>
-                        </div>
-                        <span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span>
-                    </div>
-                    <div class="live-subject">${subjectName}</div>
-                    <div class="progress-track">
-                        <div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%"></div>
-                    </div>
-                </article>`;
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-active"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Идет ${status.currentPair.pair} пара</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject">${subjectName}</div><div class="progress-track"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%"></div></div></article>`;
         } else if (status.status === 'break') {
             let nextSubj = `Пара ${status.nextPair.pair}`;
-            if (status.nextPairData) {
-                nextSubj = (status.nextPairData.lesson1 || status.nextPairData.lesson2) 
-                    ? (status.nextPairData.lesson1 ? status.nextPairData.lesson1.subject : status.nextPairData.lesson2.subject) 
-                    : status.nextPairData.subject;
-            }
-
-            this.cached.widgetContainer.innerHTML = `
-                <article class="live-widget widget-break">
-                    <div class="live-header">
-                        <div class="live-status-group">
-                            <div class="pulse-dot"></div>
-                            <span class="live-status">Перемена</span>
-                        </div>
-                        <span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span>
-                    </div>
-                    <div class="live-subject" style="margin:0;">След: ${nextSubj}</div>
-                </article>`;
+            if (status.nextPairData) nextSubj = (status.nextPairData.lesson1 || status.nextPairData.lesson2) ? (status.nextPairData.lesson1 ? status.nextPairData.lesson1.subject : status.nextPairData.lesson2.subject) : status.nextPairData.subject;
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div><div class="live-subject" style="margin:0;">След: ${nextSubj}</div></article>`;
         } else {
-            this.cached.widgetContainer.innerHTML = `
-                <article class="live-widget widget-idle">
-                    <div class="live-header">
-                        <div class="live-status-group">
-                            <div class="pulse-dot"></div>
-                            <span class="live-status">До начала занятий</span>
-                        </div>
-                        <span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span>
-                    </div>
-                </article>`;
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">До начала занятий</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div></article>`;
         }
-
-        // Обновляем ссылки на элементы внутри виджета ПОСЛЕ перерисовки
         this.cached.timeEl = document.getElementById('widget-time');
         this.cached.progressEl = document.getElementById('widget-progress');
     }
 
     refreshLiveState() {
         if (new Date().getDay() === 0 || new Date().getDay() === 6) return;
-        
         const status = this.getSmartStatus();
         
-        // Генерация уникальной подписи состояния (Например: "active_2" или "break_3")
         let stateSignature = status.status;
         if (status.currentPair) stateSignature += `_p${status.currentPair.pair}`;
         if (status.nextPair) stateSignature += `_n${status.nextPair.pair}`;
         
-        // Вычисляем номер текущего мини-урока (до перемены внутри пары) для точной сигнатуры
         if (status.status === 'active' && status.currentPairData && (status.currentPairData.lesson1 !== undefined || status.currentPairData.lesson2 !== undefined)) {
             const now = new Date();
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -406,53 +321,29 @@ export class ScheduleView {
             stateSignature += (currentMinutes <= l1End) ? '_L1' : '_L2';
         }
 
-        // DIRTY CHECKING: Если статус кардинально изменился - полностью перерисовываем HTML виджета
         if (this.currentWidgetState !== stateSignature) {
             this.renderWidgetHTML(status);
             this.currentWidgetState = stateSignature;
             this.updatePairCardsHighlight(status); 
-        } 
-        else {
-            // МИКРО-ОБНОВЛЕНИЕ: Если состояние то же самое, просто двигаем полоску и текст таймера
+        } else {
             if (this.cached.timeEl) {
                 const newTimeText = (status.status === 'active' || status.status === 'window') ? formatMinutes(status.timeLeft) : formatMinutes(status.timeToNext);
-                if (this.cached.timeEl.textContent !== newTimeText) {
-                    this.cached.timeEl.textContent = newTimeText;
-                }
+                if (this.cached.timeEl.textContent !== newTimeText) this.cached.timeEl.textContent = newTimeText;
             }
             if (this.cached.progressEl && (status.status === 'active' || status.status === 'window')) {
                 this.cached.progressEl.style.width = `${status.progressPercent}%`;
-            }
-        }
-
-        // Логика уведомления (выполняется 1 раз)
-        if (status.status === 'before_classes' && status.timeToNext === 30) {
-            const todayStr = getDateStringForDay(this.state.currentDayNum);
-            const notifiedKey = `sh_notified_${todayStr}`;
-            if (!localStorage.getItem(notifiedKey)) {
-                PrefsManager.sendLocalNotification('Скоро пара! 🎓', `Через 30 минут начнется ${status.nextPair.pair} пара.`);
-                localStorage.setItem(notifiedKey, 'true');
             }
         }
     }
 
     updatePairCardsHighlight(status) {
         if (this.state.selectedDay !== this.state.currentDayNum) return;
-        
-        // Используем кэшированный массив (нет обращения к DOM через querySelectorAll)
         this.cached.pairCards.forEach(card => {
             const pNum = parseInt(card.getAttribute('data-pair'));
             card.classList.remove('current', 'past');
-
-            if ((status.status === 'active' || status.status === 'window') && status.currentPair.pair === pNum) {
-                card.classList.add('current');
-            }
-            else if ((status.status === 'active' || status.status === 'window') && pNum < status.currentPair.pair) {
-                card.classList.add('past');
-            }
-            else if (status.status === 'ended' || (status.status === 'break' && pNum < status.nextPair.pair)) {
-                card.classList.add('past');
-            }
+            if ((status.status === 'active' || status.status === 'window') && status.currentPair.pair === pNum) card.classList.add('current');
+            else if ((status.status === 'active' || status.status === 'window') && pNum < status.currentPair.pair) card.classList.add('past');
+            else if (status.status === 'ended' || (status.status === 'break' && pNum < status.nextPair.pair)) card.classList.add('past');
         });
     }
 }

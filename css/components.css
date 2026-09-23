@@ -82,3 +82,47 @@
     object-fit: contain; 
     user-select: none; 
 }
+
+/* =====================================================================
+   АНИМАЦИИ СВАЙПОВ И TOAST (PWA OFFLINE)
+===================================================================== */
+.slide-left { animation: slideLeft 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+.slide-right { animation: slideRight 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+
+@keyframes slideLeft {
+    0% { opacity: 0; transform: translateX(30px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideRight {
+    0% { opacity: 0; transform: translateX(-30px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+.toast-notification {
+    position: fixed;
+    top: calc(16px + env(safe-area-inset-top));
+    left: 50%;
+    transform: translate(-50%, -20px);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    color: var(--text-primary);
+    padding: 12px 20px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: var(--z-modal);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.toast-notification.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+.toast-offline svg { color: #ff6b6b; }
+.toast-success svg { color: #4CAF50; }

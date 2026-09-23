@@ -1,21 +1,27 @@
 /* =====================================================================
    FILE: js/app.js
+   ОПТИМИЗАЦИЯ: Добавлен контроль сети (Offline Indicator)
 ===================================================================== */
 import { Router } from './router.js';
 import { ThemeManager } from './utils/theme.js';
 import { PrefsManager } from './utils/prefs.js';
+import { Toast } from './components/Toast.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        console.log('[App] Инициализация приложения...');
-        
         ThemeManager.init();
-        PrefsManager.applySettingsToDOM(); // Применяем обои и энергосбережение
+        PrefsManager.applySettingsToDOM(); 
         
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('[ServiceWorker] Зарегистрирован:', reg.scope))
-                .catch(err => console.warn('[ServiceWorker] Ошибка регистрации:', err));
+                .catch(err => console.warn('[SW] Ошибка:', err));
+        }
+
+        // Контроль сети
+        window.addEventListener('offline', () => Toast.show('Офлайн режим. Показаны сохраненные данные.', 'offline', 5000));
+        window.addEventListener('online', () => Toast.show('Соединение восстановлено', 'success', 3000));
+        if (!navigator.onLine) {
+            setTimeout(() => Toast.show('Офлайн режим. Показаны сохраненные данные.', 'offline', 5000), 1000);
         }
 
         const router = new Router();
