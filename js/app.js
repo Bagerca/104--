@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: js/app.js
-   ОПТИМИЗАЦИЯ: Добавлен контроль сети (Offline) и АВТО-ОБНОВЛЕНИЕ PWA
+   ОПТИМИЗАЦИЯ: Добавлен перехватчик секретных ссылок (NFC Admin)
 ===================================================================== */
 import { Router } from './router.js';
 import { ThemeManager } from './utils/theme.js';
@@ -11,22 +11,28 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         console.log('[App] Инициализация приложения...');
         
+        // --- 0. СЕКРЕТНАЯ ССЫЛКА ДЛЯ NFC (Временный Админ) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auth') === 'dev') {
+            PrefsManager.enableTempAdmin();
+            // Незаметно стираем ?auth=dev из адресной строки, чтобы друг ничего не понял
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash;
+            window.history.replaceState(null, '', cleanUrl);
+        }
+
         ThemeManager.init();
         PrefsManager.applySettingsToDOM(); 
         
-        // --- 1. РЕГИСТРАЦИЯ SERVICE WORKER И ПРОВЕРКА ОБНОВЛЕНИЙ ---
+        // --- 1. РЕГИСТРАЦИЯ SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js')
                 .then(reg => {
                     console.log('[SW] Зарегистрирован:', reg.scope);
                     
-                    // Слушаем процесс скачивания обновления
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
-                            // Если новая версия скачалась и готова к работе
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // Спрашиваем пользователя
                                 if (confirm('Доступна новая версия приложения! Обновить сейчас?')) {
                                     window.location.reload();
                                 }
@@ -36,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .catch(err => console.warn('[SW] Ошибка:', err));
 
-            // Защита от бесконечного цикла перезагрузок
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
@@ -46,27 +51,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- 2. ИНДИКАТОР ОФЛАЙНА ---
-        window.addEventListener('offline', () => Toast.show('Офлайн режим. Показаны сохраненные данные.', 'offline', 5000));
-        window.addEventListener('online', () => Toast.show('Соединение восстановлено', 'success', 3000));
-        if (!navigator.onLine) {
-            setTimeout(() => Toast.show('Офлайн режим. Показаны сохраненные данные.', 'offline', 5000), 1000);
-        }
-
-        // --- 3. ЭФФЕКТ EDGE-TO-EDGE ДЛЯ ШАПКИ ---
-        const header = document.querySelector('.app-header');
-        window.addEventListener('scroll', () => {
-            if (!header) return;
-            if (window.scrollY > 10) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        }, { passive: true });
-
-        // --- 4. ЗАПУСК РОУТЕРА ---
+        // --- 2. ЗАПУСК РОУТЕРА ---
         const router = new Router();
         router.init();
+
+        // --- 3. ИНДИКАТОР ОФЛАЙНА ---
+        window.addEventListener('offline', () => {
+            Toast.show('Офлайн режим. Показаны сохраненные данные.', 'offline', 5000);
+        });
+        window.addEventListener('online', () => {
+            Toast.show('Соединение восстановлено', 'success', 3000);
+        });
+        
+        setTimeout(() => {
+            if (!navigator.onLine) {
+                Toast.show('Офлайн режим. Показаны сохраненные данные.', 'offline', 5000);
+            }
+        }, 1500);
+
     } catch (error) {
         console.error('[App Error] Критическая ошибка:', error);
     }

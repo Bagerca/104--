@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: css/style.css
-   ОПТИМИЗАЦИЯ: Edge-to-Edge дизайн шапки, GPU-частицы
+   ОПТИМИЗАЦИЯ: Edge-to-Edge дизайн, постоянная стеклянная шапка, GPU-частицы
 ===================================================================== */
 html { scrollbar-width: none; }
 
@@ -49,32 +49,41 @@ body {
     border: var(--glass-border);
 }
 
-/* Эффект "от края до края" (Edge-to-Edge) */
+/* Статичная стеклянная шапка под статус-бар */
 .app-header {
     position: sticky; top: 0;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: calc(16px + env(safe-area-inset-top)) var(--spacing-main) 16px;
+    display: flex; justify-content: space-between; align-items: flex-end; 
+    padding: max(20px, calc(16px + env(safe-area-inset-top))) var(--spacing-main) 16px;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
+    
+    /* Возвращаем постоянный фон и рамки стекла */
+    background: var(--glass-bg);
+    border: var(--glass-border);
+    border-top: none; 
+    
     z-index: var(--z-header);
     min-height: calc(60px + env(safe-area-inset-top));
-    
-    /* Прозрачный старт, стекло включается через JS класс .scrolled */
-    background: transparent;
-    border-bottom: 1px solid transparent; 
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    
+    /* Фикс багов iOS */
+    transform: translateZ(0); 
 }
 
-/* Класс добавляется JS-ом при скролле (эффект Telegram) */
-.app-header.scrolled {
-    background: var(--glass-bg);
-    border-bottom: var(--glass-border);
+.app-header h1 { 
+    font-size: 1.25rem; 
+    font-weight: 600; 
+    letter-spacing: 0.5px; 
+    line-height: 1; 
+    margin-bottom: 2px;
 }
 
-.app-header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.5px; }
-
-.icon-btn { background: none; border: none; color: var(--text-primary); cursor: pointer; padding: 8px; display: flex; }
+.icon-btn { 
+    background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; 
+    padding: 16px;  
+    margin: -16px;  
+    border-radius: 50%;
+}
 
 main { padding: var(--spacing-main); }
 
@@ -134,7 +143,7 @@ main { padding: var(--spacing-main); }
    РЕЖИМ ЭНЕРГОСБЕРЕЖЕНИЯ
 ===================================================================== */
 body.power-save-mode .glass,
-body.power-save-mode .app-header.scrolled {
+body.power-save-mode .app-header {
     background: var(--theme-bg-secondary);
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: none;

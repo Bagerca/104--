@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: js/utils/prefs.js
-   ОПТИМИЗАЦИЯ: Использование WebP для обоев и строгий Try-Catch
+   ОПТИМИЗАЦИЯ: Добавлена система временного доступа (Session Admin)
 ===================================================================== */
 export const PrefsManager = {
     storageKey: 'sh_preferences',
@@ -31,14 +31,23 @@ export const PrefsManager = {
         this.savePrefs(prefs);
     },
 
-    isAdmin() {
-        return localStorage.getItem(this.adminKey) === 'true';
+    // Включаем временную админку (живет до закрытия вкладки)
+    enableTempAdmin() {
+        sessionStorage.setItem('sh_temp_admin', 'true');
     },
 
+    // Админ ли пользователь? (Либо навсегда через 5 тапов, либо временно по ссылке)
+    isAdmin() {
+        const isPerm = localStorage.getItem(this.adminKey) === 'true';
+        const isTemp = sessionStorage.getItem('sh_temp_admin') === 'true';
+        return isPerm || isTemp;
+    },
+
+    // 5 тапов меняют только постоянную настройку
     toggleAdmin() {
-        const isAdm = this.isAdmin();
-        localStorage.setItem(this.adminKey, isAdm ? 'false' : 'true');
-        return !isAdm;
+        const isPerm = localStorage.getItem(this.adminKey) === 'true';
+        localStorage.setItem(this.adminKey, !isPerm ? 'true' : 'false');
+        return !isPerm;
     },
 
     vibrate(ms = 20) {
@@ -48,7 +57,6 @@ export const PrefsManager = {
         }
     },
 
-    // ОПТИМИЗАЦИЯ ОБОЕВ: WebP формат и жесткий контроль лимита
     saveWallpaper(file, callback) {
         if (!file) return;
         const reader = new FileReader();
@@ -57,7 +65,7 @@ export const PrefsManager = {
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                const MAX_WIDTH = 1080; // Достаточно для фона смартфона
+                const MAX_WIDTH = 1080; 
                 let width = img.width, height = img.height;
                 
                 if (width > MAX_WIDTH) {
@@ -68,7 +76,6 @@ export const PrefsManager = {
                 canvas.width = width; canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Используем webp для максимального сжатия (качество 60%)
                 const base64 = canvas.toDataURL('image/webp', 0.6); 
                 try {
                     localStorage.setItem(this.wallpaperKey, base64);
@@ -77,7 +84,7 @@ export const PrefsManager = {
                 } catch (err) {
                     console.error('[Prefs] Ошибка сохранения обоев:', err);
                     this.clearWallpaper();
-                    alert('Файл слишком большой или память браузера переполнена. Попробуйте картинку меньшего размера.');
+                    alert('Файл слишком большой или память браузера переполнена.');
                     callback(false);
                 }
             };
@@ -92,9 +99,7 @@ export const PrefsManager = {
     },
 
     async requestNotificationPermission() {
-        if (!('Notification' in window)) {
-            return false;
-        }
+        if (!('Notification' in window)) return false;
         const permission = await Notification.requestPermission();
         return permission === 'granted';
     },

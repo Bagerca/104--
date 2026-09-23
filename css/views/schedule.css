@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: css/views/schedule.css
-   ПРЕМИУМ ДИЗАЙН: Мягкие рамки, индикаторы Live Activity
+   ПРЕМИУМ ДИЗАЙН: Мягкие рамки, индикаторы Live Activity, Компактные отступы
 ===================================================================== */
 .live-widget { 
     background: var(--glass-bg); 
@@ -49,17 +49,33 @@
 .progress-track { width: 100%; height: 6px; background: var(--overlay-bg-active); border-radius: 4px; overflow: hidden; transform: translateZ(0); }
 .progress-fill { height: 100%; background: var(--theme-accent); width: 0%; border-radius: 4px; transition: width 1s linear, background var(--transition-smooth); }
 
-/* Остальные стили расписания (без изменений) */
+/* Остальные стили расписания */
 .schedule-controls-container { display: flex; flex-direction: column; }
-.days-wrapper { margin: 0 calc(var(--spacing-main) * -1) 16px; padding: 0 var(--spacing-main); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+
+/* ФИКС: Уменьшили нижний margin до 0, чтобы прижать переключатель ближе к дням недели */
+.days-wrapper { 
+    margin: -8px calc(var(--spacing-main) * -1) 0; 
+    padding: 8px var(--spacing-main) 16px; 
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch; 
+    scrollbar-width: none; 
+}
 .days-wrapper::-webkit-scrollbar { display: none; }
-.days-group { display: flex; gap: 8px; width: 100%; padding-bottom: 8px; }
+
+.days-group { 
+    display: flex; 
+    gap: 8px; 
+    width: 100%; 
+    padding-bottom: 0; 
+}
+
 .day-tab { flex: 1; text-align: center; background: var(--theme-bg-secondary); border: var(--glass-border); color: var(--text-secondary); padding: 10px 0 12px; border-radius: var(--radius-md); font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: all var(--transition-fast); position: relative; }
 .day-tab.active { background: var(--theme-accent); color: var(--text-on-accent); border-color: transparent; box-shadow: 0 4px 12px var(--theme-accent-glow); }
 .day-tab.today::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: var(--theme-accent); border-radius: 2px; transition: background var(--transition-smooth); }
 .day-tab.today.active::after { background: var(--text-on-accent); box-shadow: 0 1px 6px rgba(255, 255, 255, 0.6); }
 
-.segmented-control { display: flex; position: relative; background: var(--overlay-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 4px; width: 100%; height: 46px; margin-bottom: 24px; animation: fadeIn 0.3s ease; }
+/* ФИКС: Уменьшили margin-bottom с 24px до 16px, чтобы список уроков был ближе */
+.segmented-control { display: flex; position: relative; background: var(--overlay-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 4px; width: 100%; height: 46px; margin-bottom: 16px; animation: fadeIn 0.3s ease; }
 .segment-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--theme-accent); border-radius: calc(var(--radius-md) - 2px); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background var(--transition-smooth), box-shadow var(--transition-smooth); box-shadow: 0 4px 12px var(--theme-accent-glow); }
 .segmented-control[data-active="actual"] .segment-slider { transform: translateX(100%); }
 .segment-btn { flex: 1; border: none; background: transparent; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; transition: color 0.3s ease; font-family: inherit; }

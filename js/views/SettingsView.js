@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   ОПТИМИЗАЦИЯ: Чистый контроллер. Разметка вынесена в Templates.
+   ОПТИМИЗАЦИЯ: Исправлен баг с рассинхроном тумблеров
 ===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
@@ -10,11 +10,8 @@ import { SettingsTemplate } from '../templates/SettingsTemplate.js';
 export class SettingsView {
     constructor(container) {
         this.container = container;
-        this.prefs = PrefsManager.getPrefs();
         this.adminTaps = 0;
         this.adminTapTimeout = null;
-        
-        // Привязываем контекст
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
     }
 
@@ -30,38 +27,36 @@ export class SettingsView {
     }
 
     async mount() {
+        // ФИКС 1: Всегда получаем свежие настройки при каждом открытии экрана!
+        const currentPrefs = PrefsManager.getPrefs(); 
         const currentTheme = ThemeManager.getCurrent();
         
-        // Подготавливаем данные для шаблона
         const templateData = {
-            prefs: this.prefs,
+            prefs: currentPrefs,
             themes: ThemeManager.getThemes(),
             currentTheme: currentTheme,
             customData: ThemeManager.getCustomTheme(),
             hasWallpaper: !!localStorage.getItem(PrefsManager.wallpaperKey),
             isSeasonalActive: ['halloween', 'new-year'].includes(currentTheme),
             currentYear: new Date().getFullYear(),
-            subgroupText: this.getSubgroupText(this.prefs.subgroup),
+            subgroupText: this.getSubgroupText(currentPrefs.subgroup),
             notifDenied: Notification.permission === 'denied'
         };
 
-        // Рендерим HTML из шаблона
         this.container.innerHTML = SettingsTemplate.renderMain(templateData);
         
-        this.bindEvents();
+        this.bindEvents(currentPrefs); // Передаем свежие настройки
         this.initDesktopScroll();
         document.addEventListener('click', this.handleDocumentClick);
     }
 
-    bindEvents() {
-        // Назад
+    bindEvents(currentPrefs) {
         document.getElementById('settings-back-btn')?.addEventListener('click', () => {
             PrefsManager.vibrate();
             if (window.history.length > 1) window.history.back();
             else window.location.hash = '#/schedule';
         });
 
-        // Темы
         const swatchContainers = this.container.querySelectorAll('.theme-swatch-container');
         const customDialog = document.getElementById('custom-theme-dialog');
 
@@ -92,9 +87,8 @@ export class SettingsView {
             this.mount(); 
         });
 
-        // Панель навигации
         const navDialog = document.getElementById('nav-order-dialog');
-        let tempNavOrder = [...this.prefs.navOrder];
+        let tempNavOrder = [...currentPrefs.navOrder];
         const navNames = { 'schedule': 'Расписание', 'homework': 'Домашка', 'group': 'Группа', 'events': 'Ивенты' };
 
         const refreshNavModal = () => {
@@ -115,7 +109,7 @@ export class SettingsView {
 
         document.getElementById('btn-open-nav-order').addEventListener('click', () => {
             PrefsManager.vibrate(10);
-            tempNavOrder = [...this.prefs.navOrder];
+            tempNavOrder = [...currentPrefs.navOrder];
             refreshNavModal();
             navDialog.showModal();
         });
@@ -126,7 +120,6 @@ export class SettingsView {
             navDialog.close();
         });
 
-        // Подгруппа (Селект)
         const wrapper = document.getElementById('subgroup-wrapper');
         const btn = document.getElementById('subgroup-btn');
         btn.addEventListener('click', (e) => {
@@ -138,13 +131,11 @@ export class SettingsView {
         wrapper.querySelectorAll('.custom-select-option').forEach(opt => {
             opt.addEventListener('click', () => {
                 PrefsManager.vibrate();
-                const val = opt.getAttribute('data-value');
-                PrefsManager.updatePref('subgroup', val);
-                this.mount(); // Обновляем UI
+                PrefsManager.updatePref('subgroup', opt.getAttribute('data-value'));
+                this.mount(); 
             });
         });
 
-        // Обои
         document.getElementById('upload-wp')?.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) PrefsManager.saveWallpaper(file, (success) => { if (success) this.mount(); });
@@ -153,7 +144,6 @@ export class SettingsView {
             PrefsManager.vibrate(); PrefsManager.clearWallpaper(); this.mount();
         });
 
-        // Тумблеры
         const bindToggle = (wrapperId, toggleId, prefKey, onToggle) => {
             document.getElementById(wrapperId)?.addEventListener('click', async () => {
                 PrefsManager.vibrate();
@@ -177,7 +167,6 @@ export class SettingsView {
         bindToggle('toggle-particles-wrapper', 'toggle-particles', 'particles', () => ThemeManager.applySeasonalEffects(ThemeManager.getCurrent()));
         bindToggle('toggle-notif-wrapper', 'toggle-notif', 'notifications');
 
-        // Данные
         document.getElementById('btn-reset-hw').addEventListener('click', () => {
             PrefsManager.vibrate();
             if (confirm('Удалить галочки со всех заданий?')) {
@@ -187,6 +176,7 @@ export class SettingsView {
                 setTimeout(() => span.textContent = 'Сбросить прогресс домашки', 3000);
             }
         });
+        
         document.getElementById('btn-clear-cache').addEventListener('click', () => {
             PrefsManager.vibrate();
             if (confirm('Очистить кэш и перезагрузить?')) {
@@ -196,7 +186,6 @@ export class SettingsView {
             }
         });
 
-        // Пасхалка разработчика
         document.getElementById('app-version').addEventListener('click', () => {
             this.adminTaps++;
             if (this.adminTaps === 1) this.adminTapTimeout = setTimeout(() => this.adminTaps = 0, 3000);
