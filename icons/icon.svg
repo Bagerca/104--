@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Эффект неонового свечения -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="60" result="blur" />
+    </filter>
+    <!-- Градиент для контура -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF4D7D"/>
+      <stop offset="100%" stop-color="#93002E"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Центральное свечение (увеличенное) -->
+  <circle cx="256" cy="256" r="180" fill="#93002E" filter="url(#glow)" opacity="0.8"/>
+  
+  <!-- Геометрия: Увеличенный Щит (почти на весь холст) -->
+  <path d="M256 24 L448 109 L448 311 C448 417 256 498 256 498 C256 498 64 417 64 311 L64 109 Z" 
+        fill="#151515" 
+        stroke="url(#borderGrad)" 
+        stroke-width="24" 
+        stroke-linejoin="round"/>
+        
+  <!-- Типографика: Гигантская цифра 4 -->
+  <text x="256" y="405" 
+        font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" 
+        font-weight="900" 
+        font-size="420" 
+        fill="#ffffff" 
+        text-anchor="middle">4</text>
+</svg>

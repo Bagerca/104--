@@ -1,7 +1,4 @@
-/* =====================================================================
-   FILE: sw.js
-===================================================================== */
-const CACHE_NAME = 'student-hub-v3'; // Поменяли версию кэша на v3
+const CACHE_NAME = 'student-hub-v4'; // Версия 4 для сброса старого кэша
 
 const ASSETS = [
     './',
@@ -14,10 +11,11 @@ const ASSETS = [
     './css/views/events.css',
     './js/app.js',
     './js/router.js',
+    './icons/icon.svg', // Добавили новую иконку
     './data/bells.json',
     './data/schedule.json',
     './data/students.json',
-    './data/teachers.json' // Добавили новый файл в кэш
+    './data/teachers.json'
 ];
 
 self.addEventListener('install', (event) => {
