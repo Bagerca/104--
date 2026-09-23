@@ -108,9 +108,11 @@ export class GroupView {
 
             html = this.studentsData.map(st => {
                 const initial = st.name.charAt(0).toUpperCase();
+                
+                // ОПТИМИЗАЦИЯ: loading="lazy" decoding="async"
                 const avatar = !st.avatar ? 
                     `<div class="person-avatar" style="background: ${this.getGradient(st.name)}">${initial}</div>` : 
-                    `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${st.name}"></div>`;
+                    `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${st.name}" loading="lazy" decoding="async"></div>`;
                 
                 const role = st.role ? `<span class="person-badge">${st.role}</span>` : '';
                 const tgBtn = st.tg ? `<a href="https://t.me/${st.tg}" target="_blank" class="person-action-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></a>` : '';
@@ -136,10 +138,10 @@ export class GroupView {
                 // Берем первую букву Имени. Если имени нет - ставим ?
                 const initial = tch.name !== 'Имя уточняется' ? tch.name.charAt(0).toUpperCase() : '?';
                 
-                // Рендер фото, если есть, иначе градиент на основе уникального имени
+                // ОПТИМИЗАЦИЯ: loading="lazy" decoding="async"
                 const avatar = !tch.avatar ? 
                     `<div class="person-avatar" style="background: ${this.getGradient(tch.rawName)}">${initial}</div>` : 
-                    `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${tch.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${tch.name}"></div>`;
+                    `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${tch.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${tch.name}" loading="lazy" decoding="async"></div>`;
                 
                 // Рендерим бейджики всех предметов этого учителя
                 const subjectsHtml = tch.subjects.map(subj => `<span class="person-badge teacher-subject">${subj}</span>`).join('');

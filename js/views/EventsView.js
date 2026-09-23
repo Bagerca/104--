@@ -1,6 +1,3 @@
-/* =====================================================================
-   FILE: js/views/EventsView.js
-===================================================================== */
 import { ApiService } from '../services/api.js';
 
 export class EventsView {
@@ -27,7 +24,8 @@ export class EventsView {
                     ${events.map(ev => `
                         <article class="event-card">
                             <div class="event-image">
-                                ${ev.image ? `<img src="${ev.image}" alt="${ev.title}">` : ''}
+                                <!-- ОПТИМИЗАЦИЯ: loading="lazy" decoding="async" -->
+                                ${ev.image ? `<img src="${ev.image}" alt="${ev.title}" loading="lazy" decoding="async">` : ''}
                                 ${ev.image ? `<div class="event-image-overlay"></div>` : ''}
                                 <div class="event-date-badge">
                                     <div class="day">${ev.date}</div>
