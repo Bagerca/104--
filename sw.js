@@ -1,4 +1,4 @@
-const CACHE_NAME = 'student-hub-v5'; // Версия 5
+const CACHE_NAME = 'student-hub-v6'; // Версия 6 - принудительный сброс кэша!
 
 const ASSETS = [
     './',
@@ -12,7 +12,7 @@ const ASSETS = [
     './js/app.js',
     './js/router.js',
     './icons/icon.svg',
-    './icons/icon-mobile.svg', // Добавили мобильную иконку
+    './icons/icon-mobile.svg',
     './data/bells.json',
     './data/schedule.json',
     './data/students.json',
