@@ -10,9 +10,9 @@
 .hw-history-title h2 { font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
 .hw-history-title span { font-size: 0.75rem; color: var(--text-muted); }
 
-.hw-subject-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+.hw-subject-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; transition: background var(--transition-smooth); }
 .hw-subject-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
-.hw-subject-name { font-size: 1.1rem; font-weight: 600; color: var(--color-burgundy-text); line-height: 1.2; }
+.hw-subject-name { font-size: 1.1rem; font-weight: 600; color: var(--theme-accent-text); line-height: 1.2; transition: color var(--transition-smooth); }
 .hw-teacher-name { font-size: 0.75rem; color: var(--text-muted); }
 
 .hw-show-all-btn { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary); padding: 10px 16px; border-radius: var(--radius-md); font-size: 0.85rem; font-family: inherit; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); width: 100%; margin-top: 4px; }
@@ -22,7 +22,7 @@
 .hw-card { display: flex; gap: 16px; align-items: flex-start; padding: 12px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); border: 1px solid transparent; transition: all var(--transition-fast); cursor: pointer; }
 .hw-card.history-item { background: var(--glass-bg); border: var(--glass-border); }
 .hw-checkbox { width: 24px; height: 24px; border: 2px solid var(--text-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; margin-top: 2px; }
-.hw-checkbox.checked { background: var(--color-burgundy); border-color: var(--color-burgundy); }
+.hw-checkbox.checked { background: var(--theme-accent); border-color: var(--theme-accent); }
 .hw-checkbox svg { opacity: 0; transform: scale(0.5); transition: all 0.2s; }
 .hw-checkbox.checked svg { opacity: 1; transform: scale(1); }
 
@@ -43,7 +43,7 @@
 /* Вложения (PDF) */
 .hw-attachment { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: var(--glass-border); border-radius: var(--radius-md); text-decoration: none; color: var(--text-primary); transition: all var(--transition-fast); }
 .hw-attachment:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
-.hw-file-icon { width: 32px; height: 32px; background: rgba(147, 0, 46, 0.2); color: var(--color-burgundy-text); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hw-file-icon { width: 32px; height: 32px; background: var(--theme-accent-soft); color: var(--theme-accent-text); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background var(--transition-smooth), color var(--transition-smooth); }
 .hw-file-info { display: flex; flex-direction: column; overflow: hidden; }
 .hw-file-name { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all var(--transition-fast); }
 .hw-file-meta { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }

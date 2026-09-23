@@ -1,22 +1,27 @@
 /* =====================================================================
    FILE: js/utils/time.js
+   ОПТИМИЗАЦИЯ: Добавлено форматирование времени (ЧЧ:ММ)
 ===================================================================== */
 export function parseTimeToMinutes(timeStr) {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
 }
 
+// НОВАЯ ФУНКЦИЯ: Красивое форматирование времени
+export function formatMinutes(totalMinutes) {
+    if (totalMinutes < 60) return `${totalMinutes} мин`;
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return m > 0 ? `${h} ч ${m} мин` : `${h} ч`;
+}
+
 export function getDateStringForDay(targetDayNum) {
     const now = new Date();
     let currentDay = now.getDay();
-    if (currentDay === 0) currentDay = 7; // Вс = 7
+    if (currentDay === 0) currentDay = 7; 
     
     let diff = targetDayNum - currentDay;
-    
-    // ИСПРАВЛЕНИЕ: Если сегодня выходной (СБ, ВС), показываем расписание на следующую неделю.
-    if (currentDay > 5) {
-        diff += 7;
-    }
+    if (currentDay > 5) diff += 7;
     
     const targetDate = new Date(now);
     targetDate.setDate(now.getDate() + diff);
@@ -30,7 +35,6 @@ export function getDateStringForDay(targetDayNum) {
 
 export function getCurrentScheduleStatus(bellsData) {
     const now = new Date();
-    // Вычисляем общее количество секунд для максимально плавного прогресс-бара
     const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     const currentMinutes = Math.floor(currentTotalSeconds / 60);
 
@@ -51,7 +55,6 @@ export function getCurrentScheduleStatus(bellsData) {
 
         if (currentTotalSeconds >= startSecs && currentTotalSeconds <= endSecs) {
             const progressPercent = ((currentTotalSeconds - startSecs) / (endSecs - startSecs)) * 100;
-            // Возвращаем точный процент и округленные минуты до конца
             return { status: 'active', currentPair: bell, timeLeft: endMins - currentMinutes, progressPercent };
         }
     }

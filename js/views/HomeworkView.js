@@ -1,3 +1,7 @@
+/* =====================================================================
+   FILE: js/views/HomeworkView.js
+   ОПТИМИЗАЦИЯ: Параллельные запросы (allSettled) и AbortController
+===================================================================== */
 import { ApiService } from '../services/api.js';
 
 const triggerHaptic = () => {
@@ -11,9 +15,7 @@ export class HomeworkView {
         this.groupedData = {}; 
     }
 
-    // Инициализация просмотрщика фото (Lightbox)
     initLightbox() {
-        // Очищаем старый диалог, если он остался в DOM после переходов
         const oldDialog = document.getElementById('hw-lightbox');
         if (oldDialog) oldDialog.remove();
 
@@ -21,7 +23,6 @@ export class HomeworkView {
         dialog.id = 'hw-lightbox';
         dialog.className = 'hw-lightbox';
         
-        // Используем нативную форму form method="dialog" для 100% рабочего крестика
         dialog.innerHTML = `
             <div class="hw-lightbox-controls">
                 <a id="hw-lightbox-download" href="" download class="hw-lightbox-btn" aria-label="Скачать">
@@ -39,7 +40,6 @@ export class HomeworkView {
         `;
         document.body.appendChild(dialog);
 
-        // Закрытие при клике на пустое пространство вокруг картинки
         dialog.querySelector('#hw-lightbox-body').addEventListener('click', (e) => {
             if (e.target.id === 'hw-lightbox-body') {
                 dialog.close();
@@ -59,7 +59,7 @@ export class HomeworkView {
         `;
         
         try {
-            this.initLightbox(); // Создаем окно при загрузке страницы
+            this.initLightbox();
 
             const [hwTasks, teachersData] = await Promise.all([
                 ApiService.getHomework(),
@@ -75,8 +75,6 @@ export class HomeworkView {
             
             const processedTasks = hwTasks.map(item => {
                 const uniqueId = `${item.subject}_${item.date}`;
-                
-                // ИСПРАВЛЕНИЕ: Теперь teachersData содержит объекты {name, avatar}, а не просто строку.
                 const teacherName = (teachersData && teachersData[item.subject]) ? teachersData[item.subject].name : 'Преподаватель не указан';
                 
                 return {
@@ -248,23 +246,32 @@ export class HomeworkView {
         this.validateLocalFiles();
     }
 
+    // ИСПРАВЛЕНИЕ: Параллельная загрузка + AbortController от зависания
     async validateLocalFiles() {
-        const filesToCheck = this.container.querySelectorAll('.local-file-check');
-        for (let el of filesToCheck) {
+        const filesToCheck = Array.from(this.container.querySelectorAll('.local-file-check'));
+        if (filesToCheck.length === 0) return;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 секунды на ответ
+
+        const promises = filesToCheck.map(el => {
             const url = el.getAttribute('data-url');
-            if (url) {
-                try {
-                    const res = await fetch(url, { method: 'HEAD' });
+            if (!url) return Promise.reject();
+            
+            return fetch(url, { method: 'HEAD', signal: controller.signal })
+                .then(res => {
                     if (!res.ok) el.classList.add('hw-broken');
-                } catch (e) {
+                })
+                .catch(() => {
                     el.classList.add('hw-broken');
-                }
-            }
-        }
+                });
+        });
+
+        await Promise.allSettled(promises);
+        clearTimeout(timeoutId);
     }
 
     bindEvents(viewType) {
-        // Открытие фоток и настройка ссылки скачивания
         this.container.querySelectorAll('.hw-image-thumb').forEach(thumb => {
             thumb.addEventListener('click', (e) => {
                 if (thumb.classList.contains('hw-broken')) return;
@@ -278,7 +285,6 @@ export class HomeworkView {
                 img.src = fullSrc;
                 downloadBtn.href = fullSrc;
                 
-                // Вытаскиваем имя файла из пути для скачивания (например "photo.jpg")
                 const fileName = fullSrc.split('/').pop() || 'photo.jpg';
                 downloadBtn.setAttribute('download', fileName);
                 
@@ -327,7 +333,6 @@ export class HomeworkView {
     }
 
     unmount() {
-        // Зачищаем диалог при уходе со страницы, чтобы он не висел в DOM мертвым грузом
         const dialog = document.getElementById('hw-lightbox');
         if (dialog) dialog.remove();
     }

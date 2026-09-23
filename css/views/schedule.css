@@ -1,44 +1,83 @@
 /* =====================================================================
    FILE: css/views/schedule.css
+   ПРЕМИУМ ДИЗАЙН: Мягкие рамки, индикаторы Live Activity
 ===================================================================== */
-.live-widget { background: linear-gradient(145deg, rgba(30, 30, 32, 0.8) 0%, rgba(20, 20, 22, 0.9) 100%); border: 1px solid var(--color-burgundy); box-shadow: 0 0 20px var(--color-burgundy-glow); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden; }
-.live-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.live-status { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-burgundy-text); font-weight: 700; }
-.live-time { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-.live-subject { font-size: 1.1rem; margin-bottom: 16px; color: var(--text-secondary); }
-.progress-track { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; transform: translateZ(0); }
-.progress-fill { height: 100%; background: var(--color-burgundy); width: 0%; border-radius: 4px; transition: width 1s linear; }
+.live-widget { 
+    background: var(--glass-bg); 
+    backdrop-filter: var(--glass-blur); 
+    border-radius: var(--radius-lg); 
+    padding: 20px 24px; 
+    margin-bottom: 12px; 
+    position: relative; 
+    overflow: hidden; 
+    transition: all var(--transition-smooth); 
+    
+    /* Идеальная мягкая рамка, которая не "жирнит" в светлой теме */
+    border: 1px solid transparent; 
+    background-clip: padding-box;
+}
 
+/* Состояния виджета */
+.widget-idle { background-color: var(--overlay-bg); border-color: rgba(255,255,255,0.02); }
+.widget-active { border-color: var(--theme-accent); box-shadow: 0 8px 32px var(--theme-accent-soft); }
+.widget-break { border-color: #2196F3; box-shadow: 0 8px 32px rgba(33, 150, 243, 0.15); }
+.widget-success { border-color: #4CAF50; box-shadow: 0 8px 32px rgba(76, 175, 80, 0.15); }
+
+.live-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+/* Группа статуса с пульсирующей точкой */
+.live-status-group { display: flex; align-items: center; gap: 8px; }
+.pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+.widget-active .pulse-dot { background: var(--theme-accent); animation: pulseDot 2s infinite; }
+.widget-break .pulse-dot { background: #2196F3; animation: pulseDot 2s infinite; }
+.widget-success .pulse-dot { background: #4CAF50; }
+
+@keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 var(--theme-accent-soft); }
+    70% { box-shadow: 0 0 0 6px rgba(0,0,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+}
+
+.live-status { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); font-weight: 700; transition: color var(--transition-smooth); }
+.widget-active .live-status { color: var(--theme-accent-text); }
+.widget-break .live-status { color: #2196F3; }
+.widget-success .live-status { color: #4CAF50; }
+
+.live-time { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.live-subject { font-size: 1.1rem; margin-bottom: 16px; color: var(--text-primary); }
+
+.progress-track { width: 100%; height: 6px; background: var(--overlay-bg-active); border-radius: 4px; overflow: hidden; transform: translateZ(0); }
+.progress-fill { height: 100%; background: var(--theme-accent); width: 0%; border-radius: 4px; transition: width 1s linear, background var(--transition-smooth); }
+
+/* Остальные стили расписания (без изменений) */
 .schedule-controls-container { display: flex; flex-direction: column; }
 .days-wrapper { margin: 0 calc(var(--spacing-main) * -1) 16px; padding: 0 var(--spacing-main); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .days-wrapper::-webkit-scrollbar { display: none; }
-
-/* Улучшенная адаптивность кнопок дней */
 .days-group { display: flex; gap: 8px; width: 100%; padding-bottom: 8px; }
-.day-tab { flex: 1; text-align: center; background: var(--color-night-light); border: var(--glass-border); color: var(--text-secondary); padding: 10px 0 12px; border-radius: var(--radius-md); font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: all var(--transition-fast); position: relative; }
-.day-tab.active { background: var(--color-burgundy); color: #fff; border-color: transparent; box-shadow: 0 4px 12px var(--color-burgundy-glow); }
-.day-tab.today::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: var(--color-burgundy); border-radius: 2px; }
-.day-tab.today.active::after { background: #fff; box-shadow: 0 1px 6px rgba(255, 255, 255, 0.6); }
+.day-tab { flex: 1; text-align: center; background: var(--theme-bg-secondary); border: var(--glass-border); color: var(--text-secondary); padding: 10px 0 12px; border-radius: var(--radius-md); font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: all var(--transition-fast); position: relative; }
+.day-tab.active { background: var(--theme-accent); color: var(--text-on-accent); border-color: transparent; box-shadow: 0 4px 12px var(--theme-accent-glow); }
+.day-tab.today::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: var(--theme-accent); border-radius: 2px; transition: background var(--transition-smooth); }
+.day-tab.today.active::after { background: var(--text-on-accent); box-shadow: 0 1px 6px rgba(255, 255, 255, 0.6); }
 
-.segmented-control { display: flex; position: relative; background: rgba(255, 255, 255, 0.05); border: var(--glass-border); border-radius: var(--radius-md); padding: 4px; width: 100%; height: 46px; margin-bottom: 24px; animation: fadeIn 0.3s ease; }
-.segment-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--color-burgundy); border-radius: calc(var(--radius-md) - 2px); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 12px var(--color-burgundy-glow); }
+.segmented-control { display: flex; position: relative; background: var(--overlay-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 4px; width: 100%; height: 46px; margin-bottom: 24px; animation: fadeIn 0.3s ease; }
+.segment-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--theme-accent); border-radius: calc(var(--radius-md) - 2px); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background var(--transition-smooth), box-shadow var(--transition-smooth); box-shadow: 0 4px 12px var(--theme-accent-glow); }
 .segmented-control[data-active="actual"] .segment-slider { transform: translateX(100%); }
 .segment-btn { flex: 1; border: none; background: transparent; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; transition: color 0.3s ease; font-family: inherit; }
-.segment-btn.active { color: #fff; }
+.segment-btn.active { color: var(--text-on-accent); }
 
 .schedule-list { display: flex; flex-direction: column; gap: 12px; list-style: none; transition: opacity var(--transition-fast); }
 .schedule-list.updating { opacity: 0.5; pointer-events: none; }
-.pair-card { display: flex; background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; transition: transform var(--transition-fast), border-color 0.3s; }
-.pair-time { min-width: 75px; border-right: 1px solid rgba(255, 255, 255, 0.1); padding-right: 12px; margin-right: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
-.pair-time .number { font-size: 1.1rem; font-weight: 700; color: var(--color-burgundy-text); }
+.pair-card { display: flex; background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; transition: transform var(--transition-fast), border-color 0.3s, background 0.3s; }
+.pair-time { min-width: 75px; border-right: 1px solid var(--overlay-bg); padding-right: 12px; margin-right: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+.pair-time .number { font-size: 1.1rem; font-weight: 700; color: var(--theme-accent-text); transition: color var(--transition-smooth); }
 .pair-time .hours { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
 .pair-info { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
 .lesson-row { display: flex; align-items: center; justify-content: space-between; }
 .lesson-details { display: flex; flex-direction: column; }
 .lesson-num { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
 .pair-subject { font-weight: 500; font-size: 0.95rem; line-height: 1.3; }
-.pair-room { font-size: 0.75rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; text-align: right; }
-.lesson-divider { height: 1px; background: rgba(255, 255, 255, 0.05); width: 100%; }
+.pair-room { font-size: 0.75rem; color: var(--text-muted); background: var(--overlay-bg); padding: 4px 8px; border-radius: 6px; text-align: right; }
+.lesson-divider { height: 1px; background: var(--overlay-bg); width: 100%; }
 
 .pair-card.past { opacity: 0.5; }
-.pair-card.current { border-color: var(--color-burgundy); background: rgba(147, 0, 46, 0.05); }
+.pair-card.current { border-color: var(--theme-accent); background: var(--theme-accent-soft); }

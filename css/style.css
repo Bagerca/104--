@@ -1,5 +1,6 @@
 /* =====================================================================
    FILE: css/style.css
+   ОПТИМИЗАЦИЯ: Чистка от !important, внедрение строгих Z-Index
 ===================================================================== */
 html { scrollbar-width: none; }
 
@@ -14,27 +15,26 @@ html { scrollbar-width: none; }
 body {
     -ms-overflow-style: none;
     font-family: var(--font-main);
-    background-color: var(--color-night);
+    background-color: var(--theme-bg-main);
     color: var(--text-primary);
     line-height: 1.5;
     overflow-x: hidden;
+    transition: background-color var(--transition-smooth);
 }
 
-/* ИСПРАВЛЕНИЕ: Аппаратное ускорение (GPU) для моментальной отрисовки */
 .ambient-glow {
     position: fixed; 
     top: -20vh; 
     left: 50%;
-    /* translate3d заставляет браузер использовать видеокарту */
     transform: translate3d(-50%, 0, 0);
     width: 120vw; 
     height: 70vh;
-    /* Градиент стал мягче сам по себе, чтобы снизить нагрузку на фильтр */
-    background: radial-gradient(ellipse at 50% 50%, rgba(147, 0, 46, 0.4) 0%, rgba(147, 0, 46, 0.1) 45%, transparent 70%);
+    background: radial-gradient(ellipse at 50% 50%, var(--theme-accent-glow) 0%, transparent 70%);
     filter: blur(40px); 
-    z-index: -1;
+    z-index: var(--z-ambient);
     pointer-events: none; 
     will-change: transform, opacity;
+    transition: background var(--transition-smooth);
 }
 
 .app-container {
@@ -44,7 +44,8 @@ body {
 
 .glass {
     background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur); 
+    -webkit-backdrop-filter: var(--glass-blur);
     border: var(--glass-border);
 }
 
@@ -53,7 +54,8 @@ body {
     display: flex; justify-content: space-between; align-items: center;
     padding: calc(16px + env(safe-area-inset-top)) var(--spacing-main) 16px;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
-    border-top: none; z-index: 100;
+    border-top: none; 
+    z-index: var(--z-header);
 }
 
 .app-header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.5px; }
@@ -69,7 +71,6 @@ main { padding: var(--spacing-main); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Скелетоны для загрузки */
 @keyframes skeleton-loading {
     0% { background-color: rgba(255, 255, 255, 0.05); }
     50% { background-color: rgba(255, 255, 255, 0.12); }
@@ -86,7 +87,8 @@ main { padding: var(--spacing-main); }
     bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
     width: calc(100% - 32px); max-width: 568px;
     display: flex; justify-content: space-around;
-    padding: 12px 0; border-radius: 30px; z-index: 100;
+    padding: 12px 0; border-radius: 30px; 
+    z-index: var(--z-nav);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
@@ -98,7 +100,73 @@ main { padding: var(--spacing-main); }
 }
 
 .nav-item svg { margin-bottom: 4px; transition: transform var(--transition-fast), stroke var(--transition-fast); }
-.nav-item.active { color: var(--color-burgundy); }
-.nav-item.active svg { transform: translateY(-2px); stroke: var(--color-burgundy); }
+.nav-item.active { color: var(--theme-accent); }
+.nav-item.active svg { transform: translateY(-2px); stroke: var(--theme-accent); }
 
-.placeholder-card { background: var(--color-night-light); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; border: var(--glass-border); }
+.placeholder-card { background: var(--theme-bg-secondary); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; border: var(--glass-border); }
+
+/* =====================================================================
+   СЕЗОННЫЕ ЭФФЕКТЫ
+===================================================================== */
+#seasonal-fx-container {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: var(--z-fx); overflow: hidden;
+}
+
+.halloween-ember {
+    position: absolute; bottom: -20px; width: 6px; height: 6px;
+    background: #F86903; border-radius: 50%;
+    box-shadow: 0 0 10px #F86903, 0 0 20px #CE3D01;
+    animation: floatUp ease-in infinite, flicker 0.5s infinite alternate;
+    opacity: 0;
+}
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    20% { opacity: 0.8; }
+    100% { transform: translateY(-100vh) scale(1.5); opacity: 0; }
+}
+@keyframes flicker {
+    0% { opacity: 0.5; box-shadow: 0 0 5px #F86903; }
+    100% { opacity: 1; box-shadow: 0 0 15px #F86903, 0 0 25px #CE3D01; }
+}
+
+.new-year-snow {
+    position: absolute; top: -10px; width: 4px; height: 4px;
+    background: #fff; border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255,255,255,0.8);
+    animation: snowFall linear infinite, snowSway 2s ease-in-out infinite alternate;
+}
+@keyframes snowFall {
+    0% { transform: translateY(-10px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(100vh); opacity: 0; }
+}
+@keyframes snowSway {
+    0% { margin-left: 0; }
+    100% { margin-left: 20px; }
+}
+
+/* =====================================================================
+   КАСТОМНЫЕ ОБОИ ПОД СТЕКЛО
+===================================================================== */
+#app-wallpaper {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    object-fit: cover; z-index: var(--z-wallpaper); opacity: 0;
+    transition: opacity 0.5s ease; pointer-events: none;
+    filter: blur(12px) brightness(0.4); 
+    transform: scale(1.1); 
+}
+
+/* =====================================================================
+   РЕЖИМ ЭНЕРГОСБЕРЕЖЕНИЯ (Очищено от !important)
+===================================================================== */
+body.power-save-mode .glass {
+    background: var(--theme-bg-secondary);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: none;
+}
+body.power-save-mode .ambient-glow,
+body.power-save-mode #seasonal-fx-container {
+    display: none; 
+}

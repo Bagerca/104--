@@ -5,6 +5,8 @@ import { ScheduleView } from './views/ScheduleView.js';
 import { GroupView } from './views/GroupView.js';
 import { HomeworkView } from './views/HomeworkView.js';
 import { EventsView } from './views/EventsView.js';
+import { SettingsView } from './views/SettingsView.js';
+import { PrefsManager } from './utils/prefs.js';
 
 export class Router {
     constructor() {
@@ -12,12 +14,12 @@ export class Router {
         this.pageTitle = document.getElementById('page-title');
         this.navItems = document.querySelectorAll('.nav-item');
         
-        // Инициализация Views
         this.views = {
             '/schedule': new ScheduleView(this.contentContainer),
             '/group': new GroupView(this.contentContainer),
             '/homework': new HomeworkView(this.contentContainer),
-            '/events': new EventsView(this.contentContainer)
+            '/events': new EventsView(this.contentContainer),
+            '/settings': new SettingsView(this.contentContainer)
         };
         
         this.currentView = null;
@@ -25,8 +27,13 @@ export class Router {
     }
 
     init() {
-        if (!window.location.hash) window.location.hash = '#/schedule';
-        else this.handleRoute();
+        if (!window.location.hash) {
+            // Первая кнопка в порядке панелей становится стартовым экраном
+            const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
+            window.location.hash = '#/' + firstPage;
+        } else {
+            this.handleRoute();
+        }
     }
 
     async handleRoute() {
@@ -35,20 +42,19 @@ export class Router {
 
         try {
             this.contentContainer.classList.remove('fade-in');
-            
-            // Ждем завершения CSS анимации
             await new Promise(res => setTimeout(res, 100));
 
             if (this.currentView) {
-                this.currentView.unmount(); // Очистка таймеров и событий старой View
+                this.currentView.unmount();
             }
 
             if (view) {
                 this.currentView = view;
-                await view.mount(); // Рендер новой View
+                await view.mount();
                 this.updateNavUI(path);
             } else {
-                window.location.hash = '#/schedule';
+                const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
+                window.location.hash = '#/' + firstPage;
             }
             
             this.contentContainer.classList.add('fade-in');
@@ -66,5 +72,9 @@ export class Router {
                 item.classList.remove('active');
             }
         });
+
+        if (currentPath === '/settings') {
+            this.pageTitle.textContent = 'Настройки';
+        }
     }
 }

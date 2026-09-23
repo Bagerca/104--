@@ -1,33 +1,134 @@
 /* =====================================================================
    FILE: css/variables.css
+   ОПТИМИЗАЦИЯ: Введена архитектура Z-Index и управление таймингами анимаций
 ===================================================================== */
-:root {
-    /* Цветовая палитра */
-    --color-night: #151515;          
-    --color-night-light: #1e1e1e;    
-    --color-burgundy: #93002E;       
-    --color-burgundy-glow: rgba(147, 0, 46, 0.4);
+:root, [data-theme="burgundy"] {
+    --theme-bg-main: #151515;          
+    --theme-bg-secondary: #1e1e1e;    
+    --theme-accent: #93002E;       
+    --theme-accent-glow: rgba(147, 0, 46, 0.4);
+    --theme-accent-soft: rgba(147, 0, 46, 0.15); 
+    --theme-accent-text: #FF4D7D; 
     
-    /* Улучшенный контраст для текстов (WCAG AA) */
-    --color-burgundy-text: #FF4D7D; 
-    
-    /* Тексты (улучшена читаемость muted текста) */
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.75);
     --text-muted: rgba(255, 255, 255, 0.55);
+    --text-on-accent: #ffffff;
 
-    /* Эффекты стекла */
     --glass-bg: rgba(30, 30, 32, 0.65);
     --glass-border: 1px solid rgba(255, 255, 255, 0.08);
     --glass-blur: blur(20px);
 
-    /* Типографика и отступы */
+    --overlay-bg: rgba(255, 255, 255, 0.05);
+    --overlay-bg-active: rgba(255, 255, 255, 0.1);
+
     --font-main: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
     --radius-lg: 24px;
     --radius-md: 16px;
     --spacing-main: 16px;
 
-    /* Переходы */
-    --transition-fast: 0.2s ease;
-    --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /* СИСТЕМА Z-INDEX */
+    --z-wallpaper: -2;
+    --z-ambient: -1;
+    --z-base: 1;
+    --z-fx: 90;
+    --z-header: 100;
+    --z-nav: 100;
+    --z-dropdown: 500;
+    --z-modal: 1000;
+    --z-lightbox: 9999;
+
+    /* УПРАВЛЕНИЕ АНИМАЦИЯМИ (меняется в режиме энергосбережения) */
+    --duration-fast: 0.2s;
+    --duration-smooth: 0.3s;
+    --transition-fast: var(--duration-fast) ease;
+    --transition-smooth: var(--duration-smooth) cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* === Светлая тема === */
+[data-theme="light-pure"] {
+    --theme-bg-main: #F2F2F7; 
+    --theme-bg-secondary: #ffffff; 
+    --theme-accent: #007AFF; 
+    --theme-accent-glow: rgba(0, 122, 255, 0.3);
+    --theme-accent-soft: rgba(0, 122, 255, 0.15);
+    --theme-accent-text: #0056b3; 
+    --text-on-accent: #ffffff; 
+    --text-primary: #151515;
+    --text-secondary: rgba(0, 0, 0, 0.7);
+    --text-muted: rgba(0, 0, 0, 0.5);
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: 1px solid rgba(0, 0, 0, 0.12);
+    --overlay-bg: rgba(0, 0, 0, 0.06);
+    --overlay-bg-active: rgba(0, 0, 0, 0.12);
+}
+
+/* === Черно-белая === */
+[data-theme="monochrome"] {
+    --theme-bg-main: #0a0a0a; --theme-bg-secondary: #141414; 
+    --theme-accent: #ffffff; --theme-accent-glow: rgba(255, 255, 255, 0.2);
+    --theme-accent-soft: rgba(255, 255, 255, 0.1); --theme-accent-text: #ffffff; 
+    --text-on-accent: #151515; 
+    --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="electric-purple"] {
+    --theme-bg-main: #00120B; --theme-bg-secondary: #0A1C14; 
+    --theme-accent: #C200FB; --theme-accent-glow: rgba(194, 0, 251, 0.4);
+    --theme-accent-soft: rgba(194, 0, 251, 0.15); --theme-accent-text: #D866FF; 
+    --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="kiwi-night"] {
+    --theme-bg-main: #1A1A1A; --theme-bg-secondary: #222222; 
+    --theme-accent: #89E900; --theme-accent-glow: rgba(137, 233, 0, 0.3); 
+    --theme-accent-soft: rgba(137, 233, 0, 0.15); --theme-accent-text: #9DF328;
+    --text-on-accent: #151515; 
+    --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="neon-pink"] {
+    --theme-bg-main: #0D0303; --theme-bg-secondary: #1A0808; 
+    --theme-accent: #FF0055; --theme-accent-glow: rgba(255, 0, 85, 0.4);
+    --theme-accent-soft: rgba(255, 0, 85, 0.15); --theme-accent-text: #FF4D88; 
+    --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="factory-orange"] {
+    --theme-bg-main: #1E2032; --theme-bg-secondary: #2B2D42; 
+    --theme-accent: #FF5E00; --theme-accent-glow: rgba(255, 94, 0, 0.4);
+    --theme-accent-soft: rgba(255, 94, 0, 0.15); --theme-accent-text: #FF8A47; 
+    --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="deep-blue"] {
+    --theme-bg-main: #02203c; --theme-bg-secondary: #081635; 
+    --theme-accent: #2374E1; --theme-accent-glow: rgba(35, 116, 225, 0.4);
+    --theme-accent-soft: rgba(35, 116, 225, 0.15); --theme-accent-text: #5BA4FF; 
+    --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
+}
+
+/* === СЕЗОННЫЕ ТЕМЫ === */
+[data-theme="halloween"] {
+    --theme-bg-main: #110300; --theme-bg-secondary: #1f0802; 
+    --theme-accent: #F86903; --theme-accent-glow: rgba(248, 105, 3, 0.4);
+    --theme-accent-soft: rgba(248, 105, 3, 0.15); --theme-accent-text: #FACE91; 
+    --text-on-accent: #151515; 
+    --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="new-year"] {
+    --theme-bg-main: #070B19; --theme-bg-secondary: #0E162B; 
+    --theme-accent: #00E5FF; --theme-accent-glow: rgba(0, 229, 255, 0.4);
+    --theme-accent-soft: rgba(0, 229, 255, 0.15); --theme-accent-text: #80F2FF; 
+    --text-on-accent: #070B19; 
+    --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
+}
+
+/* === РЕЖИМ ЭНЕРГОСБЕРЕЖЕНИЯ (Переопределение переменных без !important) === */
+body.power-save-mode {
+    --duration-fast: 0.01ms;
+    --duration-smooth: 0.01ms;
+    --glass-blur: none;
+    --theme-accent-glow: transparent;
 }
