@@ -1,4 +1,4 @@
-const CACHE_NAME = 'student-hub-v4'; // Версия 4 для сброса старого кэша
+const CACHE_NAME = 'student-hub-v5'; // Версия 5
 
 const ASSETS = [
     './',
@@ -11,7 +11,8 @@ const ASSETS = [
     './css/views/events.css',
     './js/app.js',
     './js/router.js',
-    './icons/icon.svg', // Добавили новую иконку
+    './icons/icon.svg',
+    './icons/icon-mobile.svg', // Добавили мобильную иконку
     './data/bells.json',
     './data/schedule.json',
     './data/students.json',
