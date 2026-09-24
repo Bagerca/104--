@@ -1,5 +1,8 @@
+/* =====================================================================
+   FILE: js/views/ScheduleView.js
+===================================================================== */
 import { ApiService } from '../services/api.js';
-import { getCurrentScheduleStatus, getDateStringForDay, parseTimeToMinutes, formatMinutes } from '../utils/time.js';
+import { getCurrentScheduleStatus, getDateStringForDay, formatMinutes } from '../utils/time.js';
 import { PrefsManager } from '../utils/prefs.js';
 
 export class ScheduleView {
@@ -8,6 +11,7 @@ export class ScheduleView {
         this.liveTimerId = null;
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null; 
+        this.isMounted = false;
         this.state = {
             bells: [], base: {}, currentDayNum: 1, selectedDay: 1,
             selectedDayOverride: null, todayOverride: null, showActual: true
@@ -18,6 +22,7 @@ export class ScheduleView {
     }
 
     async mount() {
+        this.isMounted = true;
         this.container.innerHTML = `
             <div class="skeleton" style="height: 120px; width: 100%; margin-bottom: 24px;"></div>
             <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 24px;"></div>
@@ -30,6 +35,8 @@ export class ScheduleView {
                 ApiService.getSchedule()
             ]);
 
+            if (!this.isMounted) return;
+
             this.state.bells = bells || [];
             this.state.base = baseSchedule || {};
             
@@ -40,20 +47,27 @@ export class ScheduleView {
             const todayStr = getDateStringForDay(this.state.currentDayNum);
             this.state.todayOverride = await ApiService.getOverride(todayStr);
 
+            if (!this.isMounted) return;
+
             this.renderLayout();
             this.bindEvents();
             this.bindSwipeEvents();
+            
             await this.loadSelectedDayData();
-            this.fullRenderUI();
+            if (!this.isMounted) return;
 
+            this.fullRenderUI();
             this.liveTimerId = setInterval(() => this.refreshLiveState(), 1000);
+            
         } catch (error) {
+            if (!this.isMounted) return;
             console.error('[ScheduleView] Ошибка:', error);
             this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки расписания.</div>`;
         }
     }
 
     unmount() {
+        this.isMounted = false;
         if (this.liveTimerId) clearInterval(this.liveTimerId);
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null;
@@ -100,6 +114,8 @@ export class ScheduleView {
         listContainer.classList.add('updating');
 
         await this.loadSelectedDayData();
+        if (!this.isMounted) return;
+
         this.fullRenderUI();
 
         listContainer.classList.remove('slide-left', 'slide-right');
@@ -160,6 +176,7 @@ export class ScheduleView {
     }
 
     fullRenderUI() {
+        if (!this.isMounted) return;
         const { selectedDayOverride, showActual, selectedDay, base, bells } = this.state;
         const toggleContainer = document.getElementById('schedule-toggle-container');
         
@@ -255,10 +272,7 @@ export class ScheduleView {
 
         if (status.status.startsWith('active') || status.status === 'short_break') {
              const currentPairData = todaySchedule.find(l => l.pair === status.currentPair.pair);
-             
-             if (!currentPairData) {
-                 return { ...status, status: 'window', windowType: 'full_pair' };
-             }
+             if (!currentPairData) return { ...status, status: 'window', windowType: 'full_pair' };
              
              if (status.status === 'active_lesson1' && (currentPairData.lesson1 === null || currentPairData.subject === null)) {
                  return { ...status, status: 'window', windowType: 'lesson1', currentPairData };
@@ -266,7 +280,6 @@ export class ScheduleView {
              if (status.status === 'active_lesson2' && (currentPairData.lesson2 === null || currentPairData.subject === null)) {
                  return { ...status, status: 'window', windowType: 'lesson2', currentPairData };
              }
-
              status.currentPairData = currentPairData;
         }
 
@@ -327,9 +340,10 @@ export class ScheduleView {
     }
 
     refreshLiveState() {
+        if (!this.isMounted) return;
         if (new Date().getDay() === 0 || new Date().getDay() === 6) return;
-        const status = this.getSmartStatus();
         
+        const status = this.getSmartStatus();
         let stateSignature = status.status;
         if (status.currentPair) stateSignature += `_p${status.currentPair.pair}`;
         if (status.nextPair) stateSignature += `_n${status.nextPair.pair}`;

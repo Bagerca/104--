@@ -1,3 +1,6 @@
+/* =====================================================================
+   FILE: js/views/SettingsView.js
+===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Modal } from '../components/Modal.js';
@@ -8,6 +11,7 @@ export class SettingsView {
         this.container = container;
         this.adminTaps = 0;
         this.adminTapTimeout = null;
+        this.isMounted = false;
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
     }
 
@@ -23,9 +27,12 @@ export class SettingsView {
     }
 
     async mount() {
+        this.isMounted = true;
         const currentPrefs = PrefsManager.getPrefs(); 
         const currentTheme = ThemeManager.getCurrent();
-        const hasWp = await PrefsManager.hasWallpaper(); // Асинхронно
+        const hasWp = await PrefsManager.hasWallpaper(); 
+        
+        if (!this.isMounted) return;
         
         const templateData = {
             prefs: currentPrefs,
@@ -134,7 +141,7 @@ export class SettingsView {
 
         document.getElementById('upload-wp')?.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) PrefsManager.saveWallpaper(file, (success) => { if (success) this.mount(); });
+            if (file) PrefsManager.saveWallpaper(file, (success) => { if (success && this.isMounted) this.mount(); });
         });
         document.getElementById('btn-clear-wp')?.addEventListener('click', () => {
             PrefsManager.vibrate(); PrefsManager.clearWallpaper(); this.mount();
@@ -147,6 +154,7 @@ export class SettingsView {
                 
                 if (prefKey === 'notifications' && !toggle.classList.contains('active')) {
                     const granted = await PrefsManager.requestNotificationPermission();
+                    if (!this.isMounted) return;
                     if (!granted) {
                         Modal.showAlert('Уведомления заблокированы', 'Разрешите браузеру отправлять уведомления в системных настройках телефона.', 'warning');
                         return;
@@ -169,7 +177,7 @@ export class SettingsView {
                 localStorage.removeItem('sh_homework_state');
                 const span = document.querySelector('#btn-reset-hw span');
                 span.textContent = 'Прогресс сброшен ✓';
-                setTimeout(() => span.textContent = 'Сбросить прогресс домашки', 3000);
+                setTimeout(() => { if(this.isMounted) span.textContent = 'Сбросить прогресс домашки'; }, 3000);
             }
         });
         
@@ -191,7 +199,7 @@ export class SettingsView {
                 Modal.showAlert(
                     isAdm ? 'Режим разработчика ВКЛЮЧЕН' : 'Режим разработчика ВЫКЛЮЧЕН',
                     isAdm ? 'Открыт доступ к скрытым функциям и сезонным темам.' : 'Стандартный вид.',
-                    'admin', () => this.mount()
+                    'admin', () => { if(this.isMounted) this.mount(); }
                 );
             }
         });
@@ -216,6 +224,7 @@ export class SettingsView {
     }
 
     unmount() {
+        this.isMounted = false;
         if (this.adminTapTimeout) clearTimeout(this.adminTapTimeout);
         document.removeEventListener('click', this.handleDocumentClick);
     }

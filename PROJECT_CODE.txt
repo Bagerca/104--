@@ -1,34 +1,30 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 24.09.2026 16:41:01
+  Дата сборки: 24.09.2026 17:50:41
 ================================================================================
 
 
 /* =====================================================================
    FILE: index.html
-   LINES: 76
+   LINES: 73
 ===================================================================== */
 
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- ДОБАВЛЕНО: viewport-fit=cover для эффекта Edge-to-Edge -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#151515">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- УЖЕ БЫЛО: прозрачный статус-бар для iOS -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Hub">
     
     <title>Student Hub</title>
     
-    <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
     <link rel="apple-touch-icon" href="icons/icon-mobile.svg">
 
-    <!-- ОПТИМИЗАЦИЯ: Предзагрузка критически важных файлов для стартового экрана -->
     <link rel="preload" href="data/bells.json" as="fetch" crossorigin="anonymous">
     <link rel="preload" href="data/schedule.json" as="fetch" crossorigin="anonymous">
     <link rel="modulepreload" href="js/app.js">
@@ -36,6 +32,8 @@
 
     <!-- CSS Architecture -->
     <link rel="stylesheet" href="css/variables.css">
+    <!-- ДОБАВЛЕНО: Глобальные компоненты (модалки, лайтбоксы, тосты) -->
+    <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/views/schedule.css">
     <link rel="stylesheet" href="css/views/group.css">
@@ -47,7 +45,6 @@
     <div class="ambient-glow"></div>
 
     <div class="app-container">
-        <!-- УБРАН класс glass, теперь прозрачностью управляет JS -->
         <header class="app-header">
             <h1 id="page-title">Расписание</h1>
             <a href="#/settings" class="icon-btn" aria-label="Настройки">
@@ -59,7 +56,7 @@
         </header>
 
         <main id="app-content" class="fade-in">
-            <!-- Контент инжектируется через Views -->
+            <!-- Контент -->
         </main>
 
         <nav class="bottom-nav glass">
@@ -132,20 +129,21 @@
 
 /* =====================================================================
    FILE: sw.js
-   LINES: 88
+   LINES: 96
 ===================================================================== */
 
 /* =====================================================================
    FILE: sw.js
-   ОПТИМИЗАЦИЯ: Раздельные стратегии кэширования и защита от чужого origin
+   ОПТИМИЗАЦИЯ: Исправлен механизм обновлений (Controlled skipWaiting)
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v11'; // Версия поднята из-за изменения стратегий
+const CACHE_NAME = 'student-hub-v14'; // Версия поднята для сброса старого кривого кэша
 
 const ASSETS = [
     './',
     './index.html',
     './css/variables.css',
     './css/style.css',
+    './css/components.css',
     './css/views/schedule.css',
     './css/views/group.css',
     './css/views/homework.css',
@@ -163,10 +161,17 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-    self.skipWaiting();
+    // Больше НЕТ автоматического self.skipWaiting(). Мы ждем команды от пользователя.
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
     );
+});
+
+// Слушаем команду на принудительное обновление от app.js
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 self.addEventListener('activate', (event) => {
@@ -219,18 +224,18 @@ self.addEventListener('fetch', (event) => {
                 return response;
             });
         }).catch(() => {
-            // Опционально: вернуть заглушку, если картинки нет
+            // Опционально: вернуть заглушку
         })
     );
 });
 
 /* =====================================================================
    FILE: css/components.css
-   LINES: 128
+   LINES: 172
 ===================================================================== */
 
 /* =====================================================================
-   ГЛОБАЛЬНЫЕ UI-КОМПОНЕНТЫ (Модалки, Lightbox)
+   ГЛОБАЛЬНЫЕ UI-КОМПОНЕНТЫ (Модалки, Lightbox, Toasts)
 ===================================================================== */
 .custom-theme-modal {
     border: var(--glass-border); 
@@ -329,43 +334,87 @@ self.addEventListener('fetch', (event) => {
     100% { opacity: 1; transform: translateX(0); }
 }
 
+/* Обновленный TOAST */
 .toast-notification {
     position: fixed;
     top: calc(16px + env(safe-area-inset-top));
     left: 50%;
-    transform: translate(-50%, -20px);
+    transform: translate(-50%, -100%); /* Прячем выше экрана */
+    width: 90%;
+    max-width: 400px;
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     border: var(--glass-border);
     color: var(--text-primary);
-    padding: 12px 20px;
-    border-radius: 30px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    z-index: var(--z-modal);
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    z-index: var(--z-lightbox); /* Выше всего */
     opacity: 0;
-    pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    pointer-events: none; /* Чтобы не перехватывал клики в скрытом виде */
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+
 .toast-notification.show {
     opacity: 1;
     transform: translate(-50%, 0);
+    pointer-events: auto; /* Включаем клики */
 }
-.toast-offline svg { color: #ff6b6b; }
-.toast-success svg { color: #4CAF50; }
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-grow: 1;
+}
+
+.toast-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+/* Кнопка закрытия */
+.toast-close-btn {
+    background: rgba(255,255,255,0.05);
+    border: none;
+    color: var(--text-muted);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.toast-close-btn:active {
+    background: rgba(255,255,255,0.15);
+    transform: scale(0.9);
+    color: var(--text-primary);
+}
+
+/* Акценты для статусов */
+.toast-offline { border-left: 4px solid #ff6b6b; }
+.toast-offline .toast-icon svg { color: #ff6b6b; }
+
+.toast-success { border-left: 4px solid #4CAF50; }
+.toast-success .toast-icon svg { color: #4CAF50; }
 
 /* =====================================================================
    FILE: css/style.css
-   LINES: 198
+   LINES: 218
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/style.css
-   ОПТИМИЗАЦИЯ: Edge-to-Edge дизайн, постоянная стеклянная шапка, GPU-частицы
+   ОПТИМИЗАЦИЯ: Добавлены микроинтеракции для кнопки настроек
 ===================================================================== */
 html { scrollbar-width: none; }
 
@@ -414,24 +463,18 @@ body {
     border: var(--glass-border);
 }
 
-/* Статичная стеклянная шапка под статус-бар */
 .app-header {
     position: sticky; top: 0;
     display: flex; justify-content: space-between; align-items: flex-end; 
     padding: max(20px, calc(16px + env(safe-area-inset-top))) var(--spacing-main) 16px;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
-    
-    /* Возвращаем постоянный фон и рамки стекла */
     background: var(--glass-bg);
     border: var(--glass-border);
     border-top: none; 
-    
     z-index: var(--z-header);
     min-height: calc(60px + env(safe-area-inset-top));
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    
-    /* Фикс багов iOS */
     transform: translateZ(0); 
 }
 
@@ -443,14 +486,56 @@ body {
     margin-bottom: 2px;
 }
 
+/* === ПРОКАЧАННАЯ КНОПКА НАСТРОЕК === */
 .icon-btn { 
-    background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; 
-    padding: 16px;  
-    margin: -16px;  
+    background: transparent; 
+    border: none; 
+    color: var(--text-primary); 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    width: 44px;  /* Строгий размер для идеального круга */
+    height: 44px;
+    margin: -10px; /* Компенсация отступа, чтобы не ломать верстку шапки */
     border-radius: 50%;
+    transition: all var(--transition-fast);
+    outline: none;
 }
 
+/* Пружинистая анимация вращения шестеренки */
+.icon-btn svg {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Ховер для тех, кто сидит с ПК/Мышки */
+@media (hover: hover) {
+    .icon-btn:hover {
+        background: var(--overlay-bg);
+        color: var(--theme-accent-text);
+    }
+    .icon-btn:hover svg {
+        transform: rotate(45deg);
+    }
+}
+
+/* Реакция на нажатие (Тап на телефоне) */
+.icon-btn:active {
+    background: var(--overlay-bg-active);
+    color: var(--theme-accent);
+    transform: scale(0.85); /* Эффект физического продавливания */
+}
+.icon-btn:active svg {
+    transform: rotate(90deg); /* Крутим шестеренку */
+}
+/* =================================== */
+
 main { padding: var(--spacing-main); }
+
+#app-content {
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    will-change: opacity, transform;
+}
 
 .fade-in { animation: fadeIn var(--transition-smooth) forwards; }
 
@@ -493,9 +578,7 @@ main { padding: var(--spacing-main); }
 
 .placeholder-card { background: var(--theme-bg-secondary); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; border: var(--glass-border); }
 
-/* =====================================================================
-   КАСТОМНЫЕ ОБОИ ПОД СТЕКЛО
-===================================================================== */
+/* Обои */
 #app-wallpaper {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     object-fit: cover; z-index: var(--z-wallpaper); opacity: 0;
@@ -504,9 +587,27 @@ main { padding: var(--spacing-main); }
     transform: scale(1.1); 
 }
 
-/* =====================================================================
-   РЕЖИМ ЭНЕРГОСБЕРЕЖЕНИЯ
-===================================================================== */
+/* Pull to Refresh Indicator */
+#ptr-indicator {
+    position: fixed; top: -40px; left: 50%; margin-left: -20px;
+    width: 40px; height: 40px; background: var(--glass-bg);
+    border: var(--glass-border); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--theme-accent); z-index: var(--z-modal);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none; transition: transform 0.2s, opacity 0.2s;
+    backdrop-filter: var(--glass-blur);
+}
+#ptr-indicator.refreshing {
+    transition: none;
+    animation: ptr-spin 1s linear infinite;
+}
+@keyframes ptr-spin {
+    from { transform: translateY(50px) rotate(0deg); }
+    to { transform: translateY(50px) rotate(360deg); }
+}
+
+/* Энергосбережение */
 body.power-save-mode .glass,
 body.power-save-mode .app-header {
     background: var(--theme-bg-secondary);
@@ -518,58 +619,25 @@ body.power-save-mode #seasonal-fx-container {
     display: none; 
 }
 
-/* =====================================================================
-   СЕЗОННЫЕ ЭФФЕКТЫ (GPU OPTIMIZED)
-===================================================================== */
+/* Сезонные эффекты Canvas */
 #seasonal-fx-container {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     pointer-events: none; z-index: var(--z-fx); overflow: hidden;
 }
 
-.halloween-ember {
-    position: absolute; bottom: -20px; width: 6px; height: 6px;
-    background: #F86903; border-radius: 50%;
-    box-shadow: 0 0 10px #F86903, 0 0 20px #CE3D01;
-    animation: floatUp ease-in infinite, flicker 0.5s infinite alternate;
-    opacity: 0;
-    will-change: transform, opacity;
-}
-@keyframes floatUp {
-    0% { transform: translate3d(0, 0, 0) scale(0.5); opacity: 0; }
-    20% { opacity: 0.8; }
-    100% { transform: translate3d(0, -100vh, 0) scale(1.5); opacity: 0; }
-}
-@keyframes flicker {
-    0% { opacity: 0.5; box-shadow: 0 0 5px #F86903; }
-    100% { opacity: 1; box-shadow: 0 0 15px #F86903, 0 0 25px #CE3D01; }
-}
-
-.new-year-snow {
-    position: absolute; top: -10px; width: 4px; height: 4px;
-    background: #fff; border-radius: 50%;
-    box-shadow: 0 0 8px rgba(255,255,255,0.8);
-    animation: snowFall linear infinite, snowSway ease-in-out infinite alternate;
-    will-change: transform, opacity; 
-}
-@keyframes snowFall {
-    0% { transform: translateY(-10px); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(105vh); opacity: 0; }
-}
-@keyframes snowSway {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(20px); }
+#seasonal-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 /* =====================================================================
    FILE: css/variables.css
-   LINES: 134
+   LINES: 133
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/variables.css
-   ОПТИМИЗАЦИЯ: Введена архитектура Z-Index и управление таймингами анимаций
 ===================================================================== */
 :root, [data-theme="burgundy"] {
     --theme-bg-main: #151515;          
@@ -599,15 +667,15 @@ body.power-save-mode #seasonal-fx-container {
     /* СИСТЕМА Z-INDEX */
     --z-wallpaper: -2;
     --z-ambient: -1;
+    --z-fx: 0; /* ФИКС: Частицы теперь под стеклом контента, но над фоном */
     --z-base: 1;
-    --z-fx: 90;
     --z-header: 100;
     --z-nav: 100;
     --z-dropdown: 500;
     --z-modal: 1000;
     --z-lightbox: 9999;
 
-    /* УПРАВЛЕНИЕ АНИМАЦИЯМИ (меняется в режиме энергосбережения) */
+    /* УПРАВЛЕНИЕ АНИМАЦИЯМИ */
     --duration-fast: 0.2s;
     --duration-smooth: 0.3s;
     --transition-fast: var(--duration-fast) ease;
@@ -694,7 +762,7 @@ body.power-save-mode #seasonal-fx-container {
     --overlay-bg: rgba(255, 255, 255, 0.05); --overlay-bg-active: rgba(255, 255, 255, 0.1);
 }
 
-/* === РЕЖИМ ЭНЕРГОСБЕРЕЖЕНИЯ (Переопределение переменных без !important) === */
+/* === РЕЖИМ ЭНЕРГОСБЕРЕЖЕНИЯ === */
 body.power-save-mode {
     --duration-fast: 0.01ms;
     --duration-smooth: 0.01ms;
@@ -908,12 +976,9 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/homework.css
-   LINES: 101
+   LINES: 64
 ===================================================================== */
 
-/* =====================================================================
-   FILE: css/views/homework.css
-===================================================================== */
 .hw-container { animation: fadeIn 0.3s ease; }
 
 .hw-history-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
@@ -944,16 +1009,13 @@ body.power-save-mode {
 .hw-task { font-size: 0.95rem; color: var(--text-primary); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; word-break: break-word; }
 .hw-card.completed .hw-task { color: var(--text-muted); text-decoration: line-through; }
 
-/* Ресурсы (Ссылки, Файлы, Фото) */
+/* Ресурсы */
 .hw-resources { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-
-/* Ссылки */
 .hw-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: rgba(33, 150, 243, 0.1); border: 1px solid rgba(33, 150, 243, 0.2); border-radius: var(--radius-md); color: #64B5F6; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all var(--transition-fast); }
 .hw-link:active { transform: scale(0.98); background: rgba(33, 150, 243, 0.2); }
 .hw-link svg { flex-shrink: 0; }
 .hw-link span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Вложения (PDF) */
 .hw-attachment { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: var(--glass-border); border-radius: var(--radius-md); text-decoration: none; color: var(--text-primary); transition: all var(--transition-fast); }
 .hw-attachment:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
 .hw-file-icon { width: 32px; height: 32px; background: var(--theme-accent-soft); color: var(--theme-accent-text); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background var(--transition-smooth), color var(--transition-smooth); }
@@ -961,18 +1023,12 @@ body.power-save-mode {
 .hw-file-name { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all var(--transition-fast); }
 .hw-file-meta { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
 
-/* Фотографии (Сетка) */
 .hw-image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin-top: 4px; }
 .hw-image-thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.5); cursor: zoom-in; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; position: relative; }
 .hw-image-thumb:active { transform: scale(0.95); }
 .hw-image-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Состояние: Ошибка (Файл отсутствует на сервере) */
-.hw-broken { 
-    background: rgba(255, 0, 0, 0.05) !important; 
-    border-color: rgba(255, 0, 0, 0.3) !important; 
-    pointer-events: none; /* Запрет клика */
-}
+.hw-broken { background: rgba(255, 0, 0, 0.05) !important; border-color: rgba(255, 0, 0, 0.3) !important; pointer-events: none; }
 .hw-broken .hw-file-name { text-decoration: line-through; color: #ff6b6b; }
 .hw-broken .hw-file-icon { background: rgba(255,0,0,0.1); color: #ff6b6b; }
 .hw-broken::after { content: 'Файл не найден'; display: block; font-size: 0.65rem; color: #ff6b6b; margin-top: 2px; }
@@ -982,45 +1038,20 @@ body.power-save-mode {
 .hw-card.completed .hw-resources { opacity: 0.5; filter: grayscale(1); }
 .hw-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
 
-/* Модальное окно просмотра фото (Lightbox) */
-.hw-lightbox { 
-    border: none; background: rgba(0,0,0,0.95); 
-    width: 100vw; height: 100vh; max-width: none; max-height: none; 
-    position: fixed; top: 0; left: 0; padding: 0; margin: 0; z-index: 9999;
-}
-.hw-lightbox::backdrop { background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); }
-
-/* Панель управления (Крестик и Скачать) */
-.hw-lightbox-controls {
-    position: absolute; top: calc(16px + env(safe-area-inset-top)); right: 16px;
-    display: flex; gap: 12px; z-index: 10;
-}
-
-.hw-lightbox-btn { 
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
-    color: #fff; width: 44px; height: 44px; border-radius: 50%; 
-    display: flex; align-items: center; justify-content: center; 
-    cursor: pointer; text-decoration: none; backdrop-filter: blur(4px);
-    transition: all 0.2s ease; padding: 0;
-}
-.hw-lightbox-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
-
-/* Контейнер картинки */
-.hw-lightbox-body {
-    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-}
-.hw-lightbox img { 
-    max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; 
+/* View Transitions Rules */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
 }
 
 /* =====================================================================
    FILE: css/views/schedule.css
-   LINES: 99
+   LINES: 123
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/views/schedule.css
-   ПРЕМИУМ ДИЗАЙН: Мягкие рамки, индикаторы Live Activity, Компактные отступы
+   ОПТИМИЗАЦИЯ: Исправлен баг проглатывания тапов на днях недели
 ===================================================================== */
 .live-widget { 
     background: var(--glass-bg); 
@@ -1031,13 +1062,10 @@ body.power-save-mode {
     position: relative; 
     overflow: hidden; 
     transition: all var(--transition-smooth); 
-    
-    /* Идеальная мягкая рамка, которая не "жирнит" в светлой теме */
     border: 1px solid transparent; 
     background-clip: padding-box;
 }
 
-/* Состояния виджета */
 .widget-idle { background-color: var(--overlay-bg); border-color: rgba(255,255,255,0.02); }
 .widget-active { border-color: var(--theme-accent); box-shadow: 0 8px 32px var(--theme-accent-soft); }
 .widget-break { border-color: #2196F3; box-shadow: 0 8px 32px rgba(33, 150, 243, 0.15); }
@@ -1045,7 +1073,6 @@ body.power-save-mode {
 
 .live-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-/* Группа статуса с пульсирующей точкой */
 .live-status-group { display: flex; align-items: center; gap: 8px; }
 .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
 .widget-active .pulse-dot { background: var(--theme-accent); animation: pulseDot 2s infinite; }
@@ -1064,41 +1091,69 @@ body.power-save-mode {
 .widget-success .live-status { color: #4CAF50; }
 
 .live-time { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-.live-subject { font-size: 1.1rem; margin-bottom: 16px; color: var(--text-primary); }
+.live-subject { font-size: 1.1rem; margin-bottom: 12px; color: var(--text-primary); line-height: 1.2; }
 
+/* Прогресс-бар */
 .progress-track { width: 100%; height: 6px; background: var(--overlay-bg-active); border-radius: 4px; overflow: hidden; transform: translateZ(0); }
 .progress-fill { height: 100%; background: var(--theme-accent); width: 0%; border-radius: 4px; transition: width 1s linear, background var(--transition-smooth); }
 
-/* Остальные стили расписания */
 .schedule-controls-container { display: flex; flex-direction: column; }
 
-/* ФИКС: Уменьшили нижний margin до 0, чтобы прижать переключатель ближе к дням недели */
+/* ФИКС: Убрали overflow-x: auto, из-за которого браузер отменял тапы при микро-сдвигах пальца */
 .days-wrapper { 
-    margin: -8px calc(var(--spacing-main) * -1) 0; 
-    padding: 8px var(--spacing-main) 16px; 
-    overflow-x: auto; 
-    -webkit-overflow-scrolling: touch; 
-    scrollbar-width: none; 
+    margin: -8px 0 0; 
+    padding: 8px 0 16px; 
 }
-.days-wrapper::-webkit-scrollbar { display: none; }
 
 .days-group { 
     display: flex; 
     gap: 8px; 
     width: 100%; 
-    padding-bottom: 0; 
 }
 
-.day-tab { flex: 1; text-align: center; background: var(--theme-bg-secondary); border: var(--glass-border); color: var(--text-secondary); padding: 10px 0 12px; border-radius: var(--radius-md); font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: all var(--transition-fast); position: relative; }
+/* ФИКС: Добавлены touch-action и user-select для мгновенного отклика кнопок */
+.day-tab { 
+    flex: 1; 
+    text-align: center; 
+    background: var(--theme-bg-secondary); 
+    border: var(--glass-border); 
+    color: var(--text-secondary); 
+    padding: 10px 0 12px; 
+    border-radius: var(--radius-md); 
+    font-weight: 500; 
+    font-size: 0.95rem; 
+    cursor: pointer; 
+    transition: all var(--transition-fast); 
+    position: relative; 
+    touch-action: manipulation; 
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
 .day-tab.active { background: var(--theme-accent); color: var(--text-on-accent); border-color: transparent; box-shadow: 0 4px 12px var(--theme-accent-glow); }
 .day-tab.today::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: var(--theme-accent); border-radius: 2px; transition: background var(--transition-smooth); }
 .day-tab.today.active::after { background: var(--text-on-accent); box-shadow: 0 1px 6px rgba(255, 255, 255, 0.6); }
 
-/* ФИКС: Уменьшили margin-bottom с 24px до 16px, чтобы список уроков был ближе */
 .segmented-control { display: flex; position: relative; background: var(--overlay-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 4px; width: 100%; height: 46px; margin-bottom: 16px; animation: fadeIn 0.3s ease; }
 .segment-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--theme-accent); border-radius: calc(var(--radius-md) - 2px); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background var(--transition-smooth), box-shadow var(--transition-smooth); box-shadow: 0 4px 12px var(--theme-accent-glow); }
 .segmented-control[data-active="actual"] .segment-slider { transform: translateX(100%); }
-.segment-btn { flex: 1; border: none; background: transparent; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; transition: color 0.3s ease; font-family: inherit; }
+
+/* ФИКС: Оптимизация для переключателя "Обычное/Фактическое" */
+.segment-btn { 
+    flex: 1; 
+    border: none; 
+    background: transparent; 
+    color: var(--text-secondary); 
+    font-weight: 500; 
+    font-size: 0.9rem; 
+    z-index: 1; 
+    cursor: pointer; 
+    transition: color 0.3s ease; 
+    font-family: inherit; 
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+}
 .segment-btn.active { color: var(--text-on-accent); }
 
 .schedule-list { display: flex; flex-direction: column; gap: 12px; list-style: none; transition: opacity var(--transition-fast); }
@@ -1120,12 +1175,9 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/settings.css
-   LINES: 105
+   LINES: 95
 ===================================================================== */
 
-/* =====================================================================
-   FILE: css/views/settings.css
-===================================================================== */
 .settings-container { animation: fadeIn 0.3s ease; }
 .settings-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
 .settings-back-btn { 
@@ -1141,7 +1193,7 @@ body.power-save-mode {
 .settings-section { margin-bottom: 28px; }
 .settings-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 4px; }
 
-/* === Карточка ТЕМ === */
+/* Карточка ТЕМ */
 .theme-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-lg); padding: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
 .theme-scroll-wrapper { display: flex; gap: 20px; overflow-x: auto; padding: 10px 20px; -webkit-overflow-scrolling: touch; scrollbar-width: none; cursor: grab; }
 .theme-scroll-wrapper:active { cursor: grabbing; }
@@ -1157,14 +1209,7 @@ body.power-save-mode {
 .theme-name-label { font-size: 0.7rem; color: var(--text-secondary); text-align: center; line-height: 1.2; width: 100%; white-space: normal; transition: color 0.3s; }
 .theme-swatch-container.active .theme-name-label { color: var(--text-primary); font-weight: 600; }
 
-/* === МОДАЛКИ === */
-.custom-theme-modal {
-    border: var(--glass-border); background: var(--theme-bg-secondary);
-    border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 320px;
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    color: var(--text-primary); box-shadow: 0 20px 40px rgba(0,0,0,0.8); margin: 0;
-}
-.custom-theme-modal::backdrop { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+/* Уникальные классы модалок Настроек */
 .custom-theme-modal h3 { margin-bottom: 16px; font-size: 1.1rem; text-align: center; }
 .color-picker-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: var(--overlay-bg); padding: 12px; border-radius: var(--radius-md); }
 .color-picker-group label { font-size: 0.9rem; font-weight: 500; }
@@ -1177,7 +1222,7 @@ body.power-save-mode {
 .modal-btn.cancel { background: var(--overlay-bg-active); color: var(--text-primary); }
 .modal-btn.save { background: var(--theme-accent); color: var(--text-on-accent); }
 
-/* === МОДАЛКА ПОРЯДКА НАВИГАЦИИ === */
+/* Модалка Порядок Навигации */
 .nav-reorder-item {
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 14px; background: var(--overlay-bg); border-radius: var(--radius-md);
@@ -1192,7 +1237,7 @@ body.power-save-mode {
 .nav-move-btn:disabled { opacity: 0.3; cursor: default; }
 .nav-move-btn:not(:disabled):active { background: var(--theme-accent); color: var(--text-on-accent); transform: scale(0.9); }
 
-/* === ЭЛЕМЕНТЫ СПИСКА === */
+/* Элементы списка */
 .settings-list { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-lg); overflow: visible; }
 .settings-list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; width: 100%; border: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--overlay-bg); }
 .settings-list-item:last-child { border-bottom: none; }
@@ -1202,7 +1247,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .item-label-group { display: flex; flex-direction: column; }
 .item-subtitle { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
-/* === КАСТОМНЫЙ DROPDOWN === */
+/* Кастомный Select */
 .custom-select-wrapper { position: relative; user-select: none; }
 .custom-select-btn { display: flex; align-items: center; gap: 8px; background: var(--overlay-bg); border: var(--glass-border); color: var(--text-primary); padding: 8px 14px; border-radius: var(--radius-md); font-family: inherit; font-size: 0.9rem; cursor: pointer; transition: all var(--transition-fast); }
 .custom-select-btn:active { background: var(--overlay-bg-active); transform: scale(0.98); }
@@ -1214,7 +1259,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .custom-select-option:hover { background: var(--overlay-bg); color: var(--text-primary); }
 .custom-select-option.selected { background: var(--theme-accent-soft); color: var(--theme-accent-text); font-weight: 600; }
 
-/* === iOS SWITCH === */
+/* iOS Switch */
 .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--overlay-bg-active); border-radius: 12px; transition: background 0.3s ease; cursor: pointer; border: var(--glass-border); }
 .toggle-switch::after { content: ''; position: absolute; top: 1px; left: 1px; width: 20px; height: 20px; background: var(--text-primary); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.3s ease; }
 .toggle-switch.active { background: var(--theme-accent); border-color: var(--theme-accent); }
@@ -1222,7 +1267,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .inline-select { background: var(--overlay-bg); border: var(--glass-border); color: var(--text-primary); padding: 8px 14px; border-radius: 8px; font-family: inherit; font-size: 0.9rem; transition: background 0.2s; }
 .inline-select:active { background: var(--overlay-bg-active); }
 
-/* === ФУТЕР ВЕРСИИ === */
+/* Футер */
 .settings-footer { text-align: center; margin-top: 40px; margin-bottom: 20px; }
 .settings-footer .version-text { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; user-select: none; padding: 10px; display: inline-block; cursor: pointer;}
 .settings-footer .credits { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
@@ -1682,6 +1727,19 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 }
 
 /* =====================================================================
+   FILE: data/overrides/25-09-2026.json
+   LINES: 7
+===================================================================== */
+
+{
+  "id": "25-09-2026",
+  "lessons": [
+    { "pair": 1, "subject": "Информатика", "room": "1/20" },
+    { "pair": 2, "subject": "Литература", "room": "1/17" }
+  ]
+}
+
+/* =====================================================================
    FILE: icons/icon-mobile.svg
    LINES: 22
 ===================================================================== */
@@ -1748,27 +1806,26 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 75
+   LINES: 137
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/app.js
-   ОПТИМИЗАЦИЯ: Добавлен перехватчик секретных ссылок (NFC Admin)
 ===================================================================== */
 import { Router } from './router.js';
 import { ThemeManager } from './utils/theme.js';
 import { PrefsManager } from './utils/prefs.js';
 import { Toast } from './components/Toast.js';
+import { ApiService } from './services/api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
         console.log('[App] Инициализация приложения...');
         
-        // --- 0. СЕКРЕТНАЯ ССЫЛКА ДЛЯ NFC (Временный Админ) ---
+        // --- 0. СЕКРЕТНАЯ ССЫЛКА ДЛЯ NFC ---
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auth') === 'dev') {
             PrefsManager.enableTempAdmin();
-            // Незаметно стираем ?auth=dev из адресной строки, чтобы друг ничего не понял
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash;
             window.history.replaceState(null, '', cleanUrl);
         }
@@ -1776,25 +1833,26 @@ document.addEventListener('DOMContentLoaded', () => {
         ThemeManager.init();
         PrefsManager.applySettingsToDOM(); 
         
-        // --- 1. РЕГИСТРАЦИЯ SERVICE WORKER ---
+        // --- 1. РЕГИСТРАЦИЯ SERVICE WORKER (Надежное обновление) ---
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => {
-                    console.log('[SW] Зарегистрирован:', reg.scope);
-                    
-                    reg.addEventListener('updatefound', () => {
-                        const newWorker = reg.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm('Доступна новая версия приложения! Обновить сейчас?')) {
-                                    window.location.reload();
-                                }
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                console.log('[SW] Зарегистрирован:', reg.scope);
+                
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        // Ждем, пока новый SW скачается и будет готов к активации
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            if (confirm('Доступна новая версия приложения! Обновить сейчас?')) {
+                                // Отправляем команду на применение нового кэша
+                                newWorker.postMessage({ type: 'SKIP_WAITING' });
                             }
-                        });
+                        }
                     });
-                })
-                .catch(err => console.warn('[SW] Ошибка:', err));
+                });
+            }).catch(err => console.warn('[SW] Ошибка:', err));
 
+            // Как только старый SW сменится на новый — жестко перезагружаем страницу
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
@@ -1806,34 +1864,97 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- 2. ЗАПУСК РОУТЕРА ---
         const router = new Router();
+        window.appRouter = router; 
         router.init();
 
         // --- 3. ИНДИКАТОР ОФЛАЙНА ---
         window.addEventListener('offline', () => {
-            Toast.show('Офлайн режим. Показаны сохраненные данные.', 'offline', 5000);
+            Toast.show('Нет интернета. Показаны сохраненные данные.', 'offline', 0);
         });
+        
         window.addEventListener('online', () => {
-            Toast.show('Соединение восстановлено', 'success', 3000);
+            Toast.hide(); 
+            setTimeout(() => {
+                Toast.show('Соединение восстановлено', 'success', 3000);
+            }, 300); 
         });
         
         setTimeout(() => {
             if (!navigator.onLine) {
-                Toast.show('Офлайн режим. Показаны сохраненные данные.', 'offline', 5000);
+                Toast.show('Нет интернета. Показаны сохраненные данные.', 'offline', 0);
             }
         }, 1500);
+
+        // --- 4. ПАТТЕРН PULL TO REFRESH ---
+        initPullToRefresh();
 
     } catch (error) {
         console.error('[App Error] Критическая ошибка:', error);
     }
 });
 
+function initPullToRefresh() {
+    let ptrStartY = 0;
+    let ptrCurrentY = 0;
+    let isPtrActive = false;
+    let ptrEl = null;
+
+    document.addEventListener('touchstart', (e) => {
+        if (window.scrollY === 0) {
+            ptrStartY = e.touches[0].clientY;
+            isPtrActive = true;
+            if (!ptrEl) {
+                ptrEl = document.createElement('div');
+                ptrEl.id = 'ptr-indicator';
+                ptrEl.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`;
+                document.body.appendChild(ptrEl);
+            }
+        }
+    }, {passive: true});
+
+    document.addEventListener('touchmove', (e) => {
+        if (!isPtrActive || !ptrEl) return;
+        ptrCurrentY = e.touches[0].clientY;
+        const diff = ptrCurrentY - ptrStartY;
+        
+        if (diff > 0 && window.scrollY === 0) {
+            const pull = Math.min(diff * 0.4, 60);
+            ptrEl.style.transform = `translateY(${pull}px) rotate(${pull * 3}deg)`;
+            ptrEl.style.opacity = Math.min(pull / 60, 1);
+        }
+    }, {passive: true});
+
+    document.addEventListener('touchend', async () => {
+        if (!isPtrActive || !ptrEl) return;
+        isPtrActive = false;
+        const diff = ptrCurrentY - ptrStartY;
+        
+        if (diff > 120 && window.scrollY === 0) {
+            PrefsManager.vibrate(20);
+            ptrEl.classList.add('refreshing');
+            ptrEl.style.transform = `translateY(50px) rotate(360deg)`;
+            
+            ApiService.clearCache();
+            if (window.appRouter) await window.appRouter.handleRoute();
+            
+            ptrEl.classList.remove('refreshing');
+            ptrEl.style.transform = `translateY(-50px)`;
+            ptrEl.style.opacity = '0';
+        } else {
+            ptrEl.style.transform = `translateY(-50px)`;
+            ptrEl.style.opacity = '0';
+        }
+    }, {passive: true});
+}
+
 /* =====================================================================
    FILE: js/router.js
-   LINES: 80
+   LINES: 115
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/router.js
+   ОПТИМИЗАЦИЯ: Внедрен RenderID (защита от Race Condition) и виброотклик
 ===================================================================== */
 import { ScheduleView } from './views/ScheduleView.js';
 import { GroupView } from './views/GroupView.js';
@@ -1857,12 +1978,20 @@ export class Router {
         };
         
         this.currentView = null;
+        
+        // Уникальный ID для каждого перехода (Защита от спама кликами)
+        this.renderId = 0; 
+
+        // Добавляем тактильный отклик на все ссылки навигации и настройки
+        document.querySelectorAll('a[href^="#/"]').forEach(link => {
+            link.addEventListener('click', () => PrefsManager.vibrate(15));
+        });
+
         window.addEventListener('hashchange', this.handleRoute.bind(this));
     }
 
     init() {
         if (!window.location.hash) {
-            // Первая кнопка в порядке панелей становится стартовым экраном
             const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
             window.location.hash = '#/' + firstPage;
         } else {
@@ -1874,26 +2003,52 @@ export class Router {
         const path = window.location.hash.slice(1);
         const view = this.views[path];
 
-        try {
-            this.contentContainer.classList.remove('fade-in');
-            await new Promise(res => setTimeout(res, 100));
+        // 1. Увеличиваем ID рендера (все старые процессы станут неактуальными)
+        const currentRenderId = ++this.renderId;
 
+        try {
+            // 2. Скрываем старый контент
+            this.contentContainer.classList.remove('fade-in');
+            this.contentContainer.style.opacity = '0';
+            this.contentContainer.style.transform = 'translateY(10px)';
+
+            // Ждем завершения анимации исчезновения
+            await new Promise(res => setTimeout(res, 150));
+
+            // ВАЖНО: Если во время скрытия юзер нажал другую кнопку - прерываем этот процесс!
+            if (this.renderId !== currentRenderId) return;
+
+            // 3. Отмонтируем старую вьюху
             if (this.currentView) {
                 this.currentView.unmount();
             }
 
+            // 4. Монтируем новую вьюху
             if (view) {
                 this.currentView = view;
-                await view.mount();
                 this.updateNavUI(path);
+                
+                // Ждем загрузки данных (fetch JSON)
+                await view.mount();
+
+                // ВАЖНО: Если данные грузились долго, а юзер уже ушел на другой экран - не показываем результат!
+                if (this.renderId !== currentRenderId) return;
             } else {
                 const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
                 window.location.hash = '#/' + firstPage;
+                return;
             }
             
+            // 5. Показываем новый контент
+            this.contentContainer.style.transform = 'translateY(0)';
+            this.contentContainer.style.opacity = '1';
             this.contentContainer.classList.add('fade-in');
+
         } catch (error) {
             console.error(`[Router Error] Ошибка перехода на ${path}:`, error);
+            // Восстанавливаем видимость экрана в случае критической ошибки
+            this.contentContainer.style.opacity = '1';
+            this.contentContainer.style.transform = 'translateY(0)';
         }
     }
 
@@ -2031,7 +2186,7 @@ export const Modal = {
 
 /* =====================================================================
    FILE: js/components/Toast.js
-   LINES: 32
+   LINES: 56
 ===================================================================== */
 
 /* =====================================================================
@@ -2039,51 +2194,79 @@ export const Modal = {
    Глобальный компонент всплывающих уведомлений (Toast)
 ===================================================================== */
 export const Toast = {
+    timeout: null,
+
     show(message, type = 'info', duration = 3000) {
         let toast = document.getElementById('system-toast');
+        
         if (!toast) {
             toast = document.createElement('div');
             toast.id = 'system-toast';
-            toast.className = 'toast-notification';
             document.body.appendChild(toast);
         }
 
+        // Обновленная структура с крестиком
         toast.innerHTML = `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                ${type === 'offline' 
-                    ? '<path d="M1 1l22 22"></path><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line>' 
-                    : '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>'
-                }
-            </svg>
-            <span>${message}</span>
+            <div class="toast-content">
+                <div class="toast-icon">
+                    ${type === 'offline' 
+                        ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22"></path><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>' 
+                        : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
+                    }
+                </div>
+                <span class="toast-text">${message}</span>
+            </div>
+            <button class="toast-close-btn" aria-label="Закрыть">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         `;
         
         toast.className = `toast-notification toast-${type} show`;
 
+        // Вешаем событие на крестик
+        toast.querySelector('.toast-close-btn').addEventListener('click', () => {
+            this.hide();
+        });
+
         if (this.timeout) clearTimeout(this.timeout);
-        this.timeout = setTimeout(() => {
+        
+        // Если duration = 0, уведомление висит бесконечно, пока не закроют
+        if (duration > 0) {
+            this.timeout = setTimeout(() => {
+                this.hide();
+            }, duration);
+        }
+    },
+
+    hide() {
+        const toast = document.getElementById('system-toast');
+        if (toast) {
             toast.classList.remove('show');
-        }, duration);
+        }
     }
 };
 
 /* =====================================================================
    FILE: js/services/api.js
-   LINES: 81
+   LINES: 80
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/services/api.js
+   ОПТИМИЗАЦИЯ: Внедрен Cache Buster для пробития кэша Service Worker'а
 ===================================================================== */
 const cache = new Map();
+let globalCacheBuster = ''; // Уникальный токен для обхода кэша
 
 async function fetchJson(url, useCache = true, fetchOptions = {}) {
+    const finalUrl = globalCacheBuster ? `${url}?bust=${globalCacheBuster}` : url;
+
     if (useCache && cache.has(url)) {
         return cache.get(url);
     }
     
     try {
-        const response = await fetch(url, fetchOptions);
+        const response = await fetch(finalUrl, fetchOptions);
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
         
         const data = await response.json();
@@ -2091,12 +2274,17 @@ async function fetchJson(url, useCache = true, fetchOptions = {}) {
         
         return data;
     } catch (error) {
-        // Тихо возвращаем null, если файла за эту неделю пока нет
         return null; 
     }
 }
 
 export const ApiService = {
+    // Вызывается при Pull-to-Refresh
+    clearCache: () => {
+        cache.clear();
+        globalCacheBuster = Date.now().toString(); // Генерируем новый токен
+    },
+    
     getBells: () => fetchJson('data/bells.json'),
     getSchedule: () => fetchJson('data/schedule.json'),
     getStudents: () => fetchJson('data/students.json'),
@@ -2105,9 +2293,7 @@ export const ApiService = {
     
     getOverride: (dateStr) => fetchJson(`data/overrides/${dateStr}.json`, true, { cache: 'no-cache' }),
 
-    // Загрузка ДЗ: Считает понедельники и грузит 3 недели (текущая и две прошлые)
     getHomework: async () => {
-        // Вспомогательная функция: находит понедельник для любой даты
         const getMonday = (date) => {
             const d = new Date(date);
             const day = d.getDay();
@@ -2115,7 +2301,6 @@ export const ApiService = {
             return new Date(d.setDate(diff));
         };
 
-        // Вспомогательная функция: форматирует в ДД-ММ-ГГГГ
         const formatDate = (date) => {
             const dd = String(date.getDate()).padStart(2, '0');
             const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -2124,19 +2309,14 @@ export const ApiService = {
         };
 
         const today = new Date();
-        
-        // 1. Понедельник текущей недели
         const currentMonday = getMonday(today);
         
-        // 2. Понедельник прошлой недели (-7 дней)
         const prevMonday1 = new Date(currentMonday);
         prevMonday1.setDate(prevMonday1.getDate() - 7);
         
-        // 3. Понедельник позапрошлой недели (-14 дней)
         const prevMonday2 = new Date(currentMonday);
         prevMonday2.setDate(prevMonday2.getDate() - 14);
 
-        // Грузим 3 файла параллельно
         const [dataWeek0, dataWeek1, dataWeek2] = await Promise.all([
             fetchJson(`data/homework/${formatDate(currentMonday)}.json`, true, { cache: 'no-cache' }),
             fetchJson(`data/homework/${formatDate(prevMonday1)}.json`, true, { cache: 'no-cache' }),
@@ -2144,8 +2324,6 @@ export const ApiService = {
         ]);
 
         const combinedTasks = [];
-        
-        // Склеиваем от старых к новым (сортировка по дате все равно отработает во View)
         if (Array.isArray(dataWeek2)) combinedTasks.push(...dataWeek2);
         if (Array.isArray(dataWeek1)) combinedTasks.push(...dataWeek1);
         if (Array.isArray(dataWeek0)) combinedTasks.push(...dataWeek0);
@@ -2623,13 +2801,37 @@ export const SettingsTemplate = {
 
 /* =====================================================================
    FILE: js/utils/prefs.js
-   LINES: 156
+   LINES: 178
 ===================================================================== */
 
-/* =====================================================================
-   FILE: js/utils/prefs.js
-   ОПТИМИЗАЦИЯ: Добавлена система временного доступа (Session Admin)
-===================================================================== */
+// Простая асинхронная обертка для IndexedDB
+const idb = {
+    getDb() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('StudentHubDB', 1);
+            request.onupgradeneeded = e => e.target.result.createObjectStore('store');
+            request.onsuccess = e => resolve(e.target.result);
+            request.onerror = e => reject(e.target.error);
+        });
+    },
+    async set(key, value) {
+        const db = await this.getDb();
+        db.transaction('store', 'readwrite').objectStore('store').put(value, key);
+    },
+    async get(key) {
+        const db = await this.getDb();
+        return new Promise(resolve => {
+            const req = db.transaction('store').objectStore('store').get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        });
+    },
+    async del(key) {
+        const db = await this.getDb();
+        db.transaction('store', 'readwrite').objectStore('store').delete(key);
+    }
+};
+
 export const PrefsManager = {
     storageKey: 'sh_preferences',
     adminKey: 'sh_admin_mode',
@@ -2659,19 +2861,16 @@ export const PrefsManager = {
         this.savePrefs(prefs);
     },
 
-    // Включаем временную админку (живет до закрытия вкладки)
     enableTempAdmin() {
         sessionStorage.setItem('sh_temp_admin', 'true');
     },
 
-    // Админ ли пользователь? (Либо навсегда через 5 тапов, либо временно по ссылке)
     isAdmin() {
         const isPerm = localStorage.getItem(this.adminKey) === 'true';
         const isTemp = sessionStorage.getItem('sh_temp_admin') === 'true';
         return isPerm || isTemp;
     },
 
-    // 5 тапов меняют только постоянную настройку
     toggleAdmin() {
         const isPerm = localStorage.getItem(this.adminKey) === 'true';
         localStorage.setItem(this.adminKey, !isPerm ? 'true' : 'false');
@@ -2680,17 +2879,20 @@ export const PrefsManager = {
 
     vibrate(ms = 20) {
         const prefs = this.getPrefs();
-        if (prefs.haptic && navigator.vibrate) {
-            navigator.vibrate(ms);
-        }
+        if (prefs.haptic && navigator.vibrate) navigator.vibrate(ms);
     },
 
-    saveWallpaper(file, callback) {
+    async hasWallpaper() {
+        const val = await idb.get(this.wallpaperKey);
+        return !!val;
+    },
+
+    async saveWallpaper(file, callback) {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
-            img.onload = () => {
+            img.onload = async () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 const MAX_WIDTH = 1080; 
@@ -2706,13 +2908,13 @@ export const PrefsManager = {
                 
                 const base64 = canvas.toDataURL('image/webp', 0.6); 
                 try {
-                    localStorage.setItem(this.wallpaperKey, base64);
+                    await idb.set(this.wallpaperKey, base64);
                     this.applySettingsToDOM();
                     callback(true);
                 } catch (err) {
                     console.error('[Prefs] Ошибка сохранения обоев:', err);
-                    this.clearWallpaper();
-                    alert('Файл слишком большой или память браузера переполнена.');
+                    await this.clearWallpaper();
+                    alert('Ошибка сохранения обоев. Возможно, недостаточно памяти.');
                     callback(false);
                 }
             };
@@ -2721,8 +2923,8 @@ export const PrefsManager = {
         reader.readAsDataURL(file);
     },
 
-    clearWallpaper() {
-        localStorage.removeItem(this.wallpaperKey);
+    async clearWallpaper() {
+        await idb.del(this.wallpaperKey);
         this.applySettingsToDOM();
     },
 
@@ -2748,7 +2950,7 @@ export const PrefsManager = {
         }
     },
 
-    applySettingsToDOM() {
+    async applySettingsToDOM() {
         const prefs = this.getPrefs();
         const body = document.body;
         
@@ -2756,9 +2958,7 @@ export const PrefsManager = {
         navItems.forEach(item => {
             const href = item.getAttribute('href').replace('#/', '');
             const index = prefs.navOrder.indexOf(href);
-            if(index !== -1) {
-                item.style.order = index;
-            }
+            if(index !== -1) item.style.order = index;
         });
 
         if (prefs.powerSave) body.classList.add('power-save-mode');
@@ -2771,7 +2971,7 @@ export const PrefsManager = {
             document.body.appendChild(wpImg);
         }
 
-        const savedWp = localStorage.getItem(this.wallpaperKey);
+        const savedWp = await idb.get(this.wallpaperKey);
         if (savedWp && !prefs.powerSave) { 
             wpImg.src = savedWp;
             wpImg.style.opacity = '1';
@@ -2785,14 +2985,178 @@ export const PrefsManager = {
 
 /* =====================================================================
    FILE: js/utils/theme.js
-   LINES: 185
+   LINES: 328
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/utils/theme.js
-   ОПТИМИЗАЦИЯ: Оптимизирован рендеринг частиц (DocumentFragment)
+   ОПТИМИЗАЦИЯ: Исправлен баг утечки контекста Canvas (партиклы больше не пропадают)
 ===================================================================== */
 import { PrefsManager } from './prefs.js';
+
+// --- ДВИЖОК ЧАСТИЦ CANVAS ---
+class ParticleEngine {
+    constructor() {
+        this.canvas = null;
+        this.ctx = null;
+        this.particles = [];
+        this.animationId = null;
+        this.theme = null; 
+        this.isActive = false; // Флаг для защиты от зомби-процессов
+        
+        this.width = 0;
+        this.height = 0;
+
+        this.handleResize = this.handleResize.bind(this);
+        this.loop = this.loop.bind(this);
+    }
+
+    init(themeId) {
+        this.stop(); // Гарантированно убиваем старый цикл
+        this.theme = themeId;
+        this.isActive = true;
+        
+        let container = document.getElementById('seasonal-fx-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'seasonal-fx-container';
+            document.body.appendChild(container);
+        }
+        
+        // ВАЖНО: Мы больше не пересоздаем элемент <canvas> через innerHTML. 
+        // Если его постоянно пересоздавать, браузер исчерпает лимит GPU-контекстов и снег исчезнет.
+        this.canvas = document.getElementById('seasonal-canvas');
+        if (!this.canvas) {
+            this.canvas = document.createElement('canvas');
+            this.canvas.id = 'seasonal-canvas';
+            this.canvas.style.width = '100%';
+            this.canvas.style.height = '100%';
+            this.canvas.style.display = 'block';
+            this.canvas.style.pointerEvents = 'none'; // Чтобы не мешал кликам
+            container.appendChild(this.canvas);
+            
+            this.ctx = this.canvas.getContext('2d', { alpha: true });
+        }
+        
+        this.canvas.style.display = 'block'; // Показываем, если был скрыт
+        
+        this.handleResize();
+        window.addEventListener('resize', this.handleResize);
+
+        // Создаем частицы
+        const count = this.theme === 'new-year' ? 50 : 30;
+        this.particles = []; // Очищаем массив
+        for (let i = 0; i < count; i++) {
+            this.particles.push(this.createParticle(true));
+        }
+
+        this.loop();
+    }
+
+    createParticle(isInitial = false) {
+        if (this.theme === 'new-year') {
+            return {
+                x: Math.random() * this.width,
+                // При старте раскидываем снег по всему экрану, а новые снежинки появляются только сверху
+                y: isInitial ? (Math.random() * this.height) : -10, 
+                r: Math.random() * 2 + 1, 
+                speedY: Math.random() * 1 + 0.5,
+                speedX: Math.random() * 1 - 0.5,
+                opacity: Math.random() * 0.5 + 0.3
+            };
+        } else {
+            // Halloween
+            return {
+                x: Math.random() * this.width,
+                y: isInitial ? (Math.random() * this.height) : (this.height + 10), 
+                r: Math.random() * 2 + 1,
+                speedY: -(Math.random() * 2 + 1),
+                speedX: Math.random() * 2 - 1,
+                opacity: Math.random(),
+                life: Math.random() * 100 
+            };
+        }
+    }
+
+    handleResize() {
+        if (!this.canvas) return;
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        // Установка width/height аппаратно очищает canvas, что нам и нужно
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+    }
+
+    updateAndDraw() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        for (let i = 0; i < this.particles.length; i++) {
+            let p = this.particles[i];
+
+            if (this.theme === 'new-year') {
+                p.y += p.speedY;
+                p.x += Math.sin(p.y / 50) * 0.5 + p.speedX; 
+
+                // Переиспользуем объект вместо создания нового (бережет память телефона)
+                if (p.y > this.height + 10) {
+                    p.y = -10;
+                    p.x = Math.random() * this.width;
+                }
+
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                this.ctx.fill();
+
+            } else {
+                p.y += p.speedY;
+                p.x += Math.sin(p.life / 10) * p.speedX;
+                p.life++;
+                
+                const currentOpacity = Math.abs(Math.sin(p.life / 10)) * p.opacity;
+
+                if (p.y < -10) {
+                    p.y = this.height + 10;
+                    p.x = Math.random() * this.width;
+                }
+
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = '#F86903';
+                this.ctx.fillStyle = `rgba(248, 105, 3, ${currentOpacity})`;
+                this.ctx.fill();
+                this.ctx.shadowBlur = 0; 
+            }
+        }
+    }
+
+    loop() {
+        if (!this.isActive || !this.ctx) return;
+        this.updateAndDraw();
+        this.animationId = requestAnimationFrame(this.loop);
+    }
+
+    stop() {
+        this.isActive = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        window.removeEventListener('resize', this.handleResize);
+        
+        // Очищаем и скрываем канвас, но НЕ удаляем его из DOM!
+        if (this.ctx && this.canvas) {
+            this.ctx.clearRect(0, 0, this.width, this.height);
+            this.canvas.style.display = 'none';
+        }
+        this.particles = [];
+    }
+}
+
+const pEngine = new ParticleEngine();
+// ------------------------------
 
 export const ThemeManager = {
     storageKey: 'sh_theme', customStorageKey: 'sh_custom_theme',
@@ -2808,7 +3172,8 @@ export const ThemeManager = {
     ],
     seasonalThemes: {
         'halloween': { id: 'halloween', name: 'Halloween', color: '#F86903', bg: '#110300', start: {m: 10, d: 24}, end: {m: 11, d: 7} },
-        'new-year': { id: 'new-year', name: 'Новый Год', color: '#00E5FF', bg: '#070B19', start: {m: 12, d: 20}, end: {m: 1, d: 10} }
+        // Обновлены даты: с 1 декабря по 31 января
+        'new-year': { id: 'new-year', name: 'Новый Год', color: '#00E5FF', bg: '#070B19', start: {m: 12, d: 1}, end: {m: 1, d: 31} }
     },
     icons: {
         'default': {
@@ -2913,38 +3278,13 @@ export const ThemeManager = {
     },
 
     applySeasonalEffects(themeId) {
-        let container = document.getElementById('seasonal-fx-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'seasonal-fx-container';
-            document.body.appendChild(container);
-        }
-        container.innerHTML = '';
-        
         const prefs = PrefsManager.getPrefs();
-        if (prefs.particles) {
-            const frag = document.createDocumentFragment();
-            if (themeId === 'halloween') {
-                for (let i = 0; i < 15; i++) {
-                    const el = document.createElement('div');
-                    el.className = 'halloween-ember';
-                    el.style.left = `${Math.random() * 100}vw`;
-                    el.style.animationDuration = `${3 + Math.random() * 4}s`;
-                    el.style.animationDelay = `${Math.random() * 2}s`;
-                    frag.appendChild(el);
-                }
-            } else if (themeId === 'new-year') {
-                for (let i = 0; i < 20; i++) {
-                    const el = document.createElement('div');
-                    el.className = 'new-year-snow';
-                    el.style.left = `${Math.random() * 100}vw`;
-                    // Добавляем случайную задержку для уникальности амплитуды (translate3d)
-                    el.style.animationDuration = `${4 + Math.random() * 6}s, 3s`;
-                    el.style.animationDelay = `${Math.random() * 5}s, ${Math.random() * 2}s`;
-                    frag.appendChild(el);
-                }
-            }
-            container.appendChild(frag);
+        
+        // Запуск Canvas движка, если включены партиклы и тема подходящая
+        if (prefs.particles && (themeId === 'halloween' || themeId === 'new-year')) {
+            pEngine.init(themeId);
+        } else {
+            pEngine.stop();
         }
 
         const iconSet = this.icons[themeId] ? this.icons[themeId] : this.icons['default'];
@@ -2959,12 +3299,15 @@ export const ThemeManager = {
         let metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) metaThemeColor.setAttribute('content', colorHex);
     },
+    
     saveCustomTheme(bgHex, accentHex) {
         localStorage.setItem(this.customStorageKey, JSON.stringify({ bg: bgHex, accent: accentHex }));
         this.setTheme('custom');
     },
+    
     getCustomTheme() { return JSON.parse(localStorage.getItem(this.customStorageKey) || '{"bg":"#151515", "accent":"#ffffff"}'); },
     getCurrent() { return localStorage.getItem(this.storageKey) || 'burgundy'; },
+    
     getThemes() {
         let available = [...this.baseThemes];
         for (const key in this.seasonalThemes) {
@@ -2976,19 +3319,14 @@ export const ThemeManager = {
 
 /* =====================================================================
    FILE: js/utils/time.js
-   LINES: 62
+   LINES: 88
 ===================================================================== */
 
-/* =====================================================================
-   FILE: js/utils/time.js
-   ОПТИМИЗАЦИЯ: Добавлено форматирование времени (ЧЧ:ММ)
-===================================================================== */
 export function parseTimeToMinutes(timeStr) {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
 }
 
-// НОВАЯ ФУНКЦИЯ: Красивое форматирование времени
 export function formatMinutes(totalMinutes) {
     if (totalMinutes < 60) return `${totalMinutes} мин`;
     const h = Math.floor(totalMinutes / 60);
@@ -3016,6 +3354,7 @@ export function getDateStringForDay(targetDayNum) {
 
 export function getCurrentScheduleStatus(bellsData) {
     const now = new Date();
+    // Считаем время в секундах для идеальной плавности полосы прогресса
     const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     const currentMinutes = Math.floor(currentTotalSeconds / 60);
 
@@ -3027,18 +3366,48 @@ export function getCurrentScheduleStatus(bellsData) {
         const startSecs = startMins * 60;
         const endSecs = endMins * 60;
 
+        // 1. Состояние: До начала этой пары или большая перемена
         if (currentTotalSeconds < startSecs) {
             if (i === 0) return { status: 'before_classes', nextPair: bell, timeToNext: startMins - currentMinutes };
             
             const prevEndSecs = parseTimeToMinutes(bellsData[i - 1].end) * 60;
-            if (currentTotalSeconds >= prevEndSecs) return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes };
+            if (currentTotalSeconds >= prevEndSecs) {
+                return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes };
+            }
         }
 
+        // 2. Состояние: Внутри пары (Проверяем 45-минутки и 5-минутную переменку)
         if (currentTotalSeconds >= startSecs && currentTotalSeconds <= endSecs) {
+            if (bell.lesson1 && bell.lesson2) {
+                const l1StartSecs = parseTimeToMinutes(bell.lesson1.start) * 60;
+                const l1EndSecs = parseTimeToMinutes(bell.lesson1.end) * 60;
+                const l2StartSecs = parseTimeToMinutes(bell.lesson2.start) * 60;
+                const l2EndSecs = parseTimeToMinutes(bell.lesson2.end) * 60;
+
+                // Урок 1
+                if (currentTotalSeconds <= l1EndSecs) {
+                    const progressPercent = ((currentTotalSeconds - l1StartSecs) / (l1EndSecs - l1StartSecs)) * 100;
+                    return { status: 'active_lesson1', currentPair: bell, timeLeft: Math.ceil((l1EndSecs - currentTotalSeconds)/60), progressPercent };
+                } 
+                // 5-минутная перемена
+                else if (currentTotalSeconds < l2StartSecs) {
+                    const progressPercent = ((currentTotalSeconds - l1EndSecs) / (l2StartSecs - l1EndSecs)) * 100;
+                    return { status: 'short_break', currentPair: bell, timeLeft: Math.ceil((l2StartSecs - currentTotalSeconds)/60), progressPercent };
+                } 
+                // Урок 2
+                else {
+                    const progressPercent = ((currentTotalSeconds - l2StartSecs) / (l2EndSecs - l2StartSecs)) * 100;
+                    return { status: 'active_lesson2', currentPair: bell, timeLeft: Math.ceil((l2EndSecs - currentTotalSeconds)/60), progressPercent };
+                }
+            }
+            
+            // Фолбэк, если в JSON вдруг нет разбивки на lesson1 и lesson2
             const progressPercent = ((currentTotalSeconds - startSecs) / (endSecs - startSecs)) * 100;
             return { status: 'active', currentPair: bell, timeLeft: endMins - currentMinutes, progressPercent };
         }
     }
+    
+    // Если прошли все циклы и текущее время больше конца последней пары
     return { status: 'ended' };
 }
 
@@ -3105,12 +3474,12 @@ export class EventsView {
 
 /* =====================================================================
    FILE: js/views/GroupView.js
-   LINES: 125
+   LINES: 137
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/GroupView.js
-   ОПТИМИЗАЦИЯ: Чистый контроллер. Разметка вынесена в Templates.
+   ОПТИМИЗАЦИЯ: Делегирование событий и правильный unmount
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { GroupTemplate } from '../templates/GroupTemplate.js';
@@ -3123,10 +3492,15 @@ export class GroupView {
         this.currentTab = 'students'; 
         this.studentsData = [];
         this.teachersData = [];
+        
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     async mount() {
         this.container.innerHTML = GroupTemplate.renderSkeletons();
+        
+        // Вешаем глобальный слушатель
+        this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
             const [students, teachers] = await Promise.all([
@@ -3159,7 +3533,6 @@ export class GroupView {
 
             this.container.innerHTML = GroupTemplate.renderBaseUI(this.currentTab);
             this.renderList();
-            this.bindEvents();
 
         } catch (error) {
             console.error('[GroupView] Ошибка:', error);
@@ -3170,6 +3543,7 @@ export class GroupView {
     renderList() {
         const statsContainer = document.getElementById('group-stats');
         const listContainer = document.getElementById('persons-list');
+        if (!statsContainer || !listContainer) return;
         
         let html = '';
 
@@ -3205,43 +3579,50 @@ export class GroupView {
         listContainer.innerHTML = html || `<li class="placeholder-card" style="text-align:center;">Список пуст</li>`;
     }
 
-    bindEvents() {
+    // --- Делегирование событий ---
+    handleGlobalClick(e) {
+        const btn = e.target.closest('.group-segment-btn');
+        if (!btn) return;
+
+        const targetTab = btn.getAttribute('data-tab');
+        if (this.currentTab === targetTab) return; 
+        
+        PrefsManager.vibrate(15);
+        this.currentTab = targetTab;
+
         const toggle = document.getElementById('group-toggle');
         const wrapper = document.getElementById('list-wrapper');
-        const btns = this.container.querySelectorAll('.group-segment-btn');
+        
+        if (toggle) toggle.setAttribute('data-active', this.currentTab);
+        
+        this.container.querySelectorAll('.group-segment-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-        btns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const targetTab = e.currentTarget.getAttribute('data-tab');
-                if (this.currentTab === targetTab) return; 
-                
-                PrefsManager.vibrate(15);
-                this.currentTab = targetTab;
-
-                toggle.setAttribute('data-active', this.currentTab);
-                btns.forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-
+        if (wrapper) {
+            // Используем requestAnimationFrame для синхронизации с отрисовкой браузера
+            requestAnimationFrame(() => {
                 wrapper.classList.add('fading');
                 setTimeout(() => {
                     this.renderList();
                     wrapper.classList.remove('fading');
                 }, 200); 
             });
-        });
+        }
     }
 
-    unmount() {} 
+    unmount() {
+        this.container.removeEventListener('click', this.handleGlobalClick);
+    } 
 }
 
 /* =====================================================================
    FILE: js/views/HomeworkView.js
-   LINES: 156
+   LINES: 207
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/HomeworkView.js
-   ОПТИМИЗАЦИЯ: Использование HomeworkTemplate и глобального Lightbox.
+   ОПТИМИЗАЦИЯ: Делегирование событий и полная очистка памяти при unmount
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
@@ -3251,11 +3632,16 @@ const triggerHaptic = () => {
     if (navigator.vibrate) navigator.vibrate(20);
 };
 
+const hashCode = (s) => Math.abs(s.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
+
 export class HomeworkView {
     constructor(container) {
         this.container = container;
         this.storageKey = 'sh_homework_state';
         this.groupedData = {}; 
+        
+        // Биндим обработчик, чтобы иметь возможность удалить его в unmount
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     parseDateStr(dateStr) {
@@ -3263,10 +3649,39 @@ export class HomeworkView {
         return new Date(y, m - 1, d).getTime();
     }
 
+    cleanUpOldTasks() {
+        const currentState = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+        const now = Date.now();
+        const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+        let changed = false;
+
+        for (const key in currentState) {
+            const parts = key.split('_');
+            const dateStr = parts[parts.length - 1]; 
+            if (dateStr && /\d{2}-\d{2}-\d{4}/.test(dateStr)) {
+                const [d, m, y] = dateStr.split('-');
+                const taskTime = new Date(y, m - 1, d).getTime();
+                if (now - taskTime > THIRTY_DAYS) {
+                    delete currentState[key];
+                    changed = true;
+                }
+            }
+        }
+        
+        if (changed) {
+            localStorage.setItem(this.storageKey, JSON.stringify(currentState));
+        }
+    }
+
     async mount() {
         this.container.innerHTML = HomeworkTemplate.renderSkeletons();
         
+        // Включаем слушатель ДО отрисовки контента (Делегирование)
+        this.container.addEventListener('click', this.handleGlobalClick);
+        
         try {
+            this.cleanUpOldTasks();
+            
             const [hwTasks, teachersData] = await Promise.all([
                 ApiService.getHomework(),
                 ApiService.getTeachers()
@@ -3280,7 +3695,7 @@ export class HomeworkView {
             const savedState = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
             
             const processedTasks = hwTasks.map(item => {
-                const uniqueId = `${item.subject}_${item.date}`;
+                const uniqueId = `${item.subject}_${hashCode(item.task)}_${item.date}`;
                 const teacherName = (teachersData && teachersData[item.subject]) ? teachersData[item.subject].name : 'Преподаватель не указан';
                 
                 return {
@@ -3301,7 +3716,7 @@ export class HomeworkView {
                 this.groupedData[subject].sort((a, b) => this.parseDateStr(b.date) - this.parseDateStr(a.date));
             }
 
-            this.renderMainList();
+            this.renderMainList(false);
 
         } catch (error) {
             console.error('[HomeworkView] Ошибка:', error);
@@ -3309,16 +3724,28 @@ export class HomeworkView {
         }
     }
 
-    renderMainList() {
-        this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
-        this.bindEvents('main');
-        this.validateLocalFiles();
+    switchViewWithTransition(renderCallback) {
+        if (document.startViewTransition) {
+            document.startViewTransition(() => renderCallback());
+        } else {
+            renderCallback();
+        }
+    }
+
+    renderMainList(animate = true) {
+        const render = () => {
+            this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
+            this.validateLocalFiles();
+        };
+        if (animate) this.switchViewWithTransition(render);
+        else render();
     }
 
     renderSubjectHistory(subject) {
-        this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
-        this.bindEvents('history');
-        this.validateLocalFiles();
+        this.switchViewWithTransition(() => {
+            this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
+            this.validateLocalFiles();
+        });
     }
 
     async validateLocalFiles() {
@@ -3341,44 +3768,46 @@ export class HomeworkView {
         clearTimeout(timeoutId);
     }
 
-    bindEvents(viewType) {
-        // Открытие фото через ГЛОБАЛЬНЫЙ Lightbox
-        this.container.querySelectorAll('.hw-image-thumb').forEach(thumb => {
-            thumb.addEventListener('click', (e) => {
-                if (thumb.classList.contains('hw-broken')) return;
-                triggerHaptic();
-                const fullSrc = thumb.getAttribute('data-full');
-                const fileName = fullSrc.split('/').pop() || 'photo.jpg';
-                Lightbox.open(fullSrc, fileName);
-            });
-        });
+    // --- ЕДИНЫЙ ОБРАБОТЧИК СОБЫТИЙ (Event Delegation) ---
+    handleGlobalClick(e) {
+        // 1. Клик по фото
+        const thumb = e.target.closest('.hw-image-thumb');
+        if (thumb) {
+            if (thumb.classList.contains('hw-broken')) return;
+            triggerHaptic();
+            const fullSrc = thumb.getAttribute('data-full');
+            const fileName = fullSrc.split('/').pop() || 'photo.jpg';
+            Lightbox.open(fullSrc, fileName);
+            return;
+        }
 
-        // Чекбоксы
-        this.container.querySelectorAll('.hw-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('.interactive-element')) return;
-                triggerHaptic();
-                const isCompleted = card.classList.toggle('completed');
-                card.querySelector('.hw-checkbox').classList.toggle('checked');
-                
-                const hwId = card.getAttribute('data-id');
-                this.updateStorage(hwId, isCompleted);
-            });
-        });
+        // 2. Клик по кнопке "Все задания"
+        const showAllBtn = e.target.closest('.hw-show-all-btn');
+        if (showAllBtn) {
+            triggerHaptic();
+            this.renderSubjectHistory(showAllBtn.getAttribute('data-subject'));
+            return;
+        }
 
-        // Переходы
-        if (viewType === 'main') {
-            this.container.querySelectorAll('.hw-show-all-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    triggerHaptic();
-                    this.renderSubjectHistory(e.currentTarget.getAttribute('data-subject'));
-                });
-            });
-        } else if (viewType === 'history') {
-            document.getElementById('hw-back-btn').addEventListener('click', () => {
-                triggerHaptic();
-                this.renderMainList();
-            });
+        // 3. Клик по кнопке "Назад"
+        const backBtn = e.target.closest('#hw-back-btn');
+        if (backBtn) {
+            triggerHaptic();
+            this.renderMainList(true);
+            return;
+        }
+
+        // 4. Клик по карточке задания (Чекбокс)
+        const card = e.target.closest('.hw-card');
+        const isInteractive = e.target.closest('.interactive-element');
+        
+        if (card && !isInteractive) {
+            triggerHaptic();
+            const isCompleted = card.classList.toggle('completed');
+            card.querySelector('.hw-checkbox').classList.toggle('checked');
+            
+            const hwId = card.getAttribute('data-id');
+            this.updateStorage(hwId, isCompleted);
         }
     }
 
@@ -3393,18 +3822,17 @@ export class HomeworkView {
         }
     }
 
-    unmount() {}
+    unmount() {
+        // КРИТИЧЕСКИ ВАЖНО: Удаляем слушатель при переходе на другую вкладку
+        this.container.removeEventListener('click', this.handleGlobalClick);
+    }
 }
 
 /* =====================================================================
    FILE: js/views/ScheduleView.js
-   LINES: 349
+   LINES: 365
 ===================================================================== */
 
-/* =====================================================================
-   FILE: js/views/ScheduleView.js
-   ОПТИМИЗАЦИЯ: Внедрены свайпы Touch Events, Dirty Checking, formatMinutes
-===================================================================== */
 import { ApiService } from '../services/api.js';
 import { getCurrentScheduleStatus, getDateStringForDay, parseTimeToMinutes, formatMinutes } from '../utils/time.js';
 import { PrefsManager } from '../utils/prefs.js';
@@ -3420,9 +3848,8 @@ export class ScheduleView {
             selectedDayOverride: null, todayOverride: null, showActual: true
         };
         
-        // Переменные для свайпов
         this.touchStartX = 0;
-        this.touchEndX = 0;
+        this.touchStartY = 0;
     }
 
     async mount() {
@@ -3500,49 +3927,46 @@ export class ScheduleView {
         PrefsManager.vibrate(15);
         this.state.selectedDay = newDay;
 
-        // Обновляем UI кнопок
         this.container.querySelectorAll('.day-tab').forEach(t => {
             t.classList.toggle('active', parseInt(t.getAttribute('data-day')) === newDay);
         });
 
-        // Анимация ухода старого списка
         const listContainer = document.getElementById('schedule-list');
         listContainer.classList.add('updating');
 
         await this.loadSelectedDayData();
         this.fullRenderUI();
 
-        // Анимация прихода нового списка (слайд)
         listContainer.classList.remove('slide-left', 'slide-right');
-        void listContainer.offsetWidth; // Force reflow
+        void listContainer.offsetWidth;
         listContainer.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
         listContainer.classList.remove('updating');
     }
 
     bindSwipeEvents() {
-        const area = document.getElementById('schedule-list'); // Свайпаем только по списку
+        const area = document.getElementById('schedule-list'); 
         
         area.addEventListener('touchstart', e => {
             this.touchStartX = e.changedTouches[0].screenX;
+            this.touchStartY = e.changedTouches[0].screenY;
         }, { passive: true });
 
         area.addEventListener('touchend', e => {
-            this.touchEndX = e.changedTouches[0].screenX;
-            this.handleSwipe();
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            
+            const diffX = touchEndX - this.touchStartX;
+            const diffY = touchEndY - this.touchStartY;
+            const threshold = 50; 
+            
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+                if (diffX < -threshold) {
+                    this.changeDay(this.state.selectedDay + 1, 'right'); 
+                } else if (diffX > threshold) {
+                    this.changeDay(this.state.selectedDay - 1, 'left');
+                }
+            }
         }, { passive: true });
-    }
-
-    handleSwipe() {
-        const threshold = 50; 
-        const swipeDist = this.touchEndX - this.touchStartX;
-        
-        if (swipeDist < -threshold) {
-            // Свайп ВЛЕВО -> Следующий день
-            this.changeDay(this.state.selectedDay + 1, 'right'); 
-        } else if (swipeDist > threshold) {
-            // Свайп ВПРАВО -> Предыдущий день
-            this.changeDay(this.state.selectedDay - 1, 'left');
-        }
     }
 
     bindEvents() {
@@ -3661,19 +4085,38 @@ export class ScheduleView {
         if (todaySchedule.length === 0) return { status: 'no_classes' };
         const maxPair = Math.max(...todaySchedule.map(l => l.pair));
 
-        if ((status.status === 'active' && status.currentPair.pair > maxPair) || 
-            (status.status === 'break' && status.nextPair.pair > maxPair)) return { status: 'ended' };
+        if ((status.status.startsWith('active') || status.status === 'short_break') && status.currentPair.pair > maxPair) return { status: 'ended' };
+        if (status.status === 'break' && status.nextPair.pair > maxPair) return { status: 'ended' };
 
-        if (status.status === 'active') {
+        if (status.status.startsWith('active') || status.status === 'short_break') {
              const currentPairData = todaySchedule.find(l => l.pair === status.currentPair.pair);
-             if (!currentPairData) return { ...status, status: 'window' };
+             
+             if (!currentPairData) {
+                 return { ...status, status: 'window', windowType: 'full_pair' };
+             }
+             
+             if (status.status === 'active_lesson1' && (currentPairData.lesson1 === null || currentPairData.subject === null)) {
+                 return { ...status, status: 'window', windowType: 'lesson1', currentPairData };
+             }
+             if (status.status === 'active_lesson2' && (currentPairData.lesson2 === null || currentPairData.subject === null)) {
+                 return { ...status, status: 'window', windowType: 'lesson2', currentPairData };
+             }
+
              status.currentPairData = currentPairData;
         }
-        
-        if (status.status === 'break') {
-            status.nextPairData = todaySchedule.find(l => l.pair >= status.nextPair.pair);
+
+        if (status.status === 'break' || status.status === 'before_classes') {
+            status.nextPairData = todaySchedule.find(l => l.pair === status.nextPair.pair);
         }
+        
         return status;
+    }
+
+    getLessonDetails(pairData, lessonNum) {
+        if (!pairData) return { subj: 'Урок', room: '' };
+        if (lessonNum === 1 && pairData.lesson1) return { subj: pairData.lesson1.subject, room: pairData.lesson1.room || '' };
+        if (lessonNum === 2 && pairData.lesson2) return { subj: pairData.lesson2.subject, room: pairData.lesson2.room || '' };
+        return { subj: pairData.subject || 'Урок', room: pairData.room || '' };
     }
 
     renderWidgetHTML(status) {
@@ -3687,24 +4130,33 @@ export class ScheduleView {
         if (status.status === 'no_classes' || status.status === 'ended') {
             const txt = status.status === 'ended' ? 'Пары закончились' : 'Пар нет';
             this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-success"><div class="live-status-group" style="justify-content: center;"><div class="pulse-dot"></div><span class="live-status">${txt}</span></div></article>`;
-        } else if (status.status === 'window') {
+        } 
+        else if (status.status === 'window') {
             this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Окно (Свободно)</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject" style="margin:0;">Свободное время</div><div class="progress-track" style="margin-top: 16px;"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: var(--text-muted);"></div></div></article>`;
-        } else if (status.status === 'active') {
-            let subjectName = status.currentPairData.subject || 'Урок';
-            if (status.currentPairData.lesson1 !== undefined || status.currentPairData.lesson2 !== undefined) {
-                const now = new Date();
-                const currentMinutes = now.getHours() * 60 + now.getMinutes();
-                const l1End = parseTimeToMinutes(status.currentPair.lesson1.end);
-                subjectName = (currentMinutes <= l1End) ? (status.currentPairData.lesson1 ? status.currentPairData.lesson1.subject : 'Окно') : (status.currentPairData.lesson2 ? status.currentPairData.lesson2.subject : 'Окно');
-            }
-            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-active"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Идет ${status.currentPair.pair} пара</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject">${subjectName}</div><div class="progress-track"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%"></div></div></article>`;
-        } else if (status.status === 'break') {
-            let nextSubj = `Пара ${status.nextPair.pair}`;
-            if (status.nextPairData) nextSubj = (status.nextPairData.lesson1 || status.nextPairData.lesson2) ? (status.nextPairData.lesson1 ? status.nextPairData.lesson1.subject : status.nextPairData.lesson2.subject) : status.nextPairData.subject;
-            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div><div class="live-subject" style="margin:0;">След: ${nextSubj}</div></article>`;
-        } else {
-            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">До начала занятий</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div></article>`;
+        } 
+        else if (status.status === 'short_break') {
+            const nextLsn = this.getLessonDetails(status.currentPairData, 2);
+            const roomTxt = nextLsn.room ? ` &bull; ${nextLsn.room}` : '';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Мини-перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject" style="margin-bottom: 16px; font-size: 1rem; color: var(--text-secondary);">След: <span style="color:var(--text-primary);">${nextLsn.subj}</span>${roomTxt}</div><div class="progress-track"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: #2196F3;"></div></div></article>`;
+        } 
+        else if (status.status.startsWith('active')) {
+            const isLsn1 = status.status === 'active_lesson1';
+            const num = isLsn1 ? 1 : 2;
+            const lsn = this.getLessonDetails(status.currentPairData, num);
+            const roomTxt = lsn.room ? ` &bull; ${lsn.room}` : '';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-active"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Урок ${num} (Пара ${status.currentPair.pair})</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject" style="margin-bottom: 6px;">${lsn.subj}</div><div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">${roomTxt ? `Аудитория: ${lsn.room}` : ''}</div><div class="progress-track"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%"></div></div></article>`;
+        } 
+        else if (status.status === 'break') {
+            const nextLsn = this.getLessonDetails(status.nextPairData, 1);
+            const roomTxt = nextLsn.room ? ` &bull; ${nextLsn.room}` : '';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div><div class="live-subject" style="margin:0; font-size: 1rem; color: var(--text-secondary);">След: <span style="color:var(--text-primary);">${nextLsn.subj}</span>${roomTxt}</div></article>`;
+        } 
+        else {
+            const nextLsn = this.getLessonDetails(status.nextPairData, 1);
+            const roomTxt = nextLsn.room ? ` &bull; ${nextLsn.room}` : '';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">До начала занятий</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div>${nextLsn.subj !== 'Урок' ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px;">Первая: ${nextLsn.subj}${roomTxt}</div>` : ''}</article>`;
         }
+        
         this.cached.timeEl = document.getElementById('widget-time');
         this.cached.progressEl = document.getElementById('widget-progress');
     }
@@ -3716,24 +4168,18 @@ export class ScheduleView {
         let stateSignature = status.status;
         if (status.currentPair) stateSignature += `_p${status.currentPair.pair}`;
         if (status.nextPair) stateSignature += `_n${status.nextPair.pair}`;
+        if (status.windowType) stateSignature += `_w${status.windowType}`;
         
-        if (status.status === 'active' && status.currentPairData && (status.currentPairData.lesson1 !== undefined || status.currentPairData.lesson2 !== undefined)) {
-            const now = new Date();
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            const l1End = parseTimeToMinutes(status.currentPair.lesson1.end);
-            stateSignature += (currentMinutes <= l1End) ? '_L1' : '_L2';
-        }
-
         if (this.currentWidgetState !== stateSignature) {
             this.renderWidgetHTML(status);
             this.currentWidgetState = stateSignature;
             this.updatePairCardsHighlight(status); 
         } else {
             if (this.cached.timeEl) {
-                const newTimeText = (status.status === 'active' || status.status === 'window') ? formatMinutes(status.timeLeft) : formatMinutes(status.timeToNext);
+                const newTimeText = (status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break') ? formatMinutes(status.timeLeft) : formatMinutes(status.timeToNext);
                 if (this.cached.timeEl.textContent !== newTimeText) this.cached.timeEl.textContent = newTimeText;
             }
-            if (this.cached.progressEl && (status.status === 'active' || status.status === 'window')) {
+            if (this.cached.progressEl && (status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break')) {
                 this.cached.progressEl.style.width = `${status.progressPercent}%`;
             }
         }
@@ -3744,22 +4190,20 @@ export class ScheduleView {
         this.cached.pairCards.forEach(card => {
             const pNum = parseInt(card.getAttribute('data-pair'));
             card.classList.remove('current', 'past');
-            if ((status.status === 'active' || status.status === 'window') && status.currentPair.pair === pNum) card.classList.add('current');
-            else if ((status.status === 'active' || status.status === 'window') && pNum < status.currentPair.pair) card.classList.add('past');
-            else if (status.status === 'ended' || (status.status === 'break' && pNum < status.nextPair.pair)) card.classList.add('past');
+            const isActiveBlock = status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break';
+            
+            if (isActiveBlock && status.currentPair && status.currentPair.pair === pNum) card.classList.add('current');
+            else if (isActiveBlock && status.currentPair && pNum < status.currentPair.pair) card.classList.add('past');
+            else if (status.status === 'ended' || (status.status === 'break' && status.nextPair && pNum < status.nextPair.pair)) card.classList.add('past');
         });
     }
 }
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   LINES: 226
+   LINES: 222
 ===================================================================== */
 
-/* =====================================================================
-   FILE: js/views/SettingsView.js
-   ОПТИМИЗАЦИЯ: Исправлен баг с рассинхроном тумблеров
-===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Modal } from '../components/Modal.js';
@@ -3785,16 +4229,16 @@ export class SettingsView {
     }
 
     async mount() {
-        // ФИКС 1: Всегда получаем свежие настройки при каждом открытии экрана!
         const currentPrefs = PrefsManager.getPrefs(); 
         const currentTheme = ThemeManager.getCurrent();
+        const hasWp = await PrefsManager.hasWallpaper(); // Асинхронно
         
         const templateData = {
             prefs: currentPrefs,
             themes: ThemeManager.getThemes(),
             currentTheme: currentTheme,
             customData: ThemeManager.getCustomTheme(),
-            hasWallpaper: !!localStorage.getItem(PrefsManager.wallpaperKey),
+            hasWallpaper: hasWp,
             isSeasonalActive: ['halloween', 'new-year'].includes(currentTheme),
             currentYear: new Date().getFullYear(),
             subgroupText: this.getSubgroupText(currentPrefs.subgroup),
@@ -3803,7 +4247,7 @@ export class SettingsView {
 
         this.container.innerHTML = SettingsTemplate.renderMain(templateData);
         
-        this.bindEvents(currentPrefs); // Передаем свежие настройки
+        this.bindEvents(currentPrefs);
         this.initDesktopScroll();
         document.addEventListener('click', this.handleDocumentClick);
     }

@@ -1,6 +1,5 @@
 /* =====================================================================
    FILE: js/components/Lightbox.js
-   Глобальный просмотрщик изображений с зумом и скачиванием
 ===================================================================== */
 export const Lightbox = {
     init() {
@@ -35,6 +34,10 @@ export const Lightbox = {
     open(imageSrc, fileName = 'photo.jpg') {
         this.init();
         const dialog = document.getElementById('global-lightbox');
+        
+        // ЗАЩИТА: Предотвращаем краш от двойного тапа
+        if (dialog.open) return;
+
         const img = document.getElementById('global-lightbox-img');
         const downloadBtn = document.getElementById('global-lightbox-download');
 

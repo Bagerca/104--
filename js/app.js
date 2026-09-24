@@ -30,10 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 reg.addEventListener('updatefound', () => {
                     const newWorker = reg.installing;
                     newWorker.addEventListener('statechange', () => {
-                        // Ждем, пока новый SW скачается и будет готов к активации
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                             if (confirm('Доступна новая версия приложения! Обновить сейчас?')) {
-                                // Отправляем команду на применение нового кэша
                                 newWorker.postMessage({ type: 'SKIP_WAITING' });
                             }
                         }
@@ -41,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }).catch(err => console.warn('[SW] Ошибка:', err));
 
-            // Как только старый SW сменится на новый — жестко перезагружаем страницу
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
@@ -89,6 +86,13 @@ function initPullToRefresh() {
     let ptrEl = null;
 
     document.addEventListener('touchstart', (e) => {
+        // ЗАЩИТА: Отключаем PTR, если открыта любая модалка
+        if (document.querySelector('dialog[open]')) return;
+
+        // ЗАЩИТА: Отключаем PTR при скролле горизонтальных элементов (темы, дни недели)
+        const isHorizontalScroll = e.target.closest('.theme-scroll-wrapper, .days-wrapper');
+        if (isHorizontalScroll) return;
+
         if (window.scrollY === 0) {
             ptrStartY = e.touches[0].clientY;
             isPtrActive = true;

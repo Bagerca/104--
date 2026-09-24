@@ -1,6 +1,5 @@
 /* =====================================================================
    FILE: js/components/Modal.js
-   Глобальный компонент всплывающих окон (Alerts & Confirms)
 ===================================================================== */
 import { PrefsManager } from '../utils/prefs.js';
 
@@ -36,6 +35,12 @@ export const Modal = {
     showAlert(title, message, type = 'info', onClose = null) {
         this.init();
         const dialog = document.getElementById('system-alert-dialog');
+        
+        // ЗАЩИТА: Если алерт уже открыт, корректно закрываем его перед показом нового
+        if (dialog.open) {
+            dialog.close();
+        }
+
         const iconContainer = document.getElementById('system-alert-icon');
         
         let svg = '';

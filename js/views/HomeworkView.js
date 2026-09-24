@@ -1,6 +1,5 @@
 /* =====================================================================
    FILE: js/views/HomeworkView.js
-   ОПТИМИЗАЦИЯ: Делегирование событий и полная очистка памяти при unmount
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
@@ -17,8 +16,8 @@ export class HomeworkView {
         this.container = container;
         this.storageKey = 'sh_homework_state';
         this.groupedData = {}; 
+        this.isMounted = false;
         
-        // Биндим обработчик, чтобы иметь возможность удалить его в unmount
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
@@ -52,9 +51,8 @@ export class HomeworkView {
     }
 
     async mount() {
+        this.isMounted = true;
         this.container.innerHTML = HomeworkTemplate.renderSkeletons();
-        
-        // Включаем слушатель ДО отрисовки контента (Делегирование)
         this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
@@ -65,6 +63,8 @@ export class HomeworkView {
                 ApiService.getTeachers()
             ]);
             
+            if (!this.isMounted) return;
+
             if (!hwTasks || hwTasks.length === 0) {
                 this.container.innerHTML = HomeworkTemplate.renderEmpty();
                 return;
@@ -97,14 +97,18 @@ export class HomeworkView {
             this.renderMainList(false);
 
         } catch (error) {
+            if (!this.isMounted) return;
             console.error('[HomeworkView] Ошибка:', error);
             this.container.innerHTML = HomeworkTemplate.renderError();
         }
     }
 
     switchViewWithTransition(renderCallback) {
+        if (!this.isMounted) return;
         if (document.startViewTransition) {
-            document.startViewTransition(() => renderCallback());
+            document.startViewTransition(() => {
+                if (this.isMounted) renderCallback();
+            });
         } else {
             renderCallback();
         }
@@ -112,6 +116,7 @@ export class HomeworkView {
 
     renderMainList(animate = true) {
         const render = () => {
+            if (!this.isMounted) return;
             this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
             this.validateLocalFiles();
         };
@@ -121,6 +126,7 @@ export class HomeworkView {
 
     renderSubjectHistory(subject) {
         this.switchViewWithTransition(() => {
+            if (!this.isMounted) return;
             this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
             this.validateLocalFiles();
         });
@@ -138,17 +144,21 @@ export class HomeworkView {
             if (!url) return Promise.reject();
             
             return fetch(url, { method: 'HEAD', signal: controller.signal })
-                .then(res => { if (!res.ok) el.classList.add('hw-broken'); })
-                .catch(() => el.classList.add('hw-broken'));
+                .then(res => { 
+                    if (!this.isMounted) return;
+                    if (!res.ok) el.classList.add('hw-broken'); 
+                })
+                .catch(() => {
+                    if (!this.isMounted) return;
+                    el.classList.add('hw-broken');
+                });
         });
 
         await Promise.allSettled(promises);
         clearTimeout(timeoutId);
     }
 
-    // --- ЕДИНЫЙ ОБРАБОТЧИК СОБЫТИЙ (Event Delegation) ---
     handleGlobalClick(e) {
-        // 1. Клик по фото
         const thumb = e.target.closest('.hw-image-thumb');
         if (thumb) {
             if (thumb.classList.contains('hw-broken')) return;
@@ -159,7 +169,6 @@ export class HomeworkView {
             return;
         }
 
-        // 2. Клик по кнопке "Все задания"
         const showAllBtn = e.target.closest('.hw-show-all-btn');
         if (showAllBtn) {
             triggerHaptic();
@@ -167,7 +176,6 @@ export class HomeworkView {
             return;
         }
 
-        // 3. Клик по кнопке "Назад"
         const backBtn = e.target.closest('#hw-back-btn');
         if (backBtn) {
             triggerHaptic();
@@ -175,7 +183,6 @@ export class HomeworkView {
             return;
         }
 
-        // 4. Клик по карточке задания (Чекбокс)
         const card = e.target.closest('.hw-card');
         const isInteractive = e.target.closest('.interactive-element');
         
@@ -201,7 +208,7 @@ export class HomeworkView {
     }
 
     unmount() {
-        // КРИТИЧЕСКИ ВАЖНО: Удаляем слушатель при переходе на другую вкладку
+        this.isMounted = false;
         this.container.removeEventListener('click', this.handleGlobalClick);
     }
 }

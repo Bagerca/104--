@@ -1,6 +1,5 @@
 /* =====================================================================
    FILE: js/views/GroupView.js
-   ОПТИМИЗАЦИЯ: Делегирование событий и правильный unmount
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { GroupTemplate } from '../templates/GroupTemplate.js';
@@ -13,14 +12,15 @@ export class GroupView {
         this.currentTab = 'students'; 
         this.studentsData = [];
         this.teachersData = [];
+        this.isMounted = false;
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     async mount() {
+        this.isMounted = true;
         this.container.innerHTML = GroupTemplate.renderSkeletons();
         
-        // Вешаем глобальный слушатель
         this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
@@ -28,6 +28,9 @@ export class GroupView {
                 ApiService.getStudents(),
                 ApiService.getTeachers()
             ]);
+
+            // ЗАЩИТА: Если пока мы ждали сеть, юзер ушел со страницы — прерываем отрисовку
+            if (!this.isMounted) return;
 
             this.studentsData = students || [];
             
@@ -56,12 +59,14 @@ export class GroupView {
             this.renderList();
 
         } catch (error) {
+            if (!this.isMounted) return;
             console.error('[GroupView] Ошибка:', error);
             this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки данных.</div>`;
         }
     }
 
     renderList() {
+        if (!this.isMounted) return;
         const statsContainer = document.getElementById('group-stats');
         const listContainer = document.getElementById('persons-list');
         if (!statsContainer || !listContainer) return;
@@ -100,7 +105,6 @@ export class GroupView {
         listContainer.innerHTML = html || `<li class="placeholder-card" style="text-align:center;">Список пуст</li>`;
     }
 
-    // --- Делегирование событий ---
     handleGlobalClick(e) {
         const btn = e.target.closest('.group-segment-btn');
         if (!btn) return;
@@ -120,10 +124,12 @@ export class GroupView {
         btn.classList.add('active');
 
         if (wrapper) {
-            // Используем requestAnimationFrame для синхронизации с отрисовкой браузера
             requestAnimationFrame(() => {
+                if (!this.isMounted) return;
                 wrapper.classList.add('fading');
                 setTimeout(() => {
+                    // ЗАЩИТА: Отменяем рендер, если страница уже закрыта
+                    if (!this.isMounted) return;
                     this.renderList();
                     wrapper.classList.remove('fading');
                 }, 200); 
@@ -132,6 +138,7 @@ export class GroupView {
     }
 
     unmount() {
+        this.isMounted = false;
         this.container.removeEventListener('click', this.handleGlobalClick);
     } 
 }
