@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: js/views/GroupView.js
-   ОПТИМИЗАЦИЯ: Чистый контроллер. Разметка вынесена в Templates.
+   ОПТИМИЗАЦИЯ: Делегирование событий и правильный unmount
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { GroupTemplate } from '../templates/GroupTemplate.js';
@@ -13,10 +13,15 @@ export class GroupView {
         this.currentTab = 'students'; 
         this.studentsData = [];
         this.teachersData = [];
+        
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     async mount() {
         this.container.innerHTML = GroupTemplate.renderSkeletons();
+        
+        // Вешаем глобальный слушатель
+        this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
             const [students, teachers] = await Promise.all([
@@ -49,7 +54,6 @@ export class GroupView {
 
             this.container.innerHTML = GroupTemplate.renderBaseUI(this.currentTab);
             this.renderList();
-            this.bindEvents();
 
         } catch (error) {
             console.error('[GroupView] Ошибка:', error);
@@ -60,6 +64,7 @@ export class GroupView {
     renderList() {
         const statsContainer = document.getElementById('group-stats');
         const listContainer = document.getElementById('persons-list');
+        if (!statsContainer || !listContainer) return;
         
         let html = '';
 
@@ -95,31 +100,38 @@ export class GroupView {
         listContainer.innerHTML = html || `<li class="placeholder-card" style="text-align:center;">Список пуст</li>`;
     }
 
-    bindEvents() {
+    // --- Делегирование событий ---
+    handleGlobalClick(e) {
+        const btn = e.target.closest('.group-segment-btn');
+        if (!btn) return;
+
+        const targetTab = btn.getAttribute('data-tab');
+        if (this.currentTab === targetTab) return; 
+        
+        PrefsManager.vibrate(15);
+        this.currentTab = targetTab;
+
         const toggle = document.getElementById('group-toggle');
         const wrapper = document.getElementById('list-wrapper');
-        const btns = this.container.querySelectorAll('.group-segment-btn');
+        
+        if (toggle) toggle.setAttribute('data-active', this.currentTab);
+        
+        this.container.querySelectorAll('.group-segment-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-        btns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const targetTab = e.currentTarget.getAttribute('data-tab');
-                if (this.currentTab === targetTab) return; 
-                
-                PrefsManager.vibrate(15);
-                this.currentTab = targetTab;
-
-                toggle.setAttribute('data-active', this.currentTab);
-                btns.forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-
+        if (wrapper) {
+            // Используем requestAnimationFrame для синхронизации с отрисовкой браузера
+            requestAnimationFrame(() => {
                 wrapper.classList.add('fading');
                 setTimeout(() => {
                     this.renderList();
                     wrapper.classList.remove('fading');
                 }, 200); 
             });
-        });
+        }
     }
 
-    unmount() {} 
+    unmount() {
+        this.container.removeEventListener('click', this.handleGlobalClick);
+    } 
 }

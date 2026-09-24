@@ -1,3 +1,7 @@
+/* =====================================================================
+   FILE: js/views/HomeworkView.js
+   ОПТИМИЗАЦИЯ: Делегирование событий и полная очистка памяти при unmount
+===================================================================== */
 import { ApiService } from '../services/api.js';
 import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
 import { Lightbox } from '../components/Lightbox.js';
@@ -6,7 +10,6 @@ const triggerHaptic = () => {
     if (navigator.vibrate) navigator.vibrate(20);
 };
 
-// Хэш для генерации уникального ID задания по тексту (Защита от дублей)
 const hashCode = (s) => Math.abs(s.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
 
 export class HomeworkView {
@@ -14,6 +17,9 @@ export class HomeworkView {
         this.container = container;
         this.storageKey = 'sh_homework_state';
         this.groupedData = {}; 
+        
+        // Биндим обработчик, чтобы иметь возможность удалить его в unmount
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     parseDateStr(dateStr) {
@@ -47,6 +53,9 @@ export class HomeworkView {
 
     async mount() {
         this.container.innerHTML = HomeworkTemplate.renderSkeletons();
+        
+        // Включаем слушатель ДО отрисовки контента (Делегирование)
+        this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
             this.cleanUpOldTasks();
@@ -85,7 +94,7 @@ export class HomeworkView {
                 this.groupedData[subject].sort((a, b) => this.parseDateStr(b.date) - this.parseDateStr(a.date));
             }
 
-            this.renderMainList(false); // Первый рендер без анимации
+            this.renderMainList(false);
 
         } catch (error) {
             console.error('[HomeworkView] Ошибка:', error);
@@ -104,10 +113,8 @@ export class HomeworkView {
     renderMainList(animate = true) {
         const render = () => {
             this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
-            this.bindEvents('main');
             this.validateLocalFiles();
         };
-
         if (animate) this.switchViewWithTransition(render);
         else render();
     }
@@ -115,7 +122,6 @@ export class HomeworkView {
     renderSubjectHistory(subject) {
         this.switchViewWithTransition(() => {
             this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
-            this.bindEvents('history');
             this.validateLocalFiles();
         });
     }
@@ -140,41 +146,46 @@ export class HomeworkView {
         clearTimeout(timeoutId);
     }
 
-    bindEvents(viewType) {
-        this.container.querySelectorAll('.hw-image-thumb').forEach(thumb => {
-            thumb.addEventListener('click', (e) => {
-                if (thumb.classList.contains('hw-broken')) return;
-                triggerHaptic();
-                const fullSrc = thumb.getAttribute('data-full');
-                const fileName = fullSrc.split('/').pop() || 'photo.jpg';
-                Lightbox.open(fullSrc, fileName);
-            });
-        });
+    // --- ЕДИНЫЙ ОБРАБОТЧИК СОБЫТИЙ (Event Delegation) ---
+    handleGlobalClick(e) {
+        // 1. Клик по фото
+        const thumb = e.target.closest('.hw-image-thumb');
+        if (thumb) {
+            if (thumb.classList.contains('hw-broken')) return;
+            triggerHaptic();
+            const fullSrc = thumb.getAttribute('data-full');
+            const fileName = fullSrc.split('/').pop() || 'photo.jpg';
+            Lightbox.open(fullSrc, fileName);
+            return;
+        }
 
-        this.container.querySelectorAll('.hw-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('.interactive-element')) return;
-                triggerHaptic();
-                const isCompleted = card.classList.toggle('completed');
-                card.querySelector('.hw-checkbox').classList.toggle('checked');
-                
-                const hwId = card.getAttribute('data-id');
-                this.updateStorage(hwId, isCompleted);
-            });
-        });
+        // 2. Клик по кнопке "Все задания"
+        const showAllBtn = e.target.closest('.hw-show-all-btn');
+        if (showAllBtn) {
+            triggerHaptic();
+            this.renderSubjectHistory(showAllBtn.getAttribute('data-subject'));
+            return;
+        }
 
-        if (viewType === 'main') {
-            this.container.querySelectorAll('.hw-show-all-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    triggerHaptic();
-                    this.renderSubjectHistory(e.currentTarget.getAttribute('data-subject'));
-                });
-            });
-        } else if (viewType === 'history') {
-            document.getElementById('hw-back-btn').addEventListener('click', () => {
-                triggerHaptic();
-                this.renderMainList();
-            });
+        // 3. Клик по кнопке "Назад"
+        const backBtn = e.target.closest('#hw-back-btn');
+        if (backBtn) {
+            triggerHaptic();
+            this.renderMainList(true);
+            return;
+        }
+
+        // 4. Клик по карточке задания (Чекбокс)
+        const card = e.target.closest('.hw-card');
+        const isInteractive = e.target.closest('.interactive-element');
+        
+        if (card && !isInteractive) {
+            triggerHaptic();
+            const isCompleted = card.classList.toggle('completed');
+            card.querySelector('.hw-checkbox').classList.toggle('checked');
+            
+            const hwId = card.getAttribute('data-id');
+            this.updateStorage(hwId, isCompleted);
         }
     }
 
@@ -189,5 +200,8 @@ export class HomeworkView {
         }
     }
 
-    unmount() {}
+    unmount() {
+        // КРИТИЧЕСКИ ВАЖНО: Удаляем слушатель при переходе на другую вкладку
+        this.container.removeEventListener('click', this.handleGlobalClick);
+    }
 }

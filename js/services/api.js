@@ -1,12 +1,19 @@
+/* =====================================================================
+   FILE: js/services/api.js
+   ОПТИМИЗАЦИЯ: Внедрен Cache Buster для пробития кэша Service Worker'а
+===================================================================== */
 const cache = new Map();
+let globalCacheBuster = ''; // Уникальный токен для обхода кэша
 
 async function fetchJson(url, useCache = true, fetchOptions = {}) {
+    const finalUrl = globalCacheBuster ? `${url}?bust=${globalCacheBuster}` : url;
+
     if (useCache && cache.has(url)) {
         return cache.get(url);
     }
     
     try {
-        const response = await fetch(url, fetchOptions);
+        const response = await fetch(finalUrl, fetchOptions);
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
         
         const data = await response.json();
@@ -19,7 +26,11 @@ async function fetchJson(url, useCache = true, fetchOptions = {}) {
 }
 
 export const ApiService = {
-    clearCache: () => cache.clear(),
+    // Вызывается при Pull-to-Refresh
+    clearCache: () => {
+        cache.clear();
+        globalCacheBuster = Date.now().toString(); // Генерируем новый токен
+    },
     
     getBells: () => fetchJson('data/bells.json'),
     getSchedule: () => fetchJson('data/schedule.json'),
