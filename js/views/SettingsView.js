@@ -1,7 +1,3 @@
-/* =====================================================================
-   FILE: js/views/SettingsView.js
-   ОПТИМИЗАЦИЯ: Исправлен баг с рассинхроном тумблеров
-===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Modal } from '../components/Modal.js';
@@ -27,16 +23,16 @@ export class SettingsView {
     }
 
     async mount() {
-        // ФИКС 1: Всегда получаем свежие настройки при каждом открытии экрана!
         const currentPrefs = PrefsManager.getPrefs(); 
         const currentTheme = ThemeManager.getCurrent();
+        const hasWp = await PrefsManager.hasWallpaper(); // Асинхронно
         
         const templateData = {
             prefs: currentPrefs,
             themes: ThemeManager.getThemes(),
             currentTheme: currentTheme,
             customData: ThemeManager.getCustomTheme(),
-            hasWallpaper: !!localStorage.getItem(PrefsManager.wallpaperKey),
+            hasWallpaper: hasWp,
             isSeasonalActive: ['halloween', 'new-year'].includes(currentTheme),
             currentYear: new Date().getFullYear(),
             subgroupText: this.getSubgroupText(currentPrefs.subgroup),
@@ -45,7 +41,7 @@ export class SettingsView {
 
         this.container.innerHTML = SettingsTemplate.renderMain(templateData);
         
-        this.bindEvents(currentPrefs); // Передаем свежие настройки
+        this.bindEvents(currentPrefs);
         this.initDesktopScroll();
         document.addEventListener('click', this.handleDocumentClick);
     }

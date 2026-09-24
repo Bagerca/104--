@@ -2,22 +2,18 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- ДОБАВЛЕНО: viewport-fit=cover для эффекта Edge-to-Edge -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#151515">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- УЖЕ БЫЛО: прозрачный статус-бар для iOS -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Hub">
     
     <title>Student Hub</title>
     
-    <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
     <link rel="apple-touch-icon" href="icons/icon-mobile.svg">
 
-    <!-- ОПТИМИЗАЦИЯ: Предзагрузка критически важных файлов для стартового экрана -->
     <link rel="preload" href="data/bells.json" as="fetch" crossorigin="anonymous">
     <link rel="preload" href="data/schedule.json" as="fetch" crossorigin="anonymous">
     <link rel="modulepreload" href="js/app.js">
@@ -25,6 +21,8 @@
 
     <!-- CSS Architecture -->
     <link rel="stylesheet" href="css/variables.css">
+    <!-- ДОБАВЛЕНО: Глобальные компоненты (модалки, лайтбоксы, тосты) -->
+    <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/views/schedule.css">
     <link rel="stylesheet" href="css/views/group.css">
@@ -36,7 +34,6 @@
     <div class="ambient-glow"></div>
 
     <div class="app-container">
-        <!-- УБРАН класс glass, теперь прозрачностью управляет JS -->
         <header class="app-header">
             <h1 id="page-title">Расписание</h1>
             <a href="#/settings" class="icon-btn" aria-label="Настройки">
@@ -48,7 +45,7 @@
         </header>
 
         <main id="app-content" class="fade-in">
-            <!-- Контент инжектируется через Views -->
+            <!-- Контент -->
         </main>
 
         <nav class="bottom-nav glass">

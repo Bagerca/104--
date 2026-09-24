@@ -1,7 +1,3 @@
-/* =====================================================================
-   FILE: js/views/ScheduleView.js
-   ОПТИМИЗАЦИЯ: Внедрены свайпы Touch Events, Dirty Checking, formatMinutes
-===================================================================== */
 import { ApiService } from '../services/api.js';
 import { getCurrentScheduleStatus, getDateStringForDay, parseTimeToMinutes, formatMinutes } from '../utils/time.js';
 import { PrefsManager } from '../utils/prefs.js';
@@ -17,9 +13,8 @@ export class ScheduleView {
             selectedDayOverride: null, todayOverride: null, showActual: true
         };
         
-        // Переменные для свайпов
         this.touchStartX = 0;
-        this.touchEndX = 0;
+        this.touchStartY = 0;
     }
 
     async mount() {
@@ -97,49 +92,46 @@ export class ScheduleView {
         PrefsManager.vibrate(15);
         this.state.selectedDay = newDay;
 
-        // Обновляем UI кнопок
         this.container.querySelectorAll('.day-tab').forEach(t => {
             t.classList.toggle('active', parseInt(t.getAttribute('data-day')) === newDay);
         });
 
-        // Анимация ухода старого списка
         const listContainer = document.getElementById('schedule-list');
         listContainer.classList.add('updating');
 
         await this.loadSelectedDayData();
         this.fullRenderUI();
 
-        // Анимация прихода нового списка (слайд)
         listContainer.classList.remove('slide-left', 'slide-right');
-        void listContainer.offsetWidth; // Force reflow
+        void listContainer.offsetWidth;
         listContainer.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
         listContainer.classList.remove('updating');
     }
 
     bindSwipeEvents() {
-        const area = document.getElementById('schedule-list'); // Свайпаем только по списку
+        const area = document.getElementById('schedule-list'); 
         
         area.addEventListener('touchstart', e => {
             this.touchStartX = e.changedTouches[0].screenX;
+            this.touchStartY = e.changedTouches[0].screenY;
         }, { passive: true });
 
         area.addEventListener('touchend', e => {
-            this.touchEndX = e.changedTouches[0].screenX;
-            this.handleSwipe();
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            
+            const diffX = touchEndX - this.touchStartX;
+            const diffY = touchEndY - this.touchStartY;
+            const threshold = 50; 
+            
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+                if (diffX < -threshold) {
+                    this.changeDay(this.state.selectedDay + 1, 'right'); 
+                } else if (diffX > threshold) {
+                    this.changeDay(this.state.selectedDay - 1, 'left');
+                }
+            }
         }, { passive: true });
-    }
-
-    handleSwipe() {
-        const threshold = 50; 
-        const swipeDist = this.touchEndX - this.touchStartX;
-        
-        if (swipeDist < -threshold) {
-            // Свайп ВЛЕВО -> Следующий день
-            this.changeDay(this.state.selectedDay + 1, 'right'); 
-        } else if (swipeDist > threshold) {
-            // Свайп ВПРАВО -> Предыдущий день
-            this.changeDay(this.state.selectedDay - 1, 'left');
-        }
     }
 
     bindEvents() {
@@ -258,19 +250,38 @@ export class ScheduleView {
         if (todaySchedule.length === 0) return { status: 'no_classes' };
         const maxPair = Math.max(...todaySchedule.map(l => l.pair));
 
-        if ((status.status === 'active' && status.currentPair.pair > maxPair) || 
-            (status.status === 'break' && status.nextPair.pair > maxPair)) return { status: 'ended' };
+        if ((status.status.startsWith('active') || status.status === 'short_break') && status.currentPair.pair > maxPair) return { status: 'ended' };
+        if (status.status === 'break' && status.nextPair.pair > maxPair) return { status: 'ended' };
 
-        if (status.status === 'active') {
+        if (status.status.startsWith('active') || status.status === 'short_break') {
              const currentPairData = todaySchedule.find(l => l.pair === status.currentPair.pair);
-             if (!currentPairData) return { ...status, status: 'window' };
+             
+             if (!currentPairData) {
+                 return { ...status, status: 'window', windowType: 'full_pair' };
+             }
+             
+             if (status.status === 'active_lesson1' && (currentPairData.lesson1 === null || currentPairData.subject === null)) {
+                 return { ...status, status: 'window', windowType: 'lesson1', currentPairData };
+             }
+             if (status.status === 'active_lesson2' && (currentPairData.lesson2 === null || currentPairData.subject === null)) {
+                 return { ...status, status: 'window', windowType: 'lesson2', currentPairData };
+             }
+
              status.currentPairData = currentPairData;
         }
-        
-        if (status.status === 'break') {
-            status.nextPairData = todaySchedule.find(l => l.pair >= status.nextPair.pair);
+
+        if (status.status === 'break' || status.status === 'before_classes') {
+            status.nextPairData = todaySchedule.find(l => l.pair === status.nextPair.pair);
         }
+        
         return status;
+    }
+
+    getLessonDetails(pairData, lessonNum) {
+        if (!pairData) return { subj: 'Урок', room: '' };
+        if (lessonNum === 1 && pairData.lesson1) return { subj: pairData.lesson1.subject, room: pairData.lesson1.room || '' };
+        if (lessonNum === 2 && pairData.lesson2) return { subj: pairData.lesson2.subject, room: pairData.lesson2.room || '' };
+        return { subj: pairData.subject || 'Урок', room: pairData.room || '' };
     }
 
     renderWidgetHTML(status) {
@@ -284,24 +295,33 @@ export class ScheduleView {
         if (status.status === 'no_classes' || status.status === 'ended') {
             const txt = status.status === 'ended' ? 'Пары закончились' : 'Пар нет';
             this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-success"><div class="live-status-group" style="justify-content: center;"><div class="pulse-dot"></div><span class="live-status">${txt}</span></div></article>`;
-        } else if (status.status === 'window') {
+        } 
+        else if (status.status === 'window') {
             this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Окно (Свободно)</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject" style="margin:0;">Свободное время</div><div class="progress-track" style="margin-top: 16px;"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: var(--text-muted);"></div></div></article>`;
-        } else if (status.status === 'active') {
-            let subjectName = status.currentPairData.subject || 'Урок';
-            if (status.currentPairData.lesson1 !== undefined || status.currentPairData.lesson2 !== undefined) {
-                const now = new Date();
-                const currentMinutes = now.getHours() * 60 + now.getMinutes();
-                const l1End = parseTimeToMinutes(status.currentPair.lesson1.end);
-                subjectName = (currentMinutes <= l1End) ? (status.currentPairData.lesson1 ? status.currentPairData.lesson1.subject : 'Окно') : (status.currentPairData.lesson2 ? status.currentPairData.lesson2.subject : 'Окно');
-            }
-            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-active"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Идет ${status.currentPair.pair} пара</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject">${subjectName}</div><div class="progress-track"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%"></div></div></article>`;
-        } else if (status.status === 'break') {
-            let nextSubj = `Пара ${status.nextPair.pair}`;
-            if (status.nextPairData) nextSubj = (status.nextPairData.lesson1 || status.nextPairData.lesson2) ? (status.nextPairData.lesson1 ? status.nextPairData.lesson1.subject : status.nextPairData.lesson2.subject) : status.nextPairData.subject;
-            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div><div class="live-subject" style="margin:0;">След: ${nextSubj}</div></article>`;
-        } else {
-            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">До начала занятий</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div></article>`;
+        } 
+        else if (status.status === 'short_break') {
+            const nextLsn = this.getLessonDetails(status.currentPairData, 2);
+            const roomTxt = nextLsn.room ? ` &bull; ${nextLsn.room}` : '';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Мини-перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject" style="margin-bottom: 16px; font-size: 1rem; color: var(--text-secondary);">След: <span style="color:var(--text-primary);">${nextLsn.subj}</span>${roomTxt}</div><div class="progress-track"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: #2196F3;"></div></div></article>`;
+        } 
+        else if (status.status.startsWith('active')) {
+            const isLsn1 = status.status === 'active_lesson1';
+            const num = isLsn1 ? 1 : 2;
+            const lsn = this.getLessonDetails(status.currentPairData, num);
+            const roomTxt = lsn.room ? ` &bull; ${lsn.room}` : '';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-active"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Урок ${num} (Пара ${status.currentPair.pair})</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeLeft)}</span></div><div class="live-subject" style="margin-bottom: 6px;">${lsn.subj}</div><div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">${roomTxt ? `Аудитория: ${lsn.room}` : ''}</div><div class="progress-track"><div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%"></div></div></article>`;
+        } 
+        else if (status.status === 'break') {
+            const nextLsn = this.getLessonDetails(status.nextPairData, 1);
+            const roomTxt = nextLsn.room ? ` &bull; ${nextLsn.room}` : '';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div><div class="live-subject" style="margin:0; font-size: 1rem; color: var(--text-secondary);">След: <span style="color:var(--text-primary);">${nextLsn.subj}</span>${roomTxt}</div></article>`;
+        } 
+        else {
+            const nextLsn = this.getLessonDetails(status.nextPairData, 1);
+            const roomTxt = nextLsn.room ? ` &bull; ${nextLsn.room}` : '';
+            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">До начала занятий</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div>${nextLsn.subj !== 'Урок' ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px;">Первая: ${nextLsn.subj}${roomTxt}</div>` : ''}</article>`;
         }
+        
         this.cached.timeEl = document.getElementById('widget-time');
         this.cached.progressEl = document.getElementById('widget-progress');
     }
@@ -313,24 +333,18 @@ export class ScheduleView {
         let stateSignature = status.status;
         if (status.currentPair) stateSignature += `_p${status.currentPair.pair}`;
         if (status.nextPair) stateSignature += `_n${status.nextPair.pair}`;
+        if (status.windowType) stateSignature += `_w${status.windowType}`;
         
-        if (status.status === 'active' && status.currentPairData && (status.currentPairData.lesson1 !== undefined || status.currentPairData.lesson2 !== undefined)) {
-            const now = new Date();
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            const l1End = parseTimeToMinutes(status.currentPair.lesson1.end);
-            stateSignature += (currentMinutes <= l1End) ? '_L1' : '_L2';
-        }
-
         if (this.currentWidgetState !== stateSignature) {
             this.renderWidgetHTML(status);
             this.currentWidgetState = stateSignature;
             this.updatePairCardsHighlight(status); 
         } else {
             if (this.cached.timeEl) {
-                const newTimeText = (status.status === 'active' || status.status === 'window') ? formatMinutes(status.timeLeft) : formatMinutes(status.timeToNext);
+                const newTimeText = (status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break') ? formatMinutes(status.timeLeft) : formatMinutes(status.timeToNext);
                 if (this.cached.timeEl.textContent !== newTimeText) this.cached.timeEl.textContent = newTimeText;
             }
-            if (this.cached.progressEl && (status.status === 'active' || status.status === 'window')) {
+            if (this.cached.progressEl && (status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break')) {
                 this.cached.progressEl.style.width = `${status.progressPercent}%`;
             }
         }
@@ -341,9 +355,11 @@ export class ScheduleView {
         this.cached.pairCards.forEach(card => {
             const pNum = parseInt(card.getAttribute('data-pair'));
             card.classList.remove('current', 'past');
-            if ((status.status === 'active' || status.status === 'window') && status.currentPair.pair === pNum) card.classList.add('current');
-            else if ((status.status === 'active' || status.status === 'window') && pNum < status.currentPair.pair) card.classList.add('past');
-            else if (status.status === 'ended' || (status.status === 'break' && pNum < status.nextPair.pair)) card.classList.add('past');
+            const isActiveBlock = status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break';
+            
+            if (isActiveBlock && status.currentPair && status.currentPair.pair === pNum) card.classList.add('current');
+            else if (isActiveBlock && status.currentPair && pNum < status.currentPair.pair) card.classList.add('past');
+            else if (status.status === 'ended' || (status.status === 'break' && status.nextPair && pNum < status.nextPair.pair)) card.classList.add('past');
         });
     }
 }

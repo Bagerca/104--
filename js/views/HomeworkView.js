@@ -1,7 +1,3 @@
-/* =====================================================================
-   FILE: js/views/HomeworkView.js
-   ОПТИМИЗАЦИЯ: Использование HomeworkTemplate и глобального Lightbox.
-===================================================================== */
 import { ApiService } from '../services/api.js';
 import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
 import { Lightbox } from '../components/Lightbox.js';
@@ -9,6 +5,9 @@ import { Lightbox } from '../components/Lightbox.js';
 const triggerHaptic = () => {
     if (navigator.vibrate) navigator.vibrate(20);
 };
+
+// Хэш для генерации уникального ID задания по тексту (Защита от дублей)
+const hashCode = (s) => Math.abs(s.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
 
 export class HomeworkView {
     constructor(container) {
@@ -22,10 +21,36 @@ export class HomeworkView {
         return new Date(y, m - 1, d).getTime();
     }
 
+    cleanUpOldTasks() {
+        const currentState = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+        const now = Date.now();
+        const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+        let changed = false;
+
+        for (const key in currentState) {
+            const parts = key.split('_');
+            const dateStr = parts[parts.length - 1]; 
+            if (dateStr && /\d{2}-\d{2}-\d{4}/.test(dateStr)) {
+                const [d, m, y] = dateStr.split('-');
+                const taskTime = new Date(y, m - 1, d).getTime();
+                if (now - taskTime > THIRTY_DAYS) {
+                    delete currentState[key];
+                    changed = true;
+                }
+            }
+        }
+        
+        if (changed) {
+            localStorage.setItem(this.storageKey, JSON.stringify(currentState));
+        }
+    }
+
     async mount() {
         this.container.innerHTML = HomeworkTemplate.renderSkeletons();
         
         try {
+            this.cleanUpOldTasks();
+            
             const [hwTasks, teachersData] = await Promise.all([
                 ApiService.getHomework(),
                 ApiService.getTeachers()
@@ -39,7 +64,7 @@ export class HomeworkView {
             const savedState = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
             
             const processedTasks = hwTasks.map(item => {
-                const uniqueId = `${item.subject}_${item.date}`;
+                const uniqueId = `${item.subject}_${hashCode(item.task)}_${item.date}`;
                 const teacherName = (teachersData && teachersData[item.subject]) ? teachersData[item.subject].name : 'Преподаватель не указан';
                 
                 return {
@@ -60,7 +85,7 @@ export class HomeworkView {
                 this.groupedData[subject].sort((a, b) => this.parseDateStr(b.date) - this.parseDateStr(a.date));
             }
 
-            this.renderMainList();
+            this.renderMainList(false); // Первый рендер без анимации
 
         } catch (error) {
             console.error('[HomeworkView] Ошибка:', error);
@@ -68,16 +93,31 @@ export class HomeworkView {
         }
     }
 
-    renderMainList() {
-        this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
-        this.bindEvents('main');
-        this.validateLocalFiles();
+    switchViewWithTransition(renderCallback) {
+        if (document.startViewTransition) {
+            document.startViewTransition(() => renderCallback());
+        } else {
+            renderCallback();
+        }
+    }
+
+    renderMainList(animate = true) {
+        const render = () => {
+            this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
+            this.bindEvents('main');
+            this.validateLocalFiles();
+        };
+
+        if (animate) this.switchViewWithTransition(render);
+        else render();
     }
 
     renderSubjectHistory(subject) {
-        this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
-        this.bindEvents('history');
-        this.validateLocalFiles();
+        this.switchViewWithTransition(() => {
+            this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
+            this.bindEvents('history');
+            this.validateLocalFiles();
+        });
     }
 
     async validateLocalFiles() {
@@ -101,7 +141,6 @@ export class HomeworkView {
     }
 
     bindEvents(viewType) {
-        // Открытие фото через ГЛОБАЛЬНЫЙ Lightbox
         this.container.querySelectorAll('.hw-image-thumb').forEach(thumb => {
             thumb.addEventListener('click', (e) => {
                 if (thumb.classList.contains('hw-broken')) return;
@@ -112,7 +151,6 @@ export class HomeworkView {
             });
         });
 
-        // Чекбоксы
         this.container.querySelectorAll('.hw-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.interactive-element')) return;
@@ -125,7 +163,6 @@ export class HomeworkView {
             });
         });
 
-        // Переходы
         if (viewType === 'main') {
             this.container.querySelectorAll('.hw-show-all-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {

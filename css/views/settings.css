@@ -1,6 +1,3 @@
-/* =====================================================================
-   FILE: css/views/settings.css
-===================================================================== */
 .settings-container { animation: fadeIn 0.3s ease; }
 .settings-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
 .settings-back-btn { 
@@ -16,7 +13,7 @@
 .settings-section { margin-bottom: 28px; }
 .settings-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 4px; }
 
-/* === Карточка ТЕМ === */
+/* Карточка ТЕМ */
 .theme-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-lg); padding: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
 .theme-scroll-wrapper { display: flex; gap: 20px; overflow-x: auto; padding: 10px 20px; -webkit-overflow-scrolling: touch; scrollbar-width: none; cursor: grab; }
 .theme-scroll-wrapper:active { cursor: grabbing; }
@@ -32,14 +29,7 @@
 .theme-name-label { font-size: 0.7rem; color: var(--text-secondary); text-align: center; line-height: 1.2; width: 100%; white-space: normal; transition: color 0.3s; }
 .theme-swatch-container.active .theme-name-label { color: var(--text-primary); font-weight: 600; }
 
-/* === МОДАЛКИ === */
-.custom-theme-modal {
-    border: var(--glass-border); background: var(--theme-bg-secondary);
-    border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 320px;
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    color: var(--text-primary); box-shadow: 0 20px 40px rgba(0,0,0,0.8); margin: 0;
-}
-.custom-theme-modal::backdrop { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+/* Уникальные классы модалок Настроек */
 .custom-theme-modal h3 { margin-bottom: 16px; font-size: 1.1rem; text-align: center; }
 .color-picker-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: var(--overlay-bg); padding: 12px; border-radius: var(--radius-md); }
 .color-picker-group label { font-size: 0.9rem; font-weight: 500; }
@@ -52,7 +42,7 @@
 .modal-btn.cancel { background: var(--overlay-bg-active); color: var(--text-primary); }
 .modal-btn.save { background: var(--theme-accent); color: var(--text-on-accent); }
 
-/* === МОДАЛКА ПОРЯДКА НАВИГАЦИИ === */
+/* Модалка Порядок Навигации */
 .nav-reorder-item {
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 14px; background: var(--overlay-bg); border-radius: var(--radius-md);
@@ -67,7 +57,7 @@
 .nav-move-btn:disabled { opacity: 0.3; cursor: default; }
 .nav-move-btn:not(:disabled):active { background: var(--theme-accent); color: var(--text-on-accent); transform: scale(0.9); }
 
-/* === ЭЛЕМЕНТЫ СПИСКА === */
+/* Элементы списка */
 .settings-list { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-lg); overflow: visible; }
 .settings-list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; width: 100%; border: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--overlay-bg); }
 .settings-list-item:last-child { border-bottom: none; }
@@ -77,7 +67,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .item-label-group { display: flex; flex-direction: column; }
 .item-subtitle { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
-/* === КАСТОМНЫЙ DROPDOWN === */
+/* Кастомный Select */
 .custom-select-wrapper { position: relative; user-select: none; }
 .custom-select-btn { display: flex; align-items: center; gap: 8px; background: var(--overlay-bg); border: var(--glass-border); color: var(--text-primary); padding: 8px 14px; border-radius: var(--radius-md); font-family: inherit; font-size: 0.9rem; cursor: pointer; transition: all var(--transition-fast); }
 .custom-select-btn:active { background: var(--overlay-bg-active); transform: scale(0.98); }
@@ -89,7 +79,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .custom-select-option:hover { background: var(--overlay-bg); color: var(--text-primary); }
 .custom-select-option.selected { background: var(--theme-accent-soft); color: var(--theme-accent-text); font-weight: 600; }
 
-/* === iOS SWITCH === */
+/* iOS Switch */
 .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--overlay-bg-active); border-radius: 12px; transition: background 0.3s ease; cursor: pointer; border: var(--glass-border); }
 .toggle-switch::after { content: ''; position: absolute; top: 1px; left: 1px; width: 20px; height: 20px; background: var(--text-primary); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.3s ease; }
 .toggle-switch.active { background: var(--theme-accent); border-color: var(--theme-accent); }
@@ -97,7 +87,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .inline-select { background: var(--overlay-bg); border: var(--glass-border); color: var(--text-primary); padding: 8px 14px; border-radius: 8px; font-family: inherit; font-size: 0.9rem; transition: background 0.2s; }
 .inline-select:active { background: var(--overlay-bg-active); }
 
-/* === ФУТЕР ВЕРСИИ === */
+/* Футер */
 .settings-footer { text-align: center; margin-top: 40px; margin-bottom: 20px; }
 .settings-footer .version-text { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; user-select: none; padding: 10px; display: inline-block; cursor: pointer;}
 .settings-footer .credits { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }

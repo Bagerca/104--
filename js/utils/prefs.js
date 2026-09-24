@@ -1,7 +1,31 @@
-/* =====================================================================
-   FILE: js/utils/prefs.js
-   ОПТИМИЗАЦИЯ: Добавлена система временного доступа (Session Admin)
-===================================================================== */
+// Простая асинхронная обертка для IndexedDB
+const idb = {
+    getDb() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('StudentHubDB', 1);
+            request.onupgradeneeded = e => e.target.result.createObjectStore('store');
+            request.onsuccess = e => resolve(e.target.result);
+            request.onerror = e => reject(e.target.error);
+        });
+    },
+    async set(key, value) {
+        const db = await this.getDb();
+        db.transaction('store', 'readwrite').objectStore('store').put(value, key);
+    },
+    async get(key) {
+        const db = await this.getDb();
+        return new Promise(resolve => {
+            const req = db.transaction('store').objectStore('store').get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        });
+    },
+    async del(key) {
+        const db = await this.getDb();
+        db.transaction('store', 'readwrite').objectStore('store').delete(key);
+    }
+};
+
 export const PrefsManager = {
     storageKey: 'sh_preferences',
     adminKey: 'sh_admin_mode',
@@ -31,19 +55,16 @@ export const PrefsManager = {
         this.savePrefs(prefs);
     },
 
-    // Включаем временную админку (живет до закрытия вкладки)
     enableTempAdmin() {
         sessionStorage.setItem('sh_temp_admin', 'true');
     },
 
-    // Админ ли пользователь? (Либо навсегда через 5 тапов, либо временно по ссылке)
     isAdmin() {
         const isPerm = localStorage.getItem(this.adminKey) === 'true';
         const isTemp = sessionStorage.getItem('sh_temp_admin') === 'true';
         return isPerm || isTemp;
     },
 
-    // 5 тапов меняют только постоянную настройку
     toggleAdmin() {
         const isPerm = localStorage.getItem(this.adminKey) === 'true';
         localStorage.setItem(this.adminKey, !isPerm ? 'true' : 'false');
@@ -52,17 +73,20 @@ export const PrefsManager = {
 
     vibrate(ms = 20) {
         const prefs = this.getPrefs();
-        if (prefs.haptic && navigator.vibrate) {
-            navigator.vibrate(ms);
-        }
+        if (prefs.haptic && navigator.vibrate) navigator.vibrate(ms);
     },
 
-    saveWallpaper(file, callback) {
+    async hasWallpaper() {
+        const val = await idb.get(this.wallpaperKey);
+        return !!val;
+    },
+
+    async saveWallpaper(file, callback) {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
-            img.onload = () => {
+            img.onload = async () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 const MAX_WIDTH = 1080; 
@@ -78,13 +102,13 @@ export const PrefsManager = {
                 
                 const base64 = canvas.toDataURL('image/webp', 0.6); 
                 try {
-                    localStorage.setItem(this.wallpaperKey, base64);
+                    await idb.set(this.wallpaperKey, base64);
                     this.applySettingsToDOM();
                     callback(true);
                 } catch (err) {
                     console.error('[Prefs] Ошибка сохранения обоев:', err);
-                    this.clearWallpaper();
-                    alert('Файл слишком большой или память браузера переполнена.');
+                    await this.clearWallpaper();
+                    alert('Ошибка сохранения обоев. Возможно, недостаточно памяти.');
                     callback(false);
                 }
             };
@@ -93,8 +117,8 @@ export const PrefsManager = {
         reader.readAsDataURL(file);
     },
 
-    clearWallpaper() {
-        localStorage.removeItem(this.wallpaperKey);
+    async clearWallpaper() {
+        await idb.del(this.wallpaperKey);
         this.applySettingsToDOM();
     },
 
@@ -120,7 +144,7 @@ export const PrefsManager = {
         }
     },
 
-    applySettingsToDOM() {
+    async applySettingsToDOM() {
         const prefs = this.getPrefs();
         const body = document.body;
         
@@ -128,9 +152,7 @@ export const PrefsManager = {
         navItems.forEach(item => {
             const href = item.getAttribute('href').replace('#/', '');
             const index = prefs.navOrder.indexOf(href);
-            if(index !== -1) {
-                item.style.order = index;
-            }
+            if(index !== -1) item.style.order = index;
         });
 
         if (prefs.powerSave) body.classList.add('power-save-mode');
@@ -143,7 +165,7 @@ export const PrefsManager = {
             document.body.appendChild(wpImg);
         }
 
-        const savedWp = localStorage.getItem(this.wallpaperKey);
+        const savedWp = await idb.get(this.wallpaperKey);
         if (savedWp && !prefs.powerSave) { 
             wpImg.src = savedWp;
             wpImg.style.opacity = '1';

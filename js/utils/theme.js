@@ -1,8 +1,172 @@
 /* =====================================================================
    FILE: js/utils/theme.js
-   ОПТИМИЗАЦИЯ: Оптимизирован рендеринг частиц (DocumentFragment)
+   ОПТИМИЗАЦИЯ: Исправлен баг утечки контекста Canvas (партиклы больше не пропадают)
 ===================================================================== */
 import { PrefsManager } from './prefs.js';
+
+// --- ДВИЖОК ЧАСТИЦ CANVAS ---
+class ParticleEngine {
+    constructor() {
+        this.canvas = null;
+        this.ctx = null;
+        this.particles = [];
+        this.animationId = null;
+        this.theme = null; 
+        this.isActive = false; // Флаг для защиты от зомби-процессов
+        
+        this.width = 0;
+        this.height = 0;
+
+        this.handleResize = this.handleResize.bind(this);
+        this.loop = this.loop.bind(this);
+    }
+
+    init(themeId) {
+        this.stop(); // Гарантированно убиваем старый цикл
+        this.theme = themeId;
+        this.isActive = true;
+        
+        let container = document.getElementById('seasonal-fx-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'seasonal-fx-container';
+            document.body.appendChild(container);
+        }
+        
+        // ВАЖНО: Мы больше не пересоздаем элемент <canvas> через innerHTML. 
+        // Если его постоянно пересоздавать, браузер исчерпает лимит GPU-контекстов и снег исчезнет.
+        this.canvas = document.getElementById('seasonal-canvas');
+        if (!this.canvas) {
+            this.canvas = document.createElement('canvas');
+            this.canvas.id = 'seasonal-canvas';
+            this.canvas.style.width = '100%';
+            this.canvas.style.height = '100%';
+            this.canvas.style.display = 'block';
+            this.canvas.style.pointerEvents = 'none'; // Чтобы не мешал кликам
+            container.appendChild(this.canvas);
+            
+            this.ctx = this.canvas.getContext('2d', { alpha: true });
+        }
+        
+        this.canvas.style.display = 'block'; // Показываем, если был скрыт
+        
+        this.handleResize();
+        window.addEventListener('resize', this.handleResize);
+
+        // Создаем частицы
+        const count = this.theme === 'new-year' ? 50 : 30;
+        this.particles = []; // Очищаем массив
+        for (let i = 0; i < count; i++) {
+            this.particles.push(this.createParticle(true));
+        }
+
+        this.loop();
+    }
+
+    createParticle(isInitial = false) {
+        if (this.theme === 'new-year') {
+            return {
+                x: Math.random() * this.width,
+                // При старте раскидываем снег по всему экрану, а новые снежинки появляются только сверху
+                y: isInitial ? (Math.random() * this.height) : -10, 
+                r: Math.random() * 2 + 1, 
+                speedY: Math.random() * 1 + 0.5,
+                speedX: Math.random() * 1 - 0.5,
+                opacity: Math.random() * 0.5 + 0.3
+            };
+        } else {
+            // Halloween
+            return {
+                x: Math.random() * this.width,
+                y: isInitial ? (Math.random() * this.height) : (this.height + 10), 
+                r: Math.random() * 2 + 1,
+                speedY: -(Math.random() * 2 + 1),
+                speedX: Math.random() * 2 - 1,
+                opacity: Math.random(),
+                life: Math.random() * 100 
+            };
+        }
+    }
+
+    handleResize() {
+        if (!this.canvas) return;
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        // Установка width/height аппаратно очищает canvas, что нам и нужно
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+    }
+
+    updateAndDraw() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        for (let i = 0; i < this.particles.length; i++) {
+            let p = this.particles[i];
+
+            if (this.theme === 'new-year') {
+                p.y += p.speedY;
+                p.x += Math.sin(p.y / 50) * 0.5 + p.speedX; 
+
+                // Переиспользуем объект вместо создания нового (бережет память телефона)
+                if (p.y > this.height + 10) {
+                    p.y = -10;
+                    p.x = Math.random() * this.width;
+                }
+
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                this.ctx.fill();
+
+            } else {
+                p.y += p.speedY;
+                p.x += Math.sin(p.life / 10) * p.speedX;
+                p.life++;
+                
+                const currentOpacity = Math.abs(Math.sin(p.life / 10)) * p.opacity;
+
+                if (p.y < -10) {
+                    p.y = this.height + 10;
+                    p.x = Math.random() * this.width;
+                }
+
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = '#F86903';
+                this.ctx.fillStyle = `rgba(248, 105, 3, ${currentOpacity})`;
+                this.ctx.fill();
+                this.ctx.shadowBlur = 0; 
+            }
+        }
+    }
+
+    loop() {
+        if (!this.isActive || !this.ctx) return;
+        this.updateAndDraw();
+        this.animationId = requestAnimationFrame(this.loop);
+    }
+
+    stop() {
+        this.isActive = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        window.removeEventListener('resize', this.handleResize);
+        
+        // Очищаем и скрываем канвас, но НЕ удаляем его из DOM!
+        if (this.ctx && this.canvas) {
+            this.ctx.clearRect(0, 0, this.width, this.height);
+            this.canvas.style.display = 'none';
+        }
+        this.particles = [];
+    }
+}
+
+const pEngine = new ParticleEngine();
+// ------------------------------
 
 export const ThemeManager = {
     storageKey: 'sh_theme', customStorageKey: 'sh_custom_theme',
@@ -18,7 +182,8 @@ export const ThemeManager = {
     ],
     seasonalThemes: {
         'halloween': { id: 'halloween', name: 'Halloween', color: '#F86903', bg: '#110300', start: {m: 10, d: 24}, end: {m: 11, d: 7} },
-        'new-year': { id: 'new-year', name: 'Новый Год', color: '#00E5FF', bg: '#070B19', start: {m: 12, d: 20}, end: {m: 1, d: 10} }
+        // Обновлены даты: с 1 декабря по 31 января
+        'new-year': { id: 'new-year', name: 'Новый Год', color: '#00E5FF', bg: '#070B19', start: {m: 12, d: 1}, end: {m: 1, d: 31} }
     },
     icons: {
         'default': {
@@ -123,38 +288,13 @@ export const ThemeManager = {
     },
 
     applySeasonalEffects(themeId) {
-        let container = document.getElementById('seasonal-fx-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'seasonal-fx-container';
-            document.body.appendChild(container);
-        }
-        container.innerHTML = '';
-        
         const prefs = PrefsManager.getPrefs();
-        if (prefs.particles) {
-            const frag = document.createDocumentFragment();
-            if (themeId === 'halloween') {
-                for (let i = 0; i < 15; i++) {
-                    const el = document.createElement('div');
-                    el.className = 'halloween-ember';
-                    el.style.left = `${Math.random() * 100}vw`;
-                    el.style.animationDuration = `${3 + Math.random() * 4}s`;
-                    el.style.animationDelay = `${Math.random() * 2}s`;
-                    frag.appendChild(el);
-                }
-            } else if (themeId === 'new-year') {
-                for (let i = 0; i < 20; i++) {
-                    const el = document.createElement('div');
-                    el.className = 'new-year-snow';
-                    el.style.left = `${Math.random() * 100}vw`;
-                    // Добавляем случайную задержку для уникальности амплитуды (translate3d)
-                    el.style.animationDuration = `${4 + Math.random() * 6}s, 3s`;
-                    el.style.animationDelay = `${Math.random() * 5}s, ${Math.random() * 2}s`;
-                    frag.appendChild(el);
-                }
-            }
-            container.appendChild(frag);
+        
+        // Запуск Canvas движка, если включены партиклы и тема подходящая
+        if (prefs.particles && (themeId === 'halloween' || themeId === 'new-year')) {
+            pEngine.init(themeId);
+        } else {
+            pEngine.stop();
         }
 
         const iconSet = this.icons[themeId] ? this.icons[themeId] : this.icons['default'];
@@ -169,12 +309,15 @@ export const ThemeManager = {
         let metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) metaThemeColor.setAttribute('content', colorHex);
     },
+    
     saveCustomTheme(bgHex, accentHex) {
         localStorage.setItem(this.customStorageKey, JSON.stringify({ bg: bgHex, accent: accentHex }));
         this.setTheme('custom');
     },
+    
     getCustomTheme() { return JSON.parse(localStorage.getItem(this.customStorageKey) || '{"bg":"#151515", "accent":"#ffffff"}'); },
     getCurrent() { return localStorage.getItem(this.storageKey) || 'burgundy'; },
+    
     getThemes() {
         let available = [...this.baseThemes];
         for (const key in this.seasonalThemes) {

@@ -1,7 +1,3 @@
-/* =====================================================================
-   FILE: css/style.css
-   ОПТИМИЗАЦИЯ: Edge-to-Edge дизайн, постоянная стеклянная шапка, GPU-частицы
-===================================================================== */
 html { scrollbar-width: none; }
 
 * {
@@ -49,24 +45,18 @@ body {
     border: var(--glass-border);
 }
 
-/* Статичная стеклянная шапка под статус-бар */
 .app-header {
     position: sticky; top: 0;
     display: flex; justify-content: space-between; align-items: flex-end; 
     padding: max(20px, calc(16px + env(safe-area-inset-top))) var(--spacing-main) 16px;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
-    
-    /* Возвращаем постоянный фон и рамки стекла */
     background: var(--glass-bg);
     border: var(--glass-border);
     border-top: none; 
-    
     z-index: var(--z-header);
     min-height: calc(60px + env(safe-area-inset-top));
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    
-    /* Фикс багов iOS */
     transform: translateZ(0); 
 }
 
@@ -86,6 +76,11 @@ body {
 }
 
 main { padding: var(--spacing-main); }
+
+#app-content {
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    will-change: opacity, transform;
+}
 
 .fade-in { animation: fadeIn var(--transition-smooth) forwards; }
 
@@ -128,9 +123,7 @@ main { padding: var(--spacing-main); }
 
 .placeholder-card { background: var(--theme-bg-secondary); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; border: var(--glass-border); }
 
-/* =====================================================================
-   КАСТОМНЫЕ ОБОИ ПОД СТЕКЛО
-===================================================================== */
+/* Обои */
 #app-wallpaper {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     object-fit: cover; z-index: var(--z-wallpaper); opacity: 0;
@@ -139,9 +132,27 @@ main { padding: var(--spacing-main); }
     transform: scale(1.1); 
 }
 
-/* =====================================================================
-   РЕЖИМ ЭНЕРГОСБЕРЕЖЕНИЯ
-===================================================================== */
+/* Pull to Refresh Indicator */
+#ptr-indicator {
+    position: fixed; top: -40px; left: 50%; margin-left: -20px;
+    width: 40px; height: 40px; background: var(--glass-bg);
+    border: var(--glass-border); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--theme-accent); z-index: var(--z-modal);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none; transition: transform 0.2s, opacity 0.2s;
+    backdrop-filter: var(--glass-blur);
+}
+#ptr-indicator.refreshing {
+    transition: none;
+    animation: ptr-spin 1s linear infinite;
+}
+@keyframes ptr-spin {
+    from { transform: translateY(50px) rotate(0deg); }
+    to { transform: translateY(50px) rotate(360deg); }
+}
+
+/* Энергосбережение */
 body.power-save-mode .glass,
 body.power-save-mode .app-header {
     background: var(--theme-bg-secondary);
@@ -153,46 +164,14 @@ body.power-save-mode #seasonal-fx-container {
     display: none; 
 }
 
-/* =====================================================================
-   СЕЗОННЫЕ ЭФФЕКТЫ (GPU OPTIMIZED)
-===================================================================== */
+/* Сезонные эффекты (Теперь Canvas) */
 #seasonal-fx-container {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     pointer-events: none; z-index: var(--z-fx); overflow: hidden;
 }
 
-.halloween-ember {
-    position: absolute; bottom: -20px; width: 6px; height: 6px;
-    background: #F86903; border-radius: 50%;
-    box-shadow: 0 0 10px #F86903, 0 0 20px #CE3D01;
-    animation: floatUp ease-in infinite, flicker 0.5s infinite alternate;
-    opacity: 0;
-    will-change: transform, opacity;
-}
-@keyframes floatUp {
-    0% { transform: translate3d(0, 0, 0) scale(0.5); opacity: 0; }
-    20% { opacity: 0.8; }
-    100% { transform: translate3d(0, -100vh, 0) scale(1.5); opacity: 0; }
-}
-@keyframes flicker {
-    0% { opacity: 0.5; box-shadow: 0 0 5px #F86903; }
-    100% { opacity: 1; box-shadow: 0 0 15px #F86903, 0 0 25px #CE3D01; }
-}
-
-.new-year-snow {
-    position: absolute; top: -10px; width: 4px; height: 4px;
-    background: #fff; border-radius: 50%;
-    box-shadow: 0 0 8px rgba(255,255,255,0.8);
-    animation: snowFall linear infinite, snowSway ease-in-out infinite alternate;
-    will-change: transform, opacity; 
-}
-@keyframes snowFall {
-    0% { transform: translateY(-10px); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(105vh); opacity: 0; }
-}
-@keyframes snowSway {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(20px); }
+#seasonal-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
