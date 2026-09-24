@@ -1,14 +1,15 @@
 /* =====================================================================
    FILE: sw.js
-   ОПТИМИЗАЦИЯ: Раздельные стратегии кэширования и защита от чужого origin
+   ОПТИМИЗАЦИЯ: Исправлен механизм обновлений (Controlled skipWaiting)
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v12'; // Версия поднята из-за изменения стратегий
+const CACHE_NAME = 'student-hub-v13'; // Версия поднята для сброса старого кривого кэша
 
 const ASSETS = [
     './',
     './index.html',
     './css/variables.css',
     './css/style.css',
+    './css/components.css',
     './css/views/schedule.css',
     './css/views/group.css',
     './css/views/homework.css',
@@ -26,10 +27,17 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-    self.skipWaiting();
+    // Больше НЕТ автоматического self.skipWaiting(). Мы ждем команды от пользователя.
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
     );
+});
+
+// Слушаем команду на принудительное обновление от app.js
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 self.addEventListener('activate', (event) => {
@@ -82,7 +90,7 @@ self.addEventListener('fetch', (event) => {
                 return response;
             });
         }).catch(() => {
-            // Опционально: вернуть заглушку, если картинки нет
+            // Опционально: вернуть заглушку
         })
     );
 });

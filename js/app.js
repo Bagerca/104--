@@ -22,24 +22,26 @@ document.addEventListener('DOMContentLoaded', () => {
         ThemeManager.init();
         PrefsManager.applySettingsToDOM(); 
         
-        // --- 1. РЕГИСТРАЦИЯ SERVICE WORKER ---
+        // --- 1. РЕГИСТРАЦИЯ SERVICE WORKER (Надежное обновление) ---
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => {
-                    console.log('[SW] Зарегистрирован:', reg.scope);
-                    reg.addEventListener('updatefound', () => {
-                        const newWorker = reg.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm('Доступна новая версия приложения! Обновить сейчас?')) {
-                                    window.location.reload();
-                                }
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                console.log('[SW] Зарегистрирован:', reg.scope);
+                
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        // Ждем, пока новый SW скачается и будет готов к активации
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            if (confirm('Доступна новая версия приложения! Обновить сейчас?')) {
+                                // Отправляем команду на применение нового кэша
+                                newWorker.postMessage({ type: 'SKIP_WAITING' });
                             }
-                        });
+                        }
                     });
-                })
-                .catch(err => console.warn('[SW] Ошибка:', err));
+                });
+            }).catch(err => console.warn('[SW] Ошибка:', err));
 
+            // Как только старый SW сменится на новый — жестко перезагружаем страницу
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
@@ -54,21 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
         window.appRouter = router; 
         router.init();
 
-        // --- 3. ИНДИКАТОР ОФЛАЙНА (ПРОКАЧАННЫЙ) ---
-        // Передача "0" означает, что уведомление не закроется само по себе
+        // --- 3. ИНДИКАТОР ОФЛАЙНА ---
         window.addEventListener('offline', () => {
             Toast.show('Нет интернета. Показаны сохраненные данные.', 'offline', 0);
         });
         
         window.addEventListener('online', () => {
-            Toast.hide(); // Принудительно прячем "красное" сообщение
+            Toast.hide(); 
             setTimeout(() => {
-                // Показываем "зеленое" на 3 секунды
                 Toast.show('Соединение восстановлено', 'success', 3000);
-            }, 300); // Небольшая задержка для плавной анимации
+            }, 300); 
         });
         
-        // Проверка при первом запуске
         setTimeout(() => {
             if (!navigator.onLine) {
                 Toast.show('Нет интернета. Показаны сохраненные данные.', 'offline', 0);

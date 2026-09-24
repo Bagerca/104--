@@ -1,3 +1,7 @@
+/* =====================================================================
+   FILE: css/style.css
+   ОПТИМИЗАЦИЯ: Добавлены микроинтеракции для кнопки настроек
+===================================================================== */
 html { scrollbar-width: none; }
 
 * {
@@ -68,12 +72,49 @@ body {
     margin-bottom: 2px;
 }
 
+/* === ПРОКАЧАННАЯ КНОПКА НАСТРОЕК === */
 .icon-btn { 
-    background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; 
-    padding: 16px;  
-    margin: -16px;  
+    background: transparent; 
+    border: none; 
+    color: var(--text-primary); 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    width: 44px;  /* Строгий размер для идеального круга */
+    height: 44px;
+    margin: -10px; /* Компенсация отступа, чтобы не ломать верстку шапки */
     border-radius: 50%;
+    transition: all var(--transition-fast);
+    outline: none;
 }
+
+/* Пружинистая анимация вращения шестеренки */
+.icon-btn svg {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Ховер для тех, кто сидит с ПК/Мышки */
+@media (hover: hover) {
+    .icon-btn:hover {
+        background: var(--overlay-bg);
+        color: var(--theme-accent-text);
+    }
+    .icon-btn:hover svg {
+        transform: rotate(45deg);
+    }
+}
+
+/* Реакция на нажатие (Тап на телефоне) */
+.icon-btn:active {
+    background: var(--overlay-bg-active);
+    color: var(--theme-accent);
+    transform: scale(0.85); /* Эффект физического продавливания */
+}
+.icon-btn:active svg {
+    transform: rotate(90deg); /* Крутим шестеренку */
+}
+/* =================================== */
 
 main { padding: var(--spacing-main); }
 
@@ -164,7 +205,7 @@ body.power-save-mode #seasonal-fx-container {
     display: none; 
 }
 
-/* Сезонные эффекты (Теперь Canvas) */
+/* Сезонные эффекты Canvas */
 #seasonal-fx-container {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     pointer-events: none; z-index: var(--z-fx); overflow: hidden;
