@@ -6,6 +6,7 @@ import { ThemeManager } from './utils/theme.js';
 import { PrefsManager } from './utils/prefs.js';
 import { Toast } from './components/Toast.js';
 import { ApiService } from './services/api.js';
+import { NotificationService } from './services/NotificationService.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -48,10 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- 2. ЗАПУСК РОУТЕРА ---
+        // --- 2. ЗАПУСК РОУТЕРА И СЕРВИСОВ ---
         const router = new Router();
         window.appRouter = router; 
         router.init();
+        
+        // Запускаем планировщик локальных Push-уведомлений
+        NotificationService.init();
 
         // --- 3. ИНДИКАТОР ОФЛАЙНА ---
         window.addEventListener('offline', () => {

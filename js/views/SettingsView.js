@@ -12,18 +12,15 @@ export class SettingsView {
         this.adminTaps = 0;
         this.adminTapTimeout = null;
         this.isMounted = false;
-        this.handleDocumentClick = this.handleDocumentClick.bind(this);
+        
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
+        this.handleGlobalChange = this.handleGlobalChange.bind(this);
     }
 
     getSubgroupText(val) {
         if (val === '1') return '1 подгруппа';
         if (val === '2') return '2 подгруппа';
         return 'Обе (Показывать всё)';
-    }
-
-    handleDocumentClick(e) {
-        const wrapper = document.getElementById('subgroup-wrapper');
-        if (wrapper && !wrapper.contains(e.target)) wrapper.classList.remove('open');
     }
 
     async mount() {
@@ -48,111 +45,142 @@ export class SettingsView {
 
         this.container.innerHTML = SettingsTemplate.renderMain(templateData);
         
-        this.bindEvents(currentPrefs);
+        this.container.addEventListener('click', this.handleGlobalClick);
+        this.container.addEventListener('change', this.handleGlobalChange);
+        
         this.initDesktopScroll();
-        document.addEventListener('click', this.handleDocumentClick);
     }
 
-    bindEvents(currentPrefs) {
-        document.getElementById('settings-back-btn')?.addEventListener('click', () => {
+    unmount() {
+        this.isMounted = false;
+        if (this.adminTapTimeout) clearTimeout(this.adminTapTimeout);
+        this.container.removeEventListener('click', this.handleGlobalClick);
+        this.container.removeEventListener('change', this.handleGlobalChange);
+    }
+
+    handleGlobalChange(e) {
+        if (e.target.id === 'upload-wp') {
+            const file = e.target.files[0];
+            if (file) PrefsManager.saveWallpaper(file, (success) => { 
+                if (success && this.isMounted) this.mount(); 
+            });
+        }
+    }
+
+    async handleGlobalClick(e) {
+        const subgroupWrapper = document.getElementById('subgroup-wrapper');
+        if (subgroupWrapper && !subgroupWrapper.contains(e.target)) {
+            subgroupWrapper.classList.remove('open');
+        }
+
+        if (e.target.closest('#settings-back-btn')) {
             PrefsManager.vibrate();
             if (window.history.length > 1) window.history.back();
             else window.location.hash = '#/schedule';
-        });
+            return;
+        }
 
-        const swatchContainers = this.container.querySelectorAll('.theme-swatch-container');
-        const customDialog = document.getElementById('custom-theme-dialog');
+        const themeContainer = e.target.closest('.theme-swatch-container');
+        if (themeContainer) {
+            if (this.isDragging) return;
+            const selectedId = themeContainer.getAttribute('data-id');
+            PrefsManager.vibrate();
 
-        swatchContainers.forEach(container => {
-            container.addEventListener('click', (e) => {
-                if (this.isDragging) return;
-                const selectedId = e.currentTarget.getAttribute('data-id');
-                PrefsManager.vibrate();
+            if (selectedId === 'custom') {
+                document.getElementById('custom-theme-dialog').showModal();
+            } else {
+                ThemeManager.setTheme(selectedId);
+                this.mount(); 
+            }
+            return;
+        }
 
-                if (selectedId === 'custom') {
-                    customDialog.showModal();
-                } else {
-                    ThemeManager.setTheme(selectedId);
-                    swatchContainers.forEach(c => c.classList.remove('active'));
-                    e.currentTarget.classList.add('active');
-                    this.mount(); 
-                }
-            });
-        });
-
-        document.getElementById('btn-cancel-custom').addEventListener('click', () => {
-            PrefsManager.vibrate(); customDialog.close();
-        });
-        document.getElementById('btn-save-custom').addEventListener('click', () => {
+        if (e.target.closest('#btn-cancel-custom')) {
+            PrefsManager.vibrate(); 
+            document.getElementById('custom-theme-dialog').close();
+            return;
+        }
+        if (e.target.closest('#btn-save-custom')) {
             PrefsManager.vibrate();
             ThemeManager.saveCustomTheme(document.getElementById('picker-bg').value, document.getElementById('picker-accent').value);
-            customDialog.close();
+            document.getElementById('custom-theme-dialog').close();
             this.mount(); 
-        });
+            return;
+        }
 
-        const navDialog = document.getElementById('nav-order-dialog');
-        let tempNavOrder = [...currentPrefs.navOrder];
-        const navNames = { 'schedule': 'Расписание', 'homework': 'Домашка', 'group': 'Группа', 'events': 'Ивенты' };
-
-        const refreshNavModal = () => {
-            const list = document.getElementById('nav-order-list');
-            list.innerHTML = SettingsTemplate.renderNavList(tempNavOrder, navNames);
-            list.querySelectorAll('.nav-move-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const idx = parseInt(btn.dataset.idx);
-                    const dir = parseInt(btn.dataset.dir);
-                    if (idx + dir >= 0 && idx + dir < tempNavOrder.length) {
-                        PrefsManager.vibrate(10);
-                        [tempNavOrder[idx], tempNavOrder[idx+dir]] = [tempNavOrder[idx+dir], tempNavOrder[idx]];
-                        refreshNavModal();
-                    }
-                });
-            });
-        };
-
-        document.getElementById('btn-open-nav-order').addEventListener('click', () => {
+        if (e.target.closest('#btn-open-nav-order')) {
             PrefsManager.vibrate(10);
-            tempNavOrder = [...currentPrefs.navOrder];
-            refreshNavModal();
-            navDialog.showModal();
-        });
-        document.getElementById('btn-save-nav').addEventListener('click', () => {
-            PrefsManager.vibrate(20);
-            PrefsManager.updatePref('navOrder', tempNavOrder);
-            PrefsManager.applySettingsToDOM(); 
-            navDialog.close();
-        });
+            
+            // Фильтруем от багов прошлой версии
+            const validNavs = ['schedule', 'homework', 'group', 'events'];
+            this.tempNavOrder = PrefsManager.getPrefs().navOrder.filter(id => validNavs.includes(id));
+            
+            if (this.tempNavOrder.length === 0) {
+                this.tempNavOrder = ['schedule', 'homework', 'group', 'events'];
+            }
 
-        const wrapper = document.getElementById('subgroup-wrapper');
-        const btn = document.getElementById('subgroup-btn');
-        btn.addEventListener('click', (e) => {
+            this.refreshNavModal();
+            document.getElementById('nav-order-dialog').showModal();
+            return;
+        }
+
+        if (e.target.closest('#btn-save-nav')) {
+            PrefsManager.vibrate(20);
+            PrefsManager.updatePref('navOrder', this.tempNavOrder);
+            PrefsManager.applySettingsToDOM(); 
+            document.getElementById('nav-order-dialog').close();
+            return;
+        }
+
+        const subgroupBtn = e.target.closest('#subgroup-btn');
+        if (subgroupBtn) {
             e.stopPropagation(); 
             PrefsManager.vibrate(10);
-            wrapper.classList.toggle('open');
-        });
+            subgroupWrapper.classList.toggle('open');
+            return;
+        }
 
-        wrapper.querySelectorAll('.custom-select-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-                PrefsManager.vibrate();
-                PrefsManager.updatePref('subgroup', opt.getAttribute('data-value'));
-                this.mount(); 
-            });
-        });
+        const subgroupOpt = e.target.closest('.custom-select-option');
+        if (subgroupOpt) {
+            PrefsManager.vibrate();
+            PrefsManager.updatePref('subgroup', subgroupOpt.getAttribute('data-value'));
+            this.mount(); 
+            return;
+        }
 
-        document.getElementById('upload-wp')?.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) PrefsManager.saveWallpaper(file, (success) => { if (success && this.isMounted) this.mount(); });
-        });
-        document.getElementById('btn-clear-wp')?.addEventListener('click', () => {
-            PrefsManager.vibrate(); PrefsManager.clearWallpaper(); this.mount();
-        });
+        if (e.target.closest('#btn-clear-wp')) {
+            PrefsManager.vibrate(); 
+            PrefsManager.clearWallpaper(); 
+            this.mount();
+            return;
+        }
 
-        const bindToggle = (wrapperId, toggleId, prefKey, onToggle) => {
-            document.getElementById(wrapperId)?.addEventListener('click', async () => {
-                PrefsManager.vibrate();
-                const toggle = document.getElementById(toggleId);
-                
-                if (prefKey === 'notifications' && !toggle.classList.contains('active')) {
+        const toggleWrapper = e.target.closest('.settings-list-item[id^="toggle-"]');
+        if (toggleWrapper) {
+            PrefsManager.vibrate();
+            const wrapperId = toggleWrapper.id;
+            
+            if (wrapperId === 'toggle-haptic-wrapper') {
+                const toggle = document.getElementById('toggle-haptic');
+                const isNowEnabled = toggle.classList.toggle('active');
+                PrefsManager.updatePref('haptic', isNowEnabled);
+                if (isNowEnabled && navigator.vibrate) navigator.vibrate(20);
+            } 
+            else if (wrapperId === 'toggle-power-wrapper') {
+                const toggle = document.getElementById('toggle-power');
+                const isNowEnabled = toggle.classList.toggle('active');
+                PrefsManager.updatePref('powerSave', isNowEnabled);
+                PrefsManager.applySettingsToDOM();
+            }
+            else if (wrapperId === 'toggle-particles-wrapper') {
+                const toggle = document.getElementById('toggle-particles');
+                const isNowEnabled = toggle.classList.toggle('active');
+                PrefsManager.updatePref('particles', isNowEnabled);
+                ThemeManager.applySeasonalEffects(ThemeManager.getCurrent());
+            }
+            else if (wrapperId === 'toggle-notif-wrapper') {
+                const toggle = document.getElementById('toggle-notif');
+                if (!toggle.classList.contains('active')) {
                     const granted = await PrefsManager.requestNotificationPermission();
                     if (!this.isMounted) return;
                     if (!granted) {
@@ -161,17 +189,12 @@ export class SettingsView {
                     }
                 }
                 const isNowEnabled = toggle.classList.toggle('active');
-                PrefsManager.updatePref(prefKey, isNowEnabled);
-                if (onToggle) onToggle(isNowEnabled);
-            });
-        };
+                PrefsManager.updatePref('notifications', isNowEnabled);
+            }
+            return;
+        }
 
-        bindToggle('toggle-haptic-wrapper', 'toggle-haptic', 'haptic', (val) => { if (val && navigator.vibrate) navigator.vibrate(20); });
-        bindToggle('toggle-power-wrapper', 'toggle-power', 'powerSave', () => PrefsManager.applySettingsToDOM());
-        bindToggle('toggle-particles-wrapper', 'toggle-particles', 'particles', () => ThemeManager.applySeasonalEffects(ThemeManager.getCurrent()));
-        bindToggle('toggle-notif-wrapper', 'toggle-notif', 'notifications');
-
-        document.getElementById('btn-reset-hw').addEventListener('click', () => {
+        if (e.target.closest('#btn-reset-hw')) {
             PrefsManager.vibrate();
             if (confirm('Удалить галочки со всех заданий?')) {
                 localStorage.removeItem('sh_homework_state');
@@ -179,18 +202,20 @@ export class SettingsView {
                 span.textContent = 'Прогресс сброшен ✓';
                 setTimeout(() => { if(this.isMounted) span.textContent = 'Сбросить прогресс домашки'; }, 3000);
             }
-        });
-        
-        document.getElementById('btn-clear-cache').addEventListener('click', () => {
+            return;
+        }
+
+        if (e.target.closest('#btn-clear-cache')) {
             PrefsManager.vibrate();
             if (confirm('Очистить кэш и перезагрузить?')) {
                 if ('caches' in window) {
                     caches.keys().then(names => Promise.all(names.map(n => caches.delete(n))).then(() => window.location.reload(true)));
                 } else window.location.reload(true);
             }
-        });
+            return;
+        }
 
-        document.getElementById('app-version').addEventListener('click', () => {
+        if (e.target.closest('#app-version')) {
             this.adminTaps++;
             if (this.adminTaps === 1) this.adminTapTimeout = setTimeout(() => this.adminTaps = 0, 3000);
             if (this.adminTaps >= 5) {
@@ -202,7 +227,124 @@ export class SettingsView {
                     'admin', () => { if(this.isMounted) this.mount(); }
                 );
             }
-        });
+            return;
+        }
+    }
+
+    refreshNavModal() {
+        const list = document.getElementById('nav-order-list');
+        if (!list) return;
+        const navNames = { 'schedule': 'Расписание', 'homework': 'Домашка', 'group': 'Группа', 'events': 'Ивенты' };
+        list.innerHTML = SettingsTemplate.renderNavList(this.tempNavOrder, navNames);
+        this.initDragDrop(list); 
+    }
+
+    // --- СОВЕРШЕННЫЙ ДВИЖОК DRAG & DROP ---
+    initDragDrop(listContainer) {
+        let activeItem = null;
+        let clone = null;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        const getEvent = (e) => e.touches ? e.touches[0] : e;
+
+        const onStart = (e) => {
+            const handle = e.target.closest('.drag-handle');
+            if (!handle) return;
+            
+            activeItem = e.target.closest('.nav-reorder-item');
+            if (!activeItem) return;
+
+            e.preventDefault(); 
+            if (navigator.vibrate) navigator.vibrate(15);
+
+            const evt = getEvent(e);
+            const rect = activeItem.getBoundingClientRect();
+            
+            // Запоминаем сдвиг клика относительно верхнего левого угла элемента
+            offsetX = evt.clientX - rect.left;
+            offsetY = evt.clientY - rect.top;
+
+            // 1. Создаем летающего клона
+            clone = activeItem.cloneNode(true);
+            clone.classList.add('drag-clone');
+            clone.style.width = `${rect.width}px`;
+            clone.style.height = `${rect.height}px`;
+            clone.style.left = `${evt.clientX - offsetX}px`;
+            clone.style.top = `${evt.clientY - offsetY}px`;
+            
+            // Добавляем клона прямо в body, чтобы его не резал overflow модалки
+            document.body.appendChild(clone);
+
+            // 2. Оригинальный элемент делаем прозрачной рамкой
+            activeItem.classList.add('drag-placeholder');
+
+            document.addEventListener('mousemove', onMove, { passive: false });
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchend', onEnd);
+            document.addEventListener('touchcancel', onEnd); // Важно для срывов свайпа
+        };
+
+        const onMove = (e) => {
+            if (!activeItem || !clone) return;
+            e.preventDefault(); 
+            
+            const evt = getEvent(e);
+            
+            // Двигаем клона за курсором
+            clone.style.left = `${evt.clientX - offsetX}px`;
+            clone.style.top = `${evt.clientY - offsetY}px`;
+
+            // Узнаем, над каким элементом мы сейчас находимся (игнорирует клона, т.к. у него pointer-events: none)
+            const hoveredEl = document.elementFromPoint(evt.clientX, evt.clientY);
+            if (!hoveredEl) return;
+
+            const targetItem = hoveredEl.closest('.nav-reorder-item:not(.drag-placeholder)');
+            
+            if (targetItem && targetItem.parentNode === listContainer) {
+                const targetRect = targetItem.getBoundingClientRect();
+                const targetCenter = targetRect.top + (targetRect.height / 2);
+                
+                // Перемещаем оригинальный элемент в DOM (рамка просто скачет по списку)
+                if (evt.clientY < targetCenter) {
+                    listContainer.insertBefore(activeItem, targetItem);
+                } else {
+                    listContainer.insertBefore(activeItem, targetItem.nextSibling);
+                }
+                if (navigator.vibrate) navigator.vibrate(5);
+            }
+        };
+
+        const onEnd = () => {
+            if (!activeItem) return;
+
+            // Удаляем клона
+            if (clone) clone.remove();
+            clone = null;
+
+            // Возвращаем видимость оригинальному элементу
+            activeItem.classList.remove('drag-placeholder');
+            activeItem = null;
+
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchend', onEnd);
+            document.removeEventListener('touchcancel', onEnd);
+
+            // Сохраняем порядок
+            const newOrder = [...listContainer.querySelectorAll('.nav-reorder-item')].map(el => el.dataset.id);
+            this.tempNavOrder = newOrder;
+            this.refreshNavModal(); 
+        };
+
+        // Защита от дублей событий
+        listContainer.removeEventListener('mousedown', onStart);
+        listContainer.removeEventListener('touchstart', onStart);
+        
+        listContainer.addEventListener('mousedown', onStart);
+        listContainer.addEventListener('touchstart', onStart, { passive: false });
     }
 
     initDesktopScroll() {
@@ -221,11 +363,5 @@ export class SettingsView {
             if (Math.abs(walk) > 5) this.isDragging = true;
             slider.scrollLeft = scrollLeft - walk;
         });
-    }
-
-    unmount() {
-        this.isMounted = false;
-        if (this.adminTapTimeout) clearTimeout(this.adminTapTimeout);
-        document.removeEventListener('click', this.handleDocumentClick);
     }
 }

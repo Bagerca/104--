@@ -1,6 +1,5 @@
 /* =====================================================================
    FILE: js/templates/SettingsTemplate.js
-   Шаблоны для раздела Настроек
 ===================================================================== */
 export const SettingsTemplate = {
     renderMain(data) {
@@ -90,7 +89,13 @@ export const SettingsTemplate = {
                         <div class="settings-list-item" id="toggle-notif-wrapper">
                             <div class="item-label-group">
                                 <span style="${data.notifDenied ? 'color: #ff4d4d' : ''}">Напоминание о 1-й паре</span>
-                                <span class="item-subtitle">За 30 мин <strong style="color:var(--theme-accent);">(Экспериментально)</strong></span>
+                                <span class="item-subtitle" style="display: flex; align-items: center; margin-top: 4px;">
+                                    За 30 мин 
+                                    <div class="badge-experimental">
+                                        <div class="badge-experimental-dot"></div>
+                                        <span class="badge-experimental-text">BETA</span>
+                                    </div>
+                                </span>
                             </div>
                             <div class="toggle-switch ${data.prefs.notifications ? 'active' : ''}" id="toggle-notif"></div>
                         </div>
@@ -98,7 +103,13 @@ export const SettingsTemplate = {
                         <div class="settings-list-item" id="toggle-haptic-wrapper">
                             <div class="item-label-group">
                                 <span>Виброотклик</span>
-                                <span class="item-subtitle">Тактильная отдача при нажатиях</span>
+                                <span class="item-subtitle" style="display: flex; align-items: center; margin-top: 4px;">
+                                    Тактильная отдача 
+                                    <div class="badge-experimental">
+                                        <div class="badge-experimental-dot"></div>
+                                        <span class="badge-experimental-text">BETA</span>
+                                    </div>
+                                </span>
                             </div>
                             <div class="toggle-switch ${data.prefs.haptic ? 'active' : ''}" id="toggle-haptic"></div>
                         </div>
@@ -136,12 +147,11 @@ export const SettingsTemplate = {
                 </section>
 
                 <footer class="settings-footer">
-                    <div class="version-text" id="app-version">v2.0.0 (Clean Architecture)</div>
+                    <div class="version-text" id="app-version">v2.1.1 (Drag Fix)</div>
                     <div class="credits">Сделал <a href="https://t.me/bagerca" target="_blank">BAGERca</a> &copy; 2026 - ${data.currentYear}</div>
                 </footer>
             </div>
 
-            <!-- МОДАЛКИ (Только те, что уникальны для Настроек) -->
             <dialog id="custom-theme-dialog" class="custom-theme-modal">
                 <h3>Создать тему</h3>
                 <div class="color-picker-group">
@@ -160,7 +170,7 @@ export const SettingsTemplate = {
 
             <dialog id="nav-order-dialog" class="custom-theme-modal">
                 <h3>Порядок панелей</h3>
-                <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-bottom: 16px;">Первая кнопка открывается при запуске</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-bottom: 16px;">Удерживайте и тащите элементы</p>
                 <div id="nav-order-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 <div class="modal-actions" style="margin-top: 20px;">
                     <button class="modal-btn save" id="btn-save-nav">Сохранить</button>
@@ -170,12 +180,20 @@ export const SettingsTemplate = {
     },
 
     renderNavList(navOrder, navNames) {
-        return navOrder.map((id, index) => `
-            <div class="nav-reorder-item">
-                <span>${index + 1}. ${navNames[id]}</span>
-                <div class="nav-reorder-controls">
-                    <button class="nav-move-btn" data-dir="-1" data-idx="${index}" ${index === 0 ? 'disabled' : ''}>▲</button>
-                    <button class="nav-move-btn" data-dir="1" data-idx="${index}" ${index === navOrder.length - 1 ? 'disabled' : ''}>▼</button>
+        // ЗАЩИТА: Очищаем мусор, если он уже попал в память (undefined)
+        const validOrder = navOrder.filter(id => id && navNames[id]);
+        
+        return validOrder.map((id, index) => `
+            <div class="nav-reorder-item" data-id="${id}">
+                <div>
+                    <span class="nav-number">${index + 1}.</span>
+                    <span>${navNames[id]}</span>
+                </div>
+                <div class="drag-handle" aria-label="Перетащить">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
+                        <circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
+                    </svg>
                 </div>
             </div>
         `).join('');

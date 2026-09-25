@@ -19,6 +19,7 @@ export class ScheduleView {
         
         this.touchStartX = 0;
         this.touchStartY = 0;
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     async mount() {
@@ -29,6 +30,8 @@ export class ScheduleView {
             <div class="skeleton" style="height: 80px; width: 100%; margin-bottom: 12px;"></div>
         `;
         
+        this.container.addEventListener('click', this.handleGlobalClick);
+
         try {
             const [bells, baseSchedule] = await Promise.all([
                 ApiService.getBells(),
@@ -50,7 +53,6 @@ export class ScheduleView {
             if (!this.isMounted) return;
 
             this.renderLayout();
-            this.bindEvents();
             this.bindSwipeEvents();
             
             await this.loadSelectedDayData();
@@ -71,6 +73,29 @@ export class ScheduleView {
         if (this.liveTimerId) clearInterval(this.liveTimerId);
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null;
+        this.container.removeEventListener('click', this.handleGlobalClick);
+    }
+
+    // --- БРОНИРОВАННЫЕ КЛИКИ (Делегирование) ---
+    handleGlobalClick(e) {
+        const dayTab = e.target.closest('.day-tab');
+        if (dayTab) {
+            const targetDay = parseInt(dayTab.getAttribute('data-day'));
+            if (targetDay !== this.state.selectedDay) {
+                const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
+                this.changeDay(targetDay, direction);
+            }
+            return;
+        }
+
+        const segmentBtn = e.target.closest('.segment-btn');
+        if (segmentBtn) {
+            PrefsManager.vibrate(15);
+            if (!this.state.selectedDayOverride) return;
+            this.state.showActual = segmentBtn.dataset.type === 'actual';
+            this.fullRenderUI();
+            return;
+        }
     }
 
     renderLayout() {
@@ -126,6 +151,7 @@ export class ScheduleView {
 
     bindSwipeEvents() {
         const area = document.getElementById('schedule-list'); 
+        if (!area) return;
         
         area.addEventListener('touchstart', e => {
             this.touchStartX = e.changedTouches[0].screenX;
@@ -148,25 +174,6 @@ export class ScheduleView {
                 }
             }
         }, { passive: true });
-    }
-
-    bindEvents() {
-        this.container.querySelectorAll('.day-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const targetDay = parseInt(e.currentTarget.getAttribute('data-day'));
-                const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
-                this.changeDay(targetDay, direction);
-            });
-        });
-
-        this.container.querySelectorAll('.segment-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                PrefsManager.vibrate();
-                if (!this.state.selectedDayOverride) return;
-                this.state.showActual = e.currentTarget.dataset.type === 'actual';
-                this.fullRenderUI();
-            });
-        });
     }
 
     async loadSelectedDayData() {
@@ -199,6 +206,8 @@ export class ScheduleView {
 
     generateListDOM(dayScheduleArray, bellsData) {
         const listContainer = document.getElementById('schedule-list');
+        if (!listContainer) return;
+        
         if (!dayScheduleArray || dayScheduleArray.length === 0) {
             listContainer.innerHTML = `<li class="placeholder-card" style="text-align:center; list-style:none; color: var(--text-muted)">Пар нет</li>`;
             this.cached.pairCards = [];
@@ -260,26 +269,76 @@ export class ScheduleView {
         this.cached.pairCards = Array.from(listContainer.querySelectorAll('.pair-card'));
     }
 
+    // --- УМНЫЙ РАСЧЕТ ТАЙМЕРА (Уважает подгруппы) ---
     getSmartStatus() {
         let status = getCurrentScheduleStatus(this.state.bells);
-        const todaySchedule = this.state.todayOverride ? this.state.todayOverride.lessons : (this.state.base[this.state.currentDayNum] || []);
         
-        if (todaySchedule.length === 0) return { status: 'no_classes' };
-        const maxPair = Math.max(...todaySchedule.map(l => l.pair));
+        let overrideToUse = this.state.todayOverride;
+        // Берем актуальный оверрайд, только если смотрим на сегодняшний день
+        if (this.state.selectedDay === this.state.currentDayNum) {
+            overrideToUse = this.state.selectedDayOverride;
+        }
+        
+        const rawSchedule = overrideToUse ? overrideToUse.lessons : (this.state.base[this.state.currentDayNum] || []);
+        if (rawSchedule.length === 0) return { status: 'no_classes' };
 
+        // 1. Фильтруем расписание по подгруппе пользователя
+        const userSubgroup = PrefsManager.getPrefs().subgroup;
+        const isVisible = (subjectName) => {
+            if (!subjectName) return true; 
+            const str = subjectName.toLowerCase();
+            if (userSubgroup === '1' && (str.includes('2г') || str.includes('2 п/г') || str.includes('2 группа'))) return false;
+            if (userSubgroup === '2' && (str.includes('1г') || str.includes('1 п/г') || str.includes('1 группа'))) return false;
+            return true;
+        };
+
+        const todaySchedule = rawSchedule.map(pair => {
+            const p = { ...pair };
+            const l1Subj = p.lesson1 ? p.lesson1.subject : p.subject;
+            const l2Subj = p.lesson2 ? p.lesson2.subject : p.subject;
+            
+            const hasL1 = isVisible(l1Subj);
+            const hasL2 = isVisible(l2Subj);
+            
+            if (!hasL1 && !hasL2) {
+                // Вся пара для другой подгруппы -> делаем пустоту (окно)
+                p.subject = null;
+                p.lesson1 = null;
+                p.lesson2 = null;
+            } else {
+                // Если только половина пары скрыта
+                if (!hasL1) p.lesson1 = { subject: null };
+                if (!hasL2) p.lesson2 = { subject: null };
+            }
+            return p;
+        });
+
+        // 2. Ищем реальный конец дня (игнорируя пустые пары в конце)
+        const validPairs = todaySchedule.filter(p => p.subject !== null || (p.lesson1 && p.lesson1.subject !== null) || (p.lesson2 && p.lesson2.subject !== null));
+        const maxPair = validPairs.length > 0 ? Math.max(...validPairs.map(l => l.pair)) : 0;
+
+        if (maxPair === 0) return { status: 'no_classes' };
+
+        // 3. Сверяем со временем
         if ((status.status.startsWith('active') || status.status === 'short_break') && status.currentPair.pair > maxPair) return { status: 'ended' };
         if (status.status === 'break' && status.nextPair.pair > maxPair) return { status: 'ended' };
 
         if (status.status.startsWith('active') || status.status === 'short_break') {
              const currentPairData = todaySchedule.find(l => l.pair === status.currentPair.pair);
-             if (!currentPairData) return { ...status, status: 'window', windowType: 'full_pair' };
              
-             if (status.status === 'active_lesson1' && (currentPairData.lesson1 === null || currentPairData.subject === null)) {
-                 return { ...status, status: 'window', windowType: 'lesson1', currentPairData };
+             if (!currentPairData || currentPairData.subject === null) {
+                 return { ...status, status: 'window', windowType: 'full_pair' };
              }
-             if (status.status === 'active_lesson2' && (currentPairData.lesson2 === null || currentPairData.subject === null)) {
-                 return { ...status, status: 'window', windowType: 'lesson2', currentPairData };
+             
+             if (status.status === 'active_lesson1') {
+                 const subj = currentPairData.lesson1 ? currentPairData.lesson1.subject : currentPairData.subject;
+                 if (subj === null) return { ...status, status: 'window', windowType: 'lesson1', currentPairData };
              }
+             if (status.status === 'active_lesson2') {
+                 const subj = currentPairData.lesson2 ? currentPairData.lesson2.subject : currentPairData.subject;
+                 if (subj === null) return { ...status, status: 'window', windowType: 'lesson2', currentPairData };
+             }
+
              status.currentPairData = currentPairData;
         }
 
@@ -299,8 +358,8 @@ export class ScheduleView {
 
     renderWidgetHTML(status) {
         if (!this.cached.widgetContainer) return;
-        const currentDayReal = new Date().getDay();
-        if (currentDayReal === 0 || currentDayReal === 6) {
+        
+        if (status.status === 'weekend') {
             this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-subject" style="margin:0; text-align:center;">Выходной</div></article>`;
             return;
         }
@@ -341,7 +400,34 @@ export class ScheduleView {
 
     refreshLiveState() {
         if (!this.isMounted) return;
-        if (new Date().getDay() === 0 || new Date().getDay() === 6) return;
+        
+        const now = new Date();
+        const realDay = now.getDay();
+        
+        // --- АВТО-ОБНОВЛЕНИЕ В ПОЛНОЧЬ ---
+        const activeDayNum = (realDay >= 1 && realDay <= 5) ? realDay : 1;
+        if (this.state.currentDayNum !== activeDayNum) {
+            this.state.currentDayNum = activeDayNum;
+            this.state.selectedDay = activeDayNum;
+            
+            this.container.querySelectorAll('.day-tab').forEach(t => {
+                t.classList.toggle('today', parseInt(t.getAttribute('data-day')) === activeDayNum);
+                t.classList.toggle('active', parseInt(t.getAttribute('data-day')) === activeDayNum);
+            });
+
+            const todayStr = getDateStringForDay(activeDayNum);
+            ApiService.getOverride(todayStr).then(res => {
+                if (!this.isMounted) return;
+                this.state.todayOverride = res;
+                this.loadSelectedDayData().then(() => this.fullRenderUI());
+            });
+            return;
+        }
+
+        if (realDay === 0 || realDay === 6) {
+            this.renderWidgetHTML({ status: 'weekend' });
+            return;
+        }
         
         const status = this.getSmartStatus();
         let stateSignature = status.status;

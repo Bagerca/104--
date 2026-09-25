@@ -1,6 +1,6 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 24.09.2026 17:50:41
+  Дата сборки: 25.09.2026 19:35:55
 ================================================================================
 
 
@@ -900,7 +900,7 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/group.css
-   LINES: 70
+   LINES: 115
 ===================================================================== */
 
 /* =====================================================================
@@ -925,8 +925,6 @@ body.power-save-mode {
     font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; 
     transition: color 0.3s ease; font-family: inherit; 
 }
-
-/* ИСПРАВЛЕНИЕ: цвет текста на ползунке */
 .group-segment-btn.active { color: var(--text-on-accent); }
 
 .group-stats { 
@@ -953,19 +951,66 @@ body.power-save-mode {
     flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
 }
 
-.person-info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
-.person-name-row { 
-    font-weight: 600; font-size: 1.05rem; white-space: nowrap; overflow: hidden; 
-    text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; 
+.person-info { 
+    flex-grow: 1; 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
 }
 
-/* Бейджики ролей тоже используют акцент, поэтому текст на них делаем динамическим */
-.person-badge { 
-    font-size: 0.65rem; background: var(--theme-accent); color: var(--text-on-accent); 
-    padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; 
+.person-name-row { 
+    font-weight: 600; 
+    font-size: 1.05rem; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    width: 100%;
 }
-.person-badge.teacher-subject { background: rgba(255,255,255,0.1); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.05); }
-.person-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Имя обрезается троеточием, если не хватает места */
+.person-name-text {
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    flex-shrink: 1; 
+}
+
+/* Обновленный дизайн бейджей */
+.person-badge { 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1; 
+    padding: 4px 8px; 
+    padding-top: 5px; /* Оптическая компенсация центра */
+    font-size: 0.65rem; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    background: var(--theme-accent); 
+    color: var(--text-on-accent); 
+    border-radius: 12px; 
+    box-shadow: 0 2px 8px var(--theme-accent-soft); 
+    flex-shrink: 0; /* Защита от сжатия */
+}
+
+.person-badge.teacher-subject { 
+    background: rgba(255, 255, 255, 0.08); 
+    color: var(--text-secondary); 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: none; 
+    font-weight: 600;
+}
+
+.person-sub { 
+    font-size: 0.85rem; 
+    color: var(--text-muted); 
+    margin-top: 2px; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
 
 .person-action-btn { 
     display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; 
@@ -976,17 +1021,63 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/homework.css
-   LINES: 64
+   LINES: 110
 ===================================================================== */
 
+/* =====================================================================
+   FILE: css/views/homework.css
+===================================================================== */
 .hw-container { animation: fadeIn 0.3s ease; }
 
-.hw-history-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.hw-back-btn { background: rgba(255,255,255,0.05); border: var(--glass-border); color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition-fast); }
-.hw-back-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
-.hw-history-title { display: flex; flex-direction: column; }
-.hw-history-title h2 { font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
-.hw-history-title span { font-size: 0.75rem; color: var(--text-muted); }
+/* === НОВАЯ КАРТОЧКА ШАПКИ === */
+.hw-history-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 16px; 
+    margin-bottom: 24px; 
+    background: var(--glass-bg);
+    border: var(--glass-border);
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+
+.hw-back-btn { 
+    background: var(--overlay-bg-active); 
+    border: none; 
+    color: var(--text-primary); 
+    width: 44px; 
+    height: 44px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    transition: all var(--transition-fast); 
+    flex-shrink: 0;
+}
+.hw-back-btn:active { 
+    transform: scale(0.9); 
+    background: var(--theme-accent); 
+    color: var(--text-on-accent); 
+}
+
+.hw-history-title { 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+}
+.hw-history-title h2 { 
+    font-size: 1.25rem; 
+    font-weight: 700; 
+    line-height: 1.2; 
+    margin-bottom: 2px;
+}
+.hw-history-title span { 
+    font-size: 0.8rem; 
+    color: var(--text-muted); 
+}
+/* ============================ */
 
 .hw-subject-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; transition: background var(--transition-smooth); }
 .hw-subject-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
@@ -1175,20 +1266,63 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/settings.css
-   LINES: 95
+   LINES: 170
 ===================================================================== */
 
+/* =====================================================================
+   FILE: css/views/settings.css
+===================================================================== */
 .settings-container { animation: fadeIn 0.3s ease; }
-.settings-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-.settings-back-btn { 
-    background: var(--overlay-bg); border: var(--glass-border); 
-    color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%; 
-    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition-fast); 
+
+/* === НОВАЯ КАРТОЧКА ШАПКИ === */
+.settings-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 16px; 
+    margin-bottom: 24px; 
+    background: var(--glass-bg);
+    border: var(--glass-border);
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
 }
-.settings-back-btn:active { transform: scale(0.9); background: var(--overlay-bg-active); }
-.settings-title { display: flex; flex-direction: column; }
-.settings-title h2 { font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
-.settings-title span { font-size: 0.75rem; color: var(--text-muted); }
+
+.settings-back-btn { 
+    background: var(--overlay-bg-active); 
+    border: none; 
+    color: var(--text-primary); 
+    width: 44px; 
+    height: 44px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+.settings-back-btn:active { 
+    transform: scale(0.9); 
+    background: var(--theme-accent); 
+    color: var(--text-on-accent); 
+}
+
+.settings-title { 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+}
+.settings-title h2 { 
+    font-size: 1.25rem; 
+    font-weight: 700; 
+    line-height: 1.2; 
+    margin-bottom: 2px;
+}
+.settings-title span { 
+    font-size: 0.8rem; 
+    color: var(--text-muted); 
+}
+/* ============================ */
 
 .settings-section { margin-bottom: 28px; }
 .settings-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 4px; }
@@ -1223,17 +1357,9 @@ body.power-save-mode {
 .modal-btn.save { background: var(--theme-accent); color: var(--text-on-accent); }
 
 /* Модалка Порядок Навигации */
-.nav-reorder-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 14px; background: var(--overlay-bg); border-radius: var(--radius-md);
-    font-size: 0.9rem; font-weight: 500;
-}
+.nav-reorder-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--overlay-bg); border-radius: var(--radius-md); font-size: 0.9rem; font-weight: 500; }
 .nav-reorder-controls { display: flex; gap: 8px; }
-.nav-move-btn { 
-    background: var(--overlay-bg-active); border: none; color: var(--text-primary);
-    width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
-}
+.nav-move-btn { background: var(--overlay-bg-active); border: none; color: var(--text-primary); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
 .nav-move-btn:disabled { opacity: 0.3; cursor: default; }
 .nav-move-btn:not(:disabled):active { background: var(--theme-accent); color: var(--text-on-accent); transform: scale(0.9); }
 
@@ -1273,6 +1399,46 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .settings-footer .credits { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 .settings-footer .credits a { color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid var(--overlay-bg-active); transition: color 0.2s, border-color 0.2s; }
 .settings-footer .credits a:active { color: var(--theme-accent); border-color: var(--theme-accent); }
+
+/* =====================================================================
+   ЭКСПЕРИМЕНТАЛЬНЫЙ БЕЙДЖ (Neon Amber Style)
+===================================================================== */
+.badge-experimental {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 171, 0, 0.1); /* Полупрозрачный янтарный фон */
+    border: 1px solid rgba(255, 171, 0, 0.25); /* Тонкая рамка */
+    padding: 3px 8px 3px 6px;
+    border-radius: 12px;
+    margin-left: 8px;
+    box-shadow: 0 2px 10px rgba(255, 171, 0, 0.05); /* Мягкое свечение */
+}
+
+.badge-experimental-dot {
+    width: 6px;
+    height: 6px;
+    background: #FFAB00;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #FFAB00;
+    animation: pulseBeta 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.badge-experimental-text {
+    color: #FFAB00;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    padding-top: 1px;
+}
+
+@keyframes pulseBeta {
+    0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0.6); }
+    70% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(255, 171, 0, 0); }
+    100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0); }
+}
 
 /* =====================================================================
    FILE: data/bells.json
@@ -1728,14 +1894,13 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: data/overrides/25-09-2026.json
-   LINES: 7
+   LINES: 6
 ===================================================================== */
 
 {
   "id": "25-09-2026",
   "lessons": [
-    { "pair": 1, "subject": "Информатика", "room": "1/20" },
-    { "pair": 2, "subject": "Литература", "room": "1/17" }
+    { "pair": 1, "subject": "Информатика", "room": "1/20" }
   ]
 }
 
@@ -1806,7 +1971,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 137
+   LINES: 141
 ===================================================================== */
 
 /* =====================================================================
@@ -1841,10 +2006,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 reg.addEventListener('updatefound', () => {
                     const newWorker = reg.installing;
                     newWorker.addEventListener('statechange', () => {
-                        // Ждем, пока новый SW скачается и будет готов к активации
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                             if (confirm('Доступна новая версия приложения! Обновить сейчас?')) {
-                                // Отправляем команду на применение нового кэша
                                 newWorker.postMessage({ type: 'SKIP_WAITING' });
                             }
                         }
@@ -1852,7 +2015,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }).catch(err => console.warn('[SW] Ошибка:', err));
 
-            // Как только старый SW сменится на новый — жестко перезагружаем страницу
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
@@ -1900,6 +2062,13 @@ function initPullToRefresh() {
     let ptrEl = null;
 
     document.addEventListener('touchstart', (e) => {
+        // ЗАЩИТА: Отключаем PTR, если открыта любая модалка
+        if (document.querySelector('dialog[open]')) return;
+
+        // ЗАЩИТА: Отключаем PTR при скролле горизонтальных элементов (темы, дни недели)
+        const isHorizontalScroll = e.target.closest('.theme-scroll-wrapper, .days-wrapper');
+        if (isHorizontalScroll) return;
+
         if (window.scrollY === 0) {
             ptrStartY = e.touches[0].clientY;
             isPtrActive = true;
@@ -1949,12 +2118,11 @@ function initPullToRefresh() {
 
 /* =====================================================================
    FILE: js/router.js
-   LINES: 115
+   LINES: 114
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/router.js
-   ОПТИМИЗАЦИЯ: Внедрен RenderID (защита от Race Condition) и виброотклик
 ===================================================================== */
 import { ScheduleView } from './views/ScheduleView.js';
 import { GroupView } from './views/GroupView.js';
@@ -1978,13 +2146,14 @@ export class Router {
         };
         
         this.currentView = null;
-        
-        // Уникальный ID для каждого перехода (Защита от спама кликами)
         this.renderId = 0; 
 
-        // Добавляем тактильный отклик на все ссылки навигации и настройки
-        document.querySelectorAll('a[href^="#/"]').forEach(link => {
-            link.addEventListener('click', () => PrefsManager.vibrate(15));
+        // ИСПРАВЛЕНИЕ: Глобальное делегирование кликов для всех навигационных ссылок
+        document.addEventListener('click', (e) => {
+            const navLink = e.target.closest('a[href^="#/"]');
+            if (navLink) {
+                PrefsManager.vibrate(15);
+            }
         });
 
         window.addEventListener('hashchange', this.handleRoute.bind(this));
@@ -2003,35 +2172,29 @@ export class Router {
         const path = window.location.hash.slice(1);
         const view = this.views[path];
 
-        // 1. Увеличиваем ID рендера (все старые процессы станут неактуальными)
         const currentRenderId = ++this.renderId;
 
         try {
-            // 2. Скрываем старый контент
+            // ИСПРАВЛЕНИЕ: Мягкое скрытие через инлайн-стили без конфликта с классами
             this.contentContainer.classList.remove('fade-in');
+            this.contentContainer.style.transition = 'opacity 0.15s ease-out, transform 0.15s ease-out';
             this.contentContainer.style.opacity = '0';
             this.contentContainer.style.transform = 'translateY(10px)';
 
-            // Ждем завершения анимации исчезновения
             await new Promise(res => setTimeout(res, 150));
 
-            // ВАЖНО: Если во время скрытия юзер нажал другую кнопку - прерываем этот процесс!
             if (this.renderId !== currentRenderId) return;
 
-            // 3. Отмонтируем старую вьюху
             if (this.currentView) {
                 this.currentView.unmount();
             }
 
-            // 4. Монтируем новую вьюху
             if (view) {
                 this.currentView = view;
                 this.updateNavUI(path);
                 
-                // Ждем загрузки данных (fetch JSON)
                 await view.mount();
 
-                // ВАЖНО: Если данные грузились долго, а юзер уже ушел на другой экран - не показываем результат!
                 if (this.renderId !== currentRenderId) return;
             } else {
                 const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
@@ -2039,16 +2202,21 @@ export class Router {
                 return;
             }
             
-            // 5. Показываем новый контент
-            this.contentContainer.style.transform = 'translateY(0)';
-            this.contentContainer.style.opacity = '1';
+            // ИСПРАВЛЕНИЕ: Полностью сбрасываем инлайн-стили, отдавая контроль CSS классу fade-in
+            this.contentContainer.style.transition = '';
+            this.contentContainer.style.opacity = '';
+            this.contentContainer.style.transform = '';
+            
+            // Форсируем перерисовку DOM (Reflow), чтобы браузер "забыл" старые стили
+            void this.contentContainer.offsetWidth;
+            
             this.contentContainer.classList.add('fade-in');
 
         } catch (error) {
             console.error(`[Router Error] Ошибка перехода на ${path}:`, error);
-            // Восстанавливаем видимость экрана в случае критической ошибки
-            this.contentContainer.style.opacity = '1';
-            this.contentContainer.style.transform = 'translateY(0)';
+            this.contentContainer.style.transition = '';
+            this.contentContainer.style.opacity = '';
+            this.contentContainer.style.transform = '';
         }
     }
 
@@ -2070,12 +2238,11 @@ export class Router {
 
 /* =====================================================================
    FILE: js/components/Lightbox.js
-   LINES: 47
+   LINES: 50
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/components/Lightbox.js
-   Глобальный просмотрщик изображений с зумом и скачиванием
 ===================================================================== */
 export const Lightbox = {
     init() {
@@ -2110,6 +2277,10 @@ export const Lightbox = {
     open(imageSrc, fileName = 'photo.jpg') {
         this.init();
         const dialog = document.getElementById('global-lightbox');
+        
+        // ЗАЩИТА: Предотвращаем краш от двойного тапа
+        if (dialog.open) return;
+
         const img = document.getElementById('global-lightbox-img');
         const downloadBtn = document.getElementById('global-lightbox-download');
 
@@ -2123,12 +2294,11 @@ export const Lightbox = {
 
 /* =====================================================================
    FILE: js/components/Modal.js
-   LINES: 57
+   LINES: 62
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/components/Modal.js
-   Глобальный компонент всплывающих окон (Alerts & Confirms)
 ===================================================================== */
 import { PrefsManager } from '../utils/prefs.js';
 
@@ -2164,6 +2334,12 @@ export const Modal = {
     showAlert(title, message, type = 'info', onClose = null) {
         this.init();
         const dialog = document.getElementById('system-alert-dialog');
+        
+        // ЗАЩИТА: Если алерт уже открыт, корректно закрываем его перед показом нового
+        if (dialog.open) {
+            dialog.close();
+        }
+
         const iconContainer = document.getElementById('system-alert-icon');
         
         let svg = '';
@@ -2405,12 +2581,11 @@ export const EventsTemplate = {
 
 /* =====================================================================
    FILE: js/templates/GroupTemplate.js
-   LINES: 54
+   LINES: 56
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/templates/GroupTemplate.js
-   Шаблоны для раздела Группы
 ===================================================================== */
 export const GroupTemplate = {
     renderSkeletons() {
@@ -2453,7 +2628,10 @@ export const GroupTemplate = {
             <li class="person-card">
                 ${avatarHtml}
                 <div class="person-info">
-                    <div class="person-name-row">${name} ${roleHtml}</div>
+                    <div class="person-name-row">
+                        <span class="person-name-text">${name}</span>
+                        ${roleHtml}
+                    </div>
                     <div class="person-sub" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: ${roleHtml.includes('teacher-subject') ? '6px' : '2px'}; white-space: normal;">
                         ${subText}
                     </div>
@@ -2612,12 +2790,11 @@ export const HomeworkTemplate = {
 
 /* =====================================================================
    FILE: js/templates/SettingsTemplate.js
-   LINES: 183
+   LINES: 193
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/templates/SettingsTemplate.js
-   Шаблоны для раздела Настроек
 ===================================================================== */
 export const SettingsTemplate = {
     renderMain(data) {
@@ -2707,7 +2884,13 @@ export const SettingsTemplate = {
                         <div class="settings-list-item" id="toggle-notif-wrapper">
                             <div class="item-label-group">
                                 <span style="${data.notifDenied ? 'color: #ff4d4d' : ''}">Напоминание о 1-й паре</span>
-                                <span class="item-subtitle">За 30 мин <strong style="color:var(--theme-accent);">(Экспериментально)</strong></span>
+                                <span class="item-subtitle" style="display: flex; align-items: center; margin-top: 4px;">
+                                    За 30 мин 
+                                    <div class="badge-experimental">
+                                        <div class="badge-experimental-dot"></div>
+                                        <span class="badge-experimental-text">BETA</span>
+                                    </div>
+                                </span>
                             </div>
                             <div class="toggle-switch ${data.prefs.notifications ? 'active' : ''}" id="toggle-notif"></div>
                         </div>
@@ -2715,7 +2898,13 @@ export const SettingsTemplate = {
                         <div class="settings-list-item" id="toggle-haptic-wrapper">
                             <div class="item-label-group">
                                 <span>Виброотклик</span>
-                                <span class="item-subtitle">Тактильная отдача при нажатиях</span>
+                                <span class="item-subtitle" style="display: flex; align-items: center; margin-top: 4px;">
+                                    Тактильная отдача 
+                                    <div class="badge-experimental">
+                                        <div class="badge-experimental-dot"></div>
+                                        <span class="badge-experimental-text">BETA</span>
+                                    </div>
+                                </span>
                             </div>
                             <div class="toggle-switch ${data.prefs.haptic ? 'active' : ''}" id="toggle-haptic"></div>
                         </div>
@@ -2753,12 +2942,11 @@ export const SettingsTemplate = {
                 </section>
 
                 <footer class="settings-footer">
-                    <div class="version-text" id="app-version">v2.0.0 (Clean Architecture)</div>
+                    <div class="version-text" id="app-version">v2.1.0 (Core Stabilized)</div>
                     <div class="credits">Сделал <a href="https://t.me/bagerca" target="_blank">BAGERca</a> &copy; 2026 - ${data.currentYear}</div>
                 </footer>
             </div>
 
-            <!-- МОДАЛКИ (Только те, что уникальны для Настроек) -->
             <dialog id="custom-theme-dialog" class="custom-theme-modal">
                 <h3>Создать тему</h3>
                 <div class="color-picker-group">
@@ -3431,12 +3619,11 @@ export const UIUtils = {
 
 /* =====================================================================
    FILE: js/views/EventsView.js
-   LINES: 37
+   LINES: 39
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/EventsView.js
-   ОПТИМИЗАЦИЯ: Логика отделена от HTML. Использование EventsTemplate.
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { EventsTemplate } from '../templates/EventsTemplate.js';
@@ -3444,42 +3631,44 @@ import { EventsTemplate } from '../templates/EventsTemplate.js';
 export class EventsView {
     constructor(container) {
         this.container = container;
+        this.isMounted = false;
     }
 
     async mount() {
-        // Показываем скелетон перед загрузкой данных
+        this.isMounted = true;
         this.container.innerHTML = EventsTemplate.renderSkeletons();
         
         try {
             const events = await ApiService.getEvents();
             
+            if (!this.isMounted) return;
+
             if (!events || events.length === 0) {
                 this.container.innerHTML = EventsTemplate.renderEmpty();
                 return;
             }
 
-            // Рендерим готовый список через шаблон
             this.container.innerHTML = EventsTemplate.renderList(events);
 
         } catch (error) {
+            if (!this.isMounted) return;
             console.error('[EventsView] Ошибка загрузки ивентов:', error);
             this.container.innerHTML = EventsTemplate.renderError();
         }
     }
 
     unmount() {
-        // Заглушка на случай, если в будущем появятся слушатели событий
+        this.isMounted = false;
     }
 }
 
 /* =====================================================================
    FILE: js/views/GroupView.js
-   LINES: 137
+   LINES: 142
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/GroupView.js
-   ОПТИМИЗАЦИЯ: Делегирование событий и правильный unmount
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { GroupTemplate } from '../templates/GroupTemplate.js';
@@ -3492,14 +3681,15 @@ export class GroupView {
         this.currentTab = 'students'; 
         this.studentsData = [];
         this.teachersData = [];
+        this.isMounted = false;
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     async mount() {
+        this.isMounted = true;
         this.container.innerHTML = GroupTemplate.renderSkeletons();
         
-        // Вешаем глобальный слушатель
         this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
@@ -3508,17 +3698,18 @@ export class GroupView {
                 ApiService.getTeachers()
             ]);
 
+            if (!this.isMounted) return;
+
             this.studentsData = students || [];
             
             if (teachers) {
                 const groupedTeachers = {};
                 Object.entries(teachers).forEach(([subject, data]) => {
                     const rawName = data.name;
-                    const displayName = rawName.includes('...') ? 'Имя уточняется' : rawName;
 
                     if (!groupedTeachers[rawName]) {
                         groupedTeachers[rawName] = {
-                            name: displayName,
+                            name: rawName, // Теперь выводим как есть
                             rawName: rawName, 
                             avatar: data.avatar || '',
                             subjects: []
@@ -3535,12 +3726,14 @@ export class GroupView {
             this.renderList();
 
         } catch (error) {
+            if (!this.isMounted) return;
             console.error('[GroupView] Ошибка:', error);
             this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки данных.</div>`;
         }
     }
 
     renderList() {
+        if (!this.isMounted) return;
         const statsContainer = document.getElementById('group-stats');
         const listContainer = document.getElementById('persons-list');
         if (!statsContainer || !listContainer) return;
@@ -3566,7 +3759,8 @@ export class GroupView {
             statsContainer.innerHTML = GroupTemplate.renderStats('teachers', this.teachersData.length);
 
             html = this.teachersData.map(tch => {
-                const initial = tch.name !== 'Имя уточняется' ? tch.name.charAt(0).toUpperCase() : '?';
+                // Аватарка теперь корректно берет первую букву, даже если имя неполное
+                const initial = tch.name.charAt(0).toUpperCase();
                 const avatar = !tch.avatar ? 
                     `<div class="person-avatar" style="background: ${UIUtils.getAvatarGradient(tch.rawName)}">${initial}</div>` : 
                     `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${tch.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${tch.name}" loading="lazy" decoding="async"></div>`;
@@ -3579,7 +3773,6 @@ export class GroupView {
         listContainer.innerHTML = html || `<li class="placeholder-card" style="text-align:center;">Список пуст</li>`;
     }
 
-    // --- Делегирование событий ---
     handleGlobalClick(e) {
         const btn = e.target.closest('.group-segment-btn');
         if (!btn) return;
@@ -3599,10 +3792,11 @@ export class GroupView {
         btn.classList.add('active');
 
         if (wrapper) {
-            // Используем requestAnimationFrame для синхронизации с отрисовкой браузера
             requestAnimationFrame(() => {
+                if (!this.isMounted) return;
                 wrapper.classList.add('fading');
                 setTimeout(() => {
+                    if (!this.isMounted) return;
                     this.renderList();
                     wrapper.classList.remove('fading');
                 }, 200); 
@@ -3611,18 +3805,18 @@ export class GroupView {
     }
 
     unmount() {
+        this.isMounted = false;
         this.container.removeEventListener('click', this.handleGlobalClick);
     } 
 }
 
 /* =====================================================================
    FILE: js/views/HomeworkView.js
-   LINES: 207
+   LINES: 214
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/HomeworkView.js
-   ОПТИМИЗАЦИЯ: Делегирование событий и полная очистка памяти при unmount
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
@@ -3639,8 +3833,8 @@ export class HomeworkView {
         this.container = container;
         this.storageKey = 'sh_homework_state';
         this.groupedData = {}; 
+        this.isMounted = false;
         
-        // Биндим обработчик, чтобы иметь возможность удалить его в unmount
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
@@ -3674,9 +3868,8 @@ export class HomeworkView {
     }
 
     async mount() {
+        this.isMounted = true;
         this.container.innerHTML = HomeworkTemplate.renderSkeletons();
-        
-        // Включаем слушатель ДО отрисовки контента (Делегирование)
         this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
@@ -3687,6 +3880,8 @@ export class HomeworkView {
                 ApiService.getTeachers()
             ]);
             
+            if (!this.isMounted) return;
+
             if (!hwTasks || hwTasks.length === 0) {
                 this.container.innerHTML = HomeworkTemplate.renderEmpty();
                 return;
@@ -3719,14 +3914,18 @@ export class HomeworkView {
             this.renderMainList(false);
 
         } catch (error) {
+            if (!this.isMounted) return;
             console.error('[HomeworkView] Ошибка:', error);
             this.container.innerHTML = HomeworkTemplate.renderError();
         }
     }
 
     switchViewWithTransition(renderCallback) {
+        if (!this.isMounted) return;
         if (document.startViewTransition) {
-            document.startViewTransition(() => renderCallback());
+            document.startViewTransition(() => {
+                if (this.isMounted) renderCallback();
+            });
         } else {
             renderCallback();
         }
@@ -3734,6 +3933,7 @@ export class HomeworkView {
 
     renderMainList(animate = true) {
         const render = () => {
+            if (!this.isMounted) return;
             this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
             this.validateLocalFiles();
         };
@@ -3743,6 +3943,7 @@ export class HomeworkView {
 
     renderSubjectHistory(subject) {
         this.switchViewWithTransition(() => {
+            if (!this.isMounted) return;
             this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
             this.validateLocalFiles();
         });
@@ -3760,17 +3961,21 @@ export class HomeworkView {
             if (!url) return Promise.reject();
             
             return fetch(url, { method: 'HEAD', signal: controller.signal })
-                .then(res => { if (!res.ok) el.classList.add('hw-broken'); })
-                .catch(() => el.classList.add('hw-broken'));
+                .then(res => { 
+                    if (!this.isMounted) return;
+                    if (!res.ok) el.classList.add('hw-broken'); 
+                })
+                .catch(() => {
+                    if (!this.isMounted) return;
+                    el.classList.add('hw-broken');
+                });
         });
 
         await Promise.allSettled(promises);
         clearTimeout(timeoutId);
     }
 
-    // --- ЕДИНЫЙ ОБРАБОТЧИК СОБЫТИЙ (Event Delegation) ---
     handleGlobalClick(e) {
-        // 1. Клик по фото
         const thumb = e.target.closest('.hw-image-thumb');
         if (thumb) {
             if (thumb.classList.contains('hw-broken')) return;
@@ -3781,7 +3986,6 @@ export class HomeworkView {
             return;
         }
 
-        // 2. Клик по кнопке "Все задания"
         const showAllBtn = e.target.closest('.hw-show-all-btn');
         if (showAllBtn) {
             triggerHaptic();
@@ -3789,7 +3993,6 @@ export class HomeworkView {
             return;
         }
 
-        // 3. Клик по кнопке "Назад"
         const backBtn = e.target.closest('#hw-back-btn');
         if (backBtn) {
             triggerHaptic();
@@ -3797,7 +4000,6 @@ export class HomeworkView {
             return;
         }
 
-        // 4. Клик по карточке задания (Чекбокс)
         const card = e.target.closest('.hw-card');
         const isInteractive = e.target.closest('.interactive-element');
         
@@ -3823,18 +4025,21 @@ export class HomeworkView {
     }
 
     unmount() {
-        // КРИТИЧЕСКИ ВАЖНО: Удаляем слушатель при переходе на другую вкладку
+        this.isMounted = false;
         this.container.removeEventListener('click', this.handleGlobalClick);
     }
 }
 
 /* =====================================================================
    FILE: js/views/ScheduleView.js
-   LINES: 365
+   LINES: 465
 ===================================================================== */
 
+/* =====================================================================
+   FILE: js/views/ScheduleView.js
+===================================================================== */
 import { ApiService } from '../services/api.js';
-import { getCurrentScheduleStatus, getDateStringForDay, parseTimeToMinutes, formatMinutes } from '../utils/time.js';
+import { getCurrentScheduleStatus, getDateStringForDay, formatMinutes } from '../utils/time.js';
 import { PrefsManager } from '../utils/prefs.js';
 
 export class ScheduleView {
@@ -3843,6 +4048,7 @@ export class ScheduleView {
         this.liveTimerId = null;
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null; 
+        this.isMounted = false;
         this.state = {
             bells: [], base: {}, currentDayNum: 1, selectedDay: 1,
             selectedDayOverride: null, todayOverride: null, showActual: true
@@ -3850,20 +4056,26 @@ export class ScheduleView {
         
         this.touchStartX = 0;
         this.touchStartY = 0;
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     async mount() {
+        this.isMounted = true;
         this.container.innerHTML = `
             <div class="skeleton" style="height: 120px; width: 100%; margin-bottom: 24px;"></div>
             <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 24px;"></div>
             <div class="skeleton" style="height: 80px; width: 100%; margin-bottom: 12px;"></div>
         `;
         
+        this.container.addEventListener('click', this.handleGlobalClick);
+
         try {
             const [bells, baseSchedule] = await Promise.all([
                 ApiService.getBells(),
                 ApiService.getSchedule()
             ]);
+
+            if (!this.isMounted) return;
 
             this.state.bells = bells || [];
             this.state.base = baseSchedule || {};
@@ -3875,23 +4087,52 @@ export class ScheduleView {
             const todayStr = getDateStringForDay(this.state.currentDayNum);
             this.state.todayOverride = await ApiService.getOverride(todayStr);
 
-            this.renderLayout();
-            this.bindEvents();
-            this.bindSwipeEvents();
-            await this.loadSelectedDayData();
-            this.fullRenderUI();
+            if (!this.isMounted) return;
 
+            this.renderLayout();
+            this.bindSwipeEvents();
+            
+            await this.loadSelectedDayData();
+            if (!this.isMounted) return;
+
+            this.fullRenderUI();
             this.liveTimerId = setInterval(() => this.refreshLiveState(), 1000);
+            
         } catch (error) {
+            if (!this.isMounted) return;
             console.error('[ScheduleView] Ошибка:', error);
             this.container.innerHTML = `<div class="placeholder-card">Ошибка загрузки расписания.</div>`;
         }
     }
 
     unmount() {
+        this.isMounted = false;
         if (this.liveTimerId) clearInterval(this.liveTimerId);
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null;
+        this.container.removeEventListener('click', this.handleGlobalClick);
+    }
+
+    // --- БРОНИРОВАННЫЕ КЛИКИ (Делегирование) ---
+    handleGlobalClick(e) {
+        const dayTab = e.target.closest('.day-tab');
+        if (dayTab) {
+            const targetDay = parseInt(dayTab.getAttribute('data-day'));
+            if (targetDay !== this.state.selectedDay) {
+                const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
+                this.changeDay(targetDay, direction);
+            }
+            return;
+        }
+
+        const segmentBtn = e.target.closest('.segment-btn');
+        if (segmentBtn) {
+            PrefsManager.vibrate(15);
+            if (!this.state.selectedDayOverride) return;
+            this.state.showActual = segmentBtn.dataset.type === 'actual';
+            this.fullRenderUI();
+            return;
+        }
     }
 
     renderLayout() {
@@ -3935,6 +4176,8 @@ export class ScheduleView {
         listContainer.classList.add('updating');
 
         await this.loadSelectedDayData();
+        if (!this.isMounted) return;
+
         this.fullRenderUI();
 
         listContainer.classList.remove('slide-left', 'slide-right');
@@ -3945,6 +4188,7 @@ export class ScheduleView {
 
     bindSwipeEvents() {
         const area = document.getElementById('schedule-list'); 
+        if (!area) return;
         
         area.addEventListener('touchstart', e => {
             this.touchStartX = e.changedTouches[0].screenX;
@@ -3969,25 +4213,6 @@ export class ScheduleView {
         }, { passive: true });
     }
 
-    bindEvents() {
-        this.container.querySelectorAll('.day-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const targetDay = parseInt(e.currentTarget.getAttribute('data-day'));
-                const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
-                this.changeDay(targetDay, direction);
-            });
-        });
-
-        this.container.querySelectorAll('.segment-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                PrefsManager.vibrate();
-                if (!this.state.selectedDayOverride) return;
-                this.state.showActual = e.currentTarget.dataset.type === 'actual';
-                this.fullRenderUI();
-            });
-        });
-    }
-
     async loadSelectedDayData() {
         const dateStr = getDateStringForDay(this.state.selectedDay);
         this.state.selectedDayOverride = await ApiService.getOverride(dateStr);
@@ -3995,6 +4220,7 @@ export class ScheduleView {
     }
 
     fullRenderUI() {
+        if (!this.isMounted) return;
         const { selectedDayOverride, showActual, selectedDay, base, bells } = this.state;
         const toggleContainer = document.getElementById('schedule-toggle-container');
         
@@ -4017,6 +4243,8 @@ export class ScheduleView {
 
     generateListDOM(dayScheduleArray, bellsData) {
         const listContainer = document.getElementById('schedule-list');
+        if (!listContainer) return;
+        
         if (!dayScheduleArray || dayScheduleArray.length === 0) {
             listContainer.innerHTML = `<li class="placeholder-card" style="text-align:center; list-style:none; color: var(--text-muted)">Пар нет</li>`;
             this.cached.pairCards = [];
@@ -4078,28 +4306,74 @@ export class ScheduleView {
         this.cached.pairCards = Array.from(listContainer.querySelectorAll('.pair-card'));
     }
 
+    // --- УМНЫЙ РАСЧЕТ ТАЙМЕРА (Уважает подгруппы) ---
     getSmartStatus() {
         let status = getCurrentScheduleStatus(this.state.bells);
-        const todaySchedule = this.state.todayOverride ? this.state.todayOverride.lessons : (this.state.base[this.state.currentDayNum] || []);
         
-        if (todaySchedule.length === 0) return { status: 'no_classes' };
-        const maxPair = Math.max(...todaySchedule.map(l => l.pair));
+        let overrideToUse = this.state.todayOverride;
+        // Берем актуальный оверрайд, только если смотрим на сегодняшний день
+        if (this.state.selectedDay === this.state.currentDayNum) {
+            overrideToUse = this.state.selectedDayOverride;
+        }
+        
+        const rawSchedule = overrideToUse ? overrideToUse.lessons : (this.state.base[this.state.currentDayNum] || []);
+        if (rawSchedule.length === 0) return { status: 'no_classes' };
 
+        // 1. Фильтруем расписание по подгруппе пользователя
+        const userSubgroup = PrefsManager.getPrefs().subgroup;
+        const isVisible = (subjectName) => {
+            if (!subjectName) return true; 
+            const str = subjectName.toLowerCase();
+            if (userSubgroup === '1' && (str.includes('2г') || str.includes('2 п/г') || str.includes('2 группа'))) return false;
+            if (userSubgroup === '2' && (str.includes('1г') || str.includes('1 п/г') || str.includes('1 группа'))) return false;
+            return true;
+        };
+
+        const todaySchedule = rawSchedule.map(pair => {
+            const p = { ...pair };
+            const l1Subj = p.lesson1 ? p.lesson1.subject : p.subject;
+            const l2Subj = p.lesson2 ? p.lesson2.subject : p.subject;
+            
+            const hasL1 = isVisible(l1Subj);
+            const hasL2 = isVisible(l2Subj);
+            
+            if (!hasL1 && !hasL2) {
+                // Вся пара для другой подгруппы -> делаем пустоту (окно)
+                p.subject = null;
+                p.lesson1 = null;
+                p.lesson2 = null;
+            } else {
+                // Если только половина пары скрыта
+                if (!hasL1) p.lesson1 = { subject: null };
+                if (!hasL2) p.lesson2 = { subject: null };
+            }
+            return p;
+        });
+
+        // 2. Ищем реальный конец дня (игнорируя пустые пары в конце)
+        const validPairs = todaySchedule.filter(p => p.subject !== null || (p.lesson1 && p.lesson1.subject !== null) || (p.lesson2 && p.lesson2.subject !== null));
+        const maxPair = validPairs.length > 0 ? Math.max(...validPairs.map(l => l.pair)) : 0;
+
+        if (maxPair === 0) return { status: 'no_classes' };
+
+        // 3. Сверяем со временем
         if ((status.status.startsWith('active') || status.status === 'short_break') && status.currentPair.pair > maxPair) return { status: 'ended' };
         if (status.status === 'break' && status.nextPair.pair > maxPair) return { status: 'ended' };
 
         if (status.status.startsWith('active') || status.status === 'short_break') {
              const currentPairData = todaySchedule.find(l => l.pair === status.currentPair.pair);
              
-             if (!currentPairData) {
+             if (!currentPairData || currentPairData.subject === null) {
                  return { ...status, status: 'window', windowType: 'full_pair' };
              }
              
-             if (status.status === 'active_lesson1' && (currentPairData.lesson1 === null || currentPairData.subject === null)) {
-                 return { ...status, status: 'window', windowType: 'lesson1', currentPairData };
+             if (status.status === 'active_lesson1') {
+                 const subj = currentPairData.lesson1 ? currentPairData.lesson1.subject : currentPairData.subject;
+                 if (subj === null) return { ...status, status: 'window', windowType: 'lesson1', currentPairData };
              }
-             if (status.status === 'active_lesson2' && (currentPairData.lesson2 === null || currentPairData.subject === null)) {
-                 return { ...status, status: 'window', windowType: 'lesson2', currentPairData };
+             if (status.status === 'active_lesson2') {
+                 const subj = currentPairData.lesson2 ? currentPairData.lesson2.subject : currentPairData.subject;
+                 if (subj === null) return { ...status, status: 'window', windowType: 'lesson2', currentPairData };
              }
 
              status.currentPairData = currentPairData;
@@ -4121,8 +4395,8 @@ export class ScheduleView {
 
     renderWidgetHTML(status) {
         if (!this.cached.widgetContainer) return;
-        const currentDayReal = new Date().getDay();
-        if (currentDayReal === 0 || currentDayReal === 6) {
+        
+        if (status.status === 'weekend') {
             this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-idle"><div class="live-subject" style="margin:0; text-align:center;">Выходной</div></article>`;
             return;
         }
@@ -4162,9 +4436,37 @@ export class ScheduleView {
     }
 
     refreshLiveState() {
-        if (new Date().getDay() === 0 || new Date().getDay() === 6) return;
-        const status = this.getSmartStatus();
+        if (!this.isMounted) return;
         
+        const now = new Date();
+        const realDay = now.getDay();
+        
+        // --- АВТО-ОБНОВЛЕНИЕ В ПОЛНОЧЬ ---
+        const activeDayNum = (realDay >= 1 && realDay <= 5) ? realDay : 1;
+        if (this.state.currentDayNum !== activeDayNum) {
+            this.state.currentDayNum = activeDayNum;
+            this.state.selectedDay = activeDayNum;
+            
+            this.container.querySelectorAll('.day-tab').forEach(t => {
+                t.classList.toggle('today', parseInt(t.getAttribute('data-day')) === activeDayNum);
+                t.classList.toggle('active', parseInt(t.getAttribute('data-day')) === activeDayNum);
+            });
+
+            const todayStr = getDateStringForDay(activeDayNum);
+            ApiService.getOverride(todayStr).then(res => {
+                if (!this.isMounted) return;
+                this.state.todayOverride = res;
+                this.loadSelectedDayData().then(() => this.fullRenderUI());
+            });
+            return;
+        }
+
+        if (realDay === 0 || realDay === 6) {
+            this.renderWidgetHTML({ status: 'weekend' });
+            return;
+        }
+        
+        const status = this.getSmartStatus();
         let stateSignature = status.status;
         if (status.currentPair) stateSignature += `_p${status.currentPair.pair}`;
         if (status.nextPair) stateSignature += `_n${status.nextPair.pair}`;
@@ -4201,9 +4503,12 @@ export class ScheduleView {
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   LINES: 222
+   LINES: 277
 ===================================================================== */
 
+/* =====================================================================
+   FILE: js/views/SettingsView.js
+===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Modal } from '../components/Modal.js';
@@ -4214,7 +4519,12 @@ export class SettingsView {
         this.container = container;
         this.adminTaps = 0;
         this.adminTapTimeout = null;
-        this.handleDocumentClick = this.handleDocumentClick.bind(this);
+        this.isMounted = false;
+        
+        // Глобальный перехватчик для настроек
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
+        // Перехватчик для инпутов (файлы)
+        this.handleGlobalChange = this.handleGlobalChange.bind(this);
     }
 
     getSubgroupText(val) {
@@ -4223,15 +4533,13 @@ export class SettingsView {
         return 'Обе (Показывать всё)';
     }
 
-    handleDocumentClick(e) {
-        const wrapper = document.getElementById('subgroup-wrapper');
-        if (wrapper && !wrapper.contains(e.target)) wrapper.classList.remove('open');
-    }
-
     async mount() {
+        this.isMounted = true;
         const currentPrefs = PrefsManager.getPrefs(); 
         const currentTheme = ThemeManager.getCurrent();
-        const hasWp = await PrefsManager.hasWallpaper(); // Асинхронно
+        const hasWp = await PrefsManager.hasWallpaper(); 
+        
+        if (!this.isMounted) return;
         
         const templateData = {
             prefs: currentPrefs,
@@ -4247,148 +4555,195 @@ export class SettingsView {
 
         this.container.innerHTML = SettingsTemplate.renderMain(templateData);
         
-        this.bindEvents(currentPrefs);
+        // ВАЖНО: Вешаем делегатов
+        this.container.addEventListener('click', this.handleGlobalClick);
+        this.container.addEventListener('change', this.handleGlobalChange);
+        
         this.initDesktopScroll();
-        document.addEventListener('click', this.handleDocumentClick);
     }
 
-    bindEvents(currentPrefs) {
-        document.getElementById('settings-back-btn')?.addEventListener('click', () => {
+    unmount() {
+        this.isMounted = false;
+        if (this.adminTapTimeout) clearTimeout(this.adminTapTimeout);
+        this.container.removeEventListener('click', this.handleGlobalClick);
+        this.container.removeEventListener('change', this.handleGlobalChange);
+    }
+
+    // --- ОБРАБОТКА INPUT CHANGE (Обои) ---
+    handleGlobalChange(e) {
+        if (e.target.id === 'upload-wp') {
+            const file = e.target.files[0];
+            if (file) PrefsManager.saveWallpaper(file, (success) => { 
+                if (success && this.isMounted) this.mount(); 
+            });
+        }
+    }
+
+    // --- ЕДИНЫЙ БРОНИРОВАННЫЙ ОБРАБОТЧИК КЛИКОВ ---
+    async handleGlobalClick(e) {
+        // Закрытие выпадающего списка подгрупп, если клик был вне его
+        const subgroupWrapper = document.getElementById('subgroup-wrapper');
+        if (subgroupWrapper && !subgroupWrapper.contains(e.target)) {
+            subgroupWrapper.classList.remove('open');
+        }
+
+        // 1. Кнопка "Назад"
+        if (e.target.closest('#settings-back-btn')) {
             PrefsManager.vibrate();
             if (window.history.length > 1) window.history.back();
             else window.location.hash = '#/schedule';
-        });
+            return;
+        }
 
-        const swatchContainers = this.container.querySelectorAll('.theme-swatch-container');
-        const customDialog = document.getElementById('custom-theme-dialog');
+        // 2. Смена темы
+        const themeContainer = e.target.closest('.theme-swatch-container');
+        if (themeContainer) {
+            if (this.isDragging) return;
+            const selectedId = themeContainer.getAttribute('data-id');
+            PrefsManager.vibrate();
 
-        swatchContainers.forEach(container => {
-            container.addEventListener('click', (e) => {
-                if (this.isDragging) return;
-                const selectedId = e.currentTarget.getAttribute('data-id');
-                PrefsManager.vibrate();
+            if (selectedId === 'custom') {
+                document.getElementById('custom-theme-dialog').showModal();
+            } else {
+                ThemeManager.setTheme(selectedId);
+                this.mount(); 
+            }
+            return;
+        }
 
-                if (selectedId === 'custom') {
-                    customDialog.showModal();
-                } else {
-                    ThemeManager.setTheme(selectedId);
-                    swatchContainers.forEach(c => c.classList.remove('active'));
-                    e.currentTarget.classList.add('active');
-                    this.mount(); 
-                }
-            });
-        });
-
-        document.getElementById('btn-cancel-custom').addEventListener('click', () => {
-            PrefsManager.vibrate(); customDialog.close();
-        });
-        document.getElementById('btn-save-custom').addEventListener('click', () => {
+        // 3. Модалка кастомной темы
+        if (e.target.closest('#btn-cancel-custom')) {
+            PrefsManager.vibrate(); 
+            document.getElementById('custom-theme-dialog').close();
+            return;
+        }
+        if (e.target.closest('#btn-save-custom')) {
             PrefsManager.vibrate();
             ThemeManager.saveCustomTheme(document.getElementById('picker-bg').value, document.getElementById('picker-accent').value);
-            customDialog.close();
+            document.getElementById('custom-theme-dialog').close();
             this.mount(); 
-        });
+            return;
+        }
 
-        const navDialog = document.getElementById('nav-order-dialog');
-        let tempNavOrder = [...currentPrefs.navOrder];
-        const navNames = { 'schedule': 'Расписание', 'homework': 'Домашка', 'group': 'Группа', 'events': 'Ивенты' };
-
-        const refreshNavModal = () => {
-            const list = document.getElementById('nav-order-list');
-            list.innerHTML = SettingsTemplate.renderNavList(tempNavOrder, navNames);
-            list.querySelectorAll('.nav-move-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const idx = parseInt(btn.dataset.idx);
-                    const dir = parseInt(btn.dataset.dir);
-                    if (idx + dir >= 0 && idx + dir < tempNavOrder.length) {
-                        PrefsManager.vibrate(10);
-                        [tempNavOrder[idx], tempNavOrder[idx+dir]] = [tempNavOrder[idx+dir], tempNavOrder[idx]];
-                        refreshNavModal();
-                    }
-                });
-            });
-        };
-
-        document.getElementById('btn-open-nav-order').addEventListener('click', () => {
+        // 4. Порядок навигации
+        if (e.target.closest('#btn-open-nav-order')) {
             PrefsManager.vibrate(10);
-            tempNavOrder = [...currentPrefs.navOrder];
-            refreshNavModal();
-            navDialog.showModal();
-        });
-        document.getElementById('btn-save-nav').addEventListener('click', () => {
-            PrefsManager.vibrate(20);
-            PrefsManager.updatePref('navOrder', tempNavOrder);
-            PrefsManager.applySettingsToDOM(); 
-            navDialog.close();
-        });
+            this.tempNavOrder = [...PrefsManager.getPrefs().navOrder];
+            this.refreshNavModal();
+            document.getElementById('nav-order-dialog').showModal();
+            return;
+        }
+        
+        // Внутри модалки порядка навигации (Стрелочки)
+        const moveBtn = e.target.closest('.nav-move-btn');
+        if (moveBtn) {
+            const idx = parseInt(moveBtn.dataset.idx);
+            const dir = parseInt(moveBtn.dataset.dir);
+            if (idx + dir >= 0 && idx + dir < this.tempNavOrder.length) {
+                PrefsManager.vibrate(10);
+                [this.tempNavOrder[idx], this.tempNavOrder[idx+dir]] = [this.tempNavOrder[idx+dir], this.tempNavOrder[idx]];
+                this.refreshNavModal();
+            }
+            return;
+        }
 
-        const wrapper = document.getElementById('subgroup-wrapper');
-        const btn = document.getElementById('subgroup-btn');
-        btn.addEventListener('click', (e) => {
+        if (e.target.closest('#btn-save-nav')) {
+            PrefsManager.vibrate(20);
+            PrefsManager.updatePref('navOrder', this.tempNavOrder);
+            PrefsManager.applySettingsToDOM(); 
+            document.getElementById('nav-order-dialog').close();
+            return;
+        }
+
+        // 5. Выбор подгруппы
+        const subgroupBtn = e.target.closest('#subgroup-btn');
+        if (subgroupBtn) {
             e.stopPropagation(); 
             PrefsManager.vibrate(10);
-            wrapper.classList.toggle('open');
-        });
+            subgroupWrapper.classList.toggle('open');
+            return;
+        }
 
-        wrapper.querySelectorAll('.custom-select-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-                PrefsManager.vibrate();
-                PrefsManager.updatePref('subgroup', opt.getAttribute('data-value'));
-                this.mount(); 
-            });
-        });
+        const subgroupOpt = e.target.closest('.custom-select-option');
+        if (subgroupOpt) {
+            PrefsManager.vibrate();
+            PrefsManager.updatePref('subgroup', subgroupOpt.getAttribute('data-value'));
+            this.mount(); 
+            return;
+        }
 
-        document.getElementById('upload-wp')?.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) PrefsManager.saveWallpaper(file, (success) => { if (success) this.mount(); });
-        });
-        document.getElementById('btn-clear-wp')?.addEventListener('click', () => {
-            PrefsManager.vibrate(); PrefsManager.clearWallpaper(); this.mount();
-        });
+        // 6. Обои (Очистка)
+        if (e.target.closest('#btn-clear-wp')) {
+            PrefsManager.vibrate(); 
+            PrefsManager.clearWallpaper(); 
+            this.mount();
+            return;
+        }
 
-        const bindToggle = (wrapperId, toggleId, prefKey, onToggle) => {
-            document.getElementById(wrapperId)?.addEventListener('click', async () => {
-                PrefsManager.vibrate();
-                const toggle = document.getElementById(toggleId);
-                
-                if (prefKey === 'notifications' && !toggle.classList.contains('active')) {
+        // 7. Тогглы (Переключатели)
+        const toggleWrapper = e.target.closest('.settings-list-item[id^="toggle-"]');
+        if (toggleWrapper) {
+            PrefsManager.vibrate();
+            const wrapperId = toggleWrapper.id;
+            
+            if (wrapperId === 'toggle-haptic-wrapper') {
+                const toggle = document.getElementById('toggle-haptic');
+                const isNowEnabled = toggle.classList.toggle('active');
+                PrefsManager.updatePref('haptic', isNowEnabled);
+                if (isNowEnabled && navigator.vibrate) navigator.vibrate(20);
+            } 
+            else if (wrapperId === 'toggle-power-wrapper') {
+                const toggle = document.getElementById('toggle-power');
+                const isNowEnabled = toggle.classList.toggle('active');
+                PrefsManager.updatePref('powerSave', isNowEnabled);
+                PrefsManager.applySettingsToDOM();
+            }
+            else if (wrapperId === 'toggle-particles-wrapper') {
+                const toggle = document.getElementById('toggle-particles');
+                const isNowEnabled = toggle.classList.toggle('active');
+                PrefsManager.updatePref('particles', isNowEnabled);
+                ThemeManager.applySeasonalEffects(ThemeManager.getCurrent());
+            }
+            else if (wrapperId === 'toggle-notif-wrapper') {
+                const toggle = document.getElementById('toggle-notif');
+                if (!toggle.classList.contains('active')) {
                     const granted = await PrefsManager.requestNotificationPermission();
+                    if (!this.isMounted) return;
                     if (!granted) {
                         Modal.showAlert('Уведомления заблокированы', 'Разрешите браузеру отправлять уведомления в системных настройках телефона.', 'warning');
                         return;
                     }
                 }
                 const isNowEnabled = toggle.classList.toggle('active');
-                PrefsManager.updatePref(prefKey, isNowEnabled);
-                if (onToggle) onToggle(isNowEnabled);
-            });
-        };
+                PrefsManager.updatePref('notifications', isNowEnabled);
+            }
+            return;
+        }
 
-        bindToggle('toggle-haptic-wrapper', 'toggle-haptic', 'haptic', (val) => { if (val && navigator.vibrate) navigator.vibrate(20); });
-        bindToggle('toggle-power-wrapper', 'toggle-power', 'powerSave', () => PrefsManager.applySettingsToDOM());
-        bindToggle('toggle-particles-wrapper', 'toggle-particles', 'particles', () => ThemeManager.applySeasonalEffects(ThemeManager.getCurrent()));
-        bindToggle('toggle-notif-wrapper', 'toggle-notif', 'notifications');
-
-        document.getElementById('btn-reset-hw').addEventListener('click', () => {
+        // 8. Сброс кэша и домашки
+        if (e.target.closest('#btn-reset-hw')) {
             PrefsManager.vibrate();
             if (confirm('Удалить галочки со всех заданий?')) {
                 localStorage.removeItem('sh_homework_state');
                 const span = document.querySelector('#btn-reset-hw span');
                 span.textContent = 'Прогресс сброшен ✓';
-                setTimeout(() => span.textContent = 'Сбросить прогресс домашки', 3000);
+                setTimeout(() => { if(this.isMounted) span.textContent = 'Сбросить прогресс домашки'; }, 3000);
             }
-        });
-        
-        document.getElementById('btn-clear-cache').addEventListener('click', () => {
+            return;
+        }
+
+        if (e.target.closest('#btn-clear-cache')) {
             PrefsManager.vibrate();
             if (confirm('Очистить кэш и перезагрузить?')) {
                 if ('caches' in window) {
                     caches.keys().then(names => Promise.all(names.map(n => caches.delete(n))).then(() => window.location.reload(true)));
                 } else window.location.reload(true);
             }
-        });
+            return;
+        }
 
-        document.getElementById('app-version').addEventListener('click', () => {
+        // 9. Пасхалка разработчика
+        if (e.target.closest('#app-version')) {
             this.adminTaps++;
             if (this.adminTaps === 1) this.adminTapTimeout = setTimeout(() => this.adminTaps = 0, 3000);
             if (this.adminTaps >= 5) {
@@ -4397,10 +4752,17 @@ export class SettingsView {
                 Modal.showAlert(
                     isAdm ? 'Режим разработчика ВКЛЮЧЕН' : 'Режим разработчика ВЫКЛЮЧЕН',
                     isAdm ? 'Открыт доступ к скрытым функциям и сезонным темам.' : 'Стандартный вид.',
-                    'admin', () => this.mount()
+                    'admin', () => { if(this.isMounted) this.mount(); }
                 );
             }
-        });
+            return;
+        }
+    }
+
+    refreshNavModal() {
+        const list = document.getElementById('nav-order-list');
+        const navNames = { 'schedule': 'Расписание', 'homework': 'Домашка', 'group': 'Группа', 'events': 'Ивенты' };
+        list.innerHTML = SettingsTemplate.renderNavList(this.tempNavOrder, navNames);
     }
 
     initDesktopScroll() {
@@ -4419,10 +4781,5 @@ export class SettingsView {
             if (Math.abs(walk) > 5) this.isDragging = true;
             slider.scrollLeft = scrollLeft - walk;
         });
-    }
-
-    unmount() {
-        if (this.adminTapTimeout) clearTimeout(this.adminTapTimeout);
-        document.removeEventListener('click', this.handleDocumentClick);
     }
 }

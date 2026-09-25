@@ -1,6 +1,5 @@
 /* =====================================================================
    FILE: js/templates/GroupTemplate.js
-   Шаблоны для раздела Группы
 ===================================================================== */
 export const GroupTemplate = {
     renderSkeletons() {
@@ -43,7 +42,10 @@ export const GroupTemplate = {
             <li class="person-card">
                 ${avatarHtml}
                 <div class="person-info">
-                    <div class="person-name-row">${name} ${roleHtml}</div>
+                    <div class="person-name-row">
+                        <span class="person-name-text">${name}</span>
+                        ${roleHtml}
+                    </div>
                     <div class="person-sub" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: ${roleHtml.includes('teacher-subject') ? '6px' : '2px'}; white-space: normal;">
                         ${subText}
                     </div>

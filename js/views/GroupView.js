@@ -29,7 +29,6 @@ export class GroupView {
                 ApiService.getTeachers()
             ]);
 
-            // ЗАЩИТА: Если пока мы ждали сеть, юзер ушел со страницы — прерываем отрисовку
             if (!this.isMounted) return;
 
             this.studentsData = students || [];
@@ -38,11 +37,10 @@ export class GroupView {
                 const groupedTeachers = {};
                 Object.entries(teachers).forEach(([subject, data]) => {
                     const rawName = data.name;
-                    const displayName = rawName.includes('...') ? 'Имя уточняется' : rawName;
 
                     if (!groupedTeachers[rawName]) {
                         groupedTeachers[rawName] = {
-                            name: displayName,
+                            name: rawName, // Теперь выводим как есть
                             rawName: rawName, 
                             avatar: data.avatar || '',
                             subjects: []
@@ -92,7 +90,8 @@ export class GroupView {
             statsContainer.innerHTML = GroupTemplate.renderStats('teachers', this.teachersData.length);
 
             html = this.teachersData.map(tch => {
-                const initial = tch.name !== 'Имя уточняется' ? tch.name.charAt(0).toUpperCase() : '?';
+                // Аватарка теперь корректно берет первую букву, даже если имя неполное
+                const initial = tch.name.charAt(0).toUpperCase();
                 const avatar = !tch.avatar ? 
                     `<div class="person-avatar" style="background: ${UIUtils.getAvatarGradient(tch.rawName)}">${initial}</div>` : 
                     `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${tch.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${tch.name}" loading="lazy" decoding="async"></div>`;
@@ -128,7 +127,6 @@ export class GroupView {
                 if (!this.isMounted) return;
                 wrapper.classList.add('fading');
                 setTimeout(() => {
-                    // ЗАЩИТА: Отменяем рендер, если страница уже закрыта
                     if (!this.isMounted) return;
                     this.renderList();
                     wrapper.classList.remove('fading');

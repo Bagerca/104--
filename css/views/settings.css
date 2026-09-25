@@ -1,14 +1,56 @@
+/* =====================================================================
+   FILE: css/views/settings.css
+===================================================================== */
 .settings-container { animation: fadeIn 0.3s ease; }
-.settings-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-.settings-back-btn { 
-    background: var(--overlay-bg); border: var(--glass-border); 
-    color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%; 
-    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition-fast); 
+
+/* === НОВАЯ КАРТОЧКА ШАПКИ === */
+.settings-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 16px; 
+    margin-bottom: 24px; 
+    background: var(--glass-bg);
+    border: var(--glass-border);
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
 }
-.settings-back-btn:active { transform: scale(0.9); background: var(--overlay-bg-active); }
-.settings-title { display: flex; flex-direction: column; }
-.settings-title h2 { font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
-.settings-title span { font-size: 0.75rem; color: var(--text-muted); }
+
+.settings-back-btn { 
+    background: var(--overlay-bg-active); 
+    border: none; 
+    color: var(--text-primary); 
+    width: 44px; 
+    height: 44px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+.settings-back-btn:active { 
+    transform: scale(0.9); 
+    background: var(--theme-accent); 
+    color: var(--text-on-accent); 
+}
+
+.settings-title { 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+}
+.settings-title h2 { 
+    font-size: 1.25rem; 
+    font-weight: 700; 
+    line-height: 1.2; 
+    margin-bottom: 2px;
+}
+.settings-title span { 
+    font-size: 0.8rem; 
+    color: var(--text-muted); 
+}
 
 .settings-section { margin-bottom: 28px; }
 .settings-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 4px; }
@@ -42,20 +84,72 @@
 .modal-btn.cancel { background: var(--overlay-bg-active); color: var(--text-primary); }
 .modal-btn.save { background: var(--theme-accent); color: var(--text-on-accent); }
 
-/* Модалка Порядок Навигации */
-.nav-reorder-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 14px; background: var(--overlay-bg); border-radius: var(--radius-md);
-    font-size: 0.9rem; font-weight: 500;
+/* === НАДЁЖНЫЙ DRAG & DROP === */
+.nav-reorder-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 14px 16px; 
+    background: var(--overlay-bg); 
+    border-radius: var(--radius-md); 
+    font-size: 1rem; 
+    font-weight: 500; 
+    touch-action: none; 
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background 0.2s ease;
+    border: 1px solid transparent;
 }
-.nav-reorder-controls { display: flex; gap: 8px; }
-.nav-move-btn { 
-    background: var(--overlay-bg-active); border: none; color: var(--text-primary);
-    width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+/* Состояние оригинального элемента (становится пунктирной рамкой) */
+.nav-reorder-item.drag-placeholder {
+    background: transparent;
+    border: 2px dashed var(--overlay-bg-active);
+    box-shadow: none;
 }
-.nav-move-btn:disabled { opacity: 0.3; cursor: default; }
-.nav-move-btn:not(:disabled):active { background: var(--theme-accent); color: var(--text-on-accent); transform: scale(0.9); }
+/* Прячем содержимое оригинального элемента, оставляя только рамку */
+.nav-reorder-item.drag-placeholder * {
+    opacity: 0;
+}
+/* Стили для летающей копии (клона), которая тянется за курсором */
+.drag-clone {
+    position: fixed !important;
+    z-index: 99999 !important;
+    pointer-events: none !important; /* Клик должен проходить сквозь неё */
+    background: var(--theme-bg-secondary);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    border: var(--glass-border);
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    font-size: 1rem;
+    font-weight: 500;
+    box-sizing: border-box;
+    transform: scale(1.05);
+    opacity: 0.95;
+    margin: 0;
+}
+.drag-clone .drag-handle { color: var(--theme-accent); }
+
+.nav-number {
+    color: var(--text-muted);
+    margin-right: 12px;
+    font-weight: 600;
+    display: inline-block;
+    width: 20px;
+}
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    cursor: grab;
+    padding: 8px;
+    margin: -8px; 
+    transition: color 0.2s;
+}
+/* =================================================== */
 
 /* Элементы списка */
 .settings-list { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-lg); overflow: visible; }
@@ -93,3 +187,9 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .settings-footer .credits { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 .settings-footer .credits a { color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid var(--overlay-bg-active); transition: color 0.2s, border-color 0.2s; }
 .settings-footer .credits a:active { color: var(--theme-accent); border-color: var(--theme-accent); }
+
+/* ЭКСПЕРИМЕНТАЛЬНЫЙ БЕЙДЖ */
+.badge-experimental { display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 171, 0, 0.1); border: 1px solid rgba(255, 171, 0, 0.25); padding: 3px 8px 3px 6px; border-radius: 12px; margin-left: 8px; box-shadow: 0 2px 10px rgba(255, 171, 0, 0.05); }
+.badge-experimental-dot { width: 6px; height: 6px; background: #FFAB00; border-radius: 50%; box-shadow: 0 0 6px #FFAB00; animation: pulseBeta 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.badge-experimental-text { color: #FFAB00; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; padding-top: 1px; }
+@keyframes pulseBeta { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0.6); } 70% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(255, 171, 0, 0); } 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0); } }
