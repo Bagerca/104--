@@ -1,7 +1,8 @@
 /* =====================================================================
    FILE: js/templates/EventsTemplate.js
-   Шаблоны для раздела Ивентов
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const EventsTemplate = {
     renderSkeletons() {
         return `
@@ -31,7 +32,6 @@ export const EventsTemplate = {
             <article class="event-card">
                 <div class="event-image">
                     ${ev.image ? `<img src="${ev.image}" alt="${ev.title}" loading="lazy" decoding="async">` : ''}
-                    <!-- Блок с градиентом удален, теперь работает CSS mask-image -->
                     <div class="event-date-badge">
                         <div class="day">${ev.date}</div>
                     </div>
@@ -44,13 +44,13 @@ export const EventsTemplate = {
                         <div class="event-footer">
                             ${ev.location ? `
                                 <span>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                    ${getIcon('location', { size: 14 })}
                                     ${ev.location}
                                 </span>
                             ` : ''}
                             ${ev.time ? `
                                 <span>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    ${getIcon('clock', { size: 14 })}
                                     ${ev.time}
                                 </span>
                             ` : ''}

@@ -7,12 +7,19 @@ import { PrefsManager } from './utils/prefs.js';
 import { Toast } from './components/Toast.js';
 import { ApiService } from './services/api.js';
 import { NotificationService } from './services/NotificationService.js';
+import { Store } from './store.js';
+import { getIcon } from './utils/icons.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
         console.log('[App] Инициализация приложения...');
         
-        // --- 0. СЕКРЕТНАЯ ССЫЛКА ДЛЯ NFC ---
+        // Внедряем иконку настроек
+        const settingsBtn = document.getElementById('header-settings-btn');
+        if (settingsBtn) {
+            settingsBtn.innerHTML = getIcon('settings', { size: 24 });
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auth') === 'dev') {
             PrefsManager.enableTempAdmin();
@@ -20,10 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
             window.history.replaceState(null, '', cleanUrl);
         }
 
+        Store.init({
+            prefs: PrefsManager.getPrefs()
+        });
+
         ThemeManager.init();
         PrefsManager.applySettingsToDOM(); 
         
-        // --- 1. РЕГИСТРАЦИЯ SERVICE WORKER (Надежное обновление) ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').then(reg => {
                 console.log('[SW] Зарегистрирован:', reg.scope);
@@ -49,20 +59,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- 2. ЗАПУСК РОУТЕРА И СЕРВИСОВ ---
         const router = new Router();
         window.appRouter = router; 
         router.init();
         
-        // Запускаем планировщик локальных Push-уведомлений
         NotificationService.init();
 
-        // --- 3. ИНДИКАТОР ОФЛАЙНА ---
         window.addEventListener('offline', () => {
+            Store.setState({ isOffline: true });
             Toast.show('Нет интернета. Показаны сохраненные данные.', 'offline', 0);
         });
         
         window.addEventListener('online', () => {
+            Store.setState({ isOffline: false });
             Toast.hide(); 
             setTimeout(() => {
                 Toast.show('Соединение восстановлено', 'success', 3000);
@@ -71,11 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         setTimeout(() => {
             if (!navigator.onLine) {
+                Store.setState({ isOffline: true });
                 Toast.show('Нет интернета. Показаны сохраненные данные.', 'offline', 0);
             }
         }, 1500);
 
-        // --- 4. ПАТТЕРН PULL TO REFRESH ---
         initPullToRefresh();
 
     } catch (error) {
@@ -90,10 +99,8 @@ function initPullToRefresh() {
     let ptrEl = null;
 
     document.addEventListener('touchstart', (e) => {
-        // ЗАЩИТА: Отключаем PTR, если открыта любая модалка
         if (document.querySelector('dialog[open]')) return;
 
-        // ЗАЩИТА: Отключаем PTR при скролле горизонтальных элементов (темы, дни недели)
         const isHorizontalScroll = e.target.closest('.theme-scroll-wrapper, .days-wrapper');
         if (isHorizontalScroll) return;
 
@@ -103,7 +110,7 @@ function initPullToRefresh() {
             if (!ptrEl) {
                 ptrEl = document.createElement('div');
                 ptrEl.id = 'ptr-indicator';
-                ptrEl.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`;
+                ptrEl.innerHTML = getIcon('refresh-spinner', { size: 24 });
                 document.body.appendChild(ptrEl);
             }
         }
@@ -132,7 +139,7 @@ function initPullToRefresh() {
             ptrEl.style.transform = `translateY(50px) rotate(360deg)`;
             
             ApiService.clearCache();
-            if (window.appRouter) await window.appRouter.handleRoute();
+            if (window.appRouter) await window.appRouter.handleRoute(true);
             
             ptrEl.classList.remove('refreshing');
             ptrEl.style.transform = `translateY(-50px)`;

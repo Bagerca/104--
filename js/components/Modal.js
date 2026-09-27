@@ -1,9 +1,14 @@
 /* =====================================================================
    FILE: js/components/Modal.js
+   Системные уведомления с перехватом кнопки "Назад"
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
 import { PrefsManager } from '../utils/prefs.js';
 
 export const Modal = {
+    isOpen: false,
+    onCloseCallback: null,
+
     init() {
         if (document.getElementById('system-alert-dialog')) return;
 
@@ -24,10 +29,14 @@ export const Modal = {
 
         document.getElementById('btn-close-alert').addEventListener('click', () => {
             PrefsManager.vibrate(10);
-            dialog.close();
-            if (this.onCloseCallback) {
-                this.onCloseCallback();
-                this.onCloseCallback = null;
+            this.close(true);
+        });
+
+        window.addEventListener('popstate', (e) => {
+            if (this.isOpen) {
+                if (!e.state || e.state.modal !== 'alert') {
+                    this.close(false); 
+                }
             }
         });
     },
@@ -36,27 +45,38 @@ export const Modal = {
         this.init();
         const dialog = document.getElementById('system-alert-dialog');
         
-        // ЗАЩИТА: Если алерт уже открыт, корректно закрываем его перед показом нового
-        if (dialog.open) {
-            dialog.close();
-        }
+        if (dialog.open) dialog.close();
 
         const iconContainer = document.getElementById('system-alert-icon');
         
-        let svg = '';
-        if (type === 'admin') {
-            svg = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>`;
-        } else if (type === 'warning') {
-            svg = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18A2 2 0 0 0 3.53 21H20.47A2 2 0 0 0 22.18 18L13.71 3.86A2 2 0 0 0 10.29 3.86Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
-        } else {
-            svg = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
-        }
+        let iconName = 'success';
+        if (type === 'admin') iconName = 'admin';
+        else if (type === 'warning') iconName = 'warning';
         
-        iconContainer.innerHTML = svg;
+        iconContainer.innerHTML = getIcon(iconName, { size: 48, strokeWidth: 2 });
         document.getElementById('system-alert-title').textContent = title;
         document.getElementById('system-alert-text').textContent = message;
         
         this.onCloseCallback = onClose;
+        this.isOpen = true;
+        history.pushState({ modal: 'alert' }, '', window.location.hash);
         dialog.showModal();
+    },
+
+    close(isProgrammatic = true) {
+        const dialog = document.getElementById('system-alert-dialog');
+        if (!dialog || !dialog.open) return;
+
+        this.isOpen = false;
+        dialog.close();
+
+        if (this.onCloseCallback) {
+            this.onCloseCallback();
+            this.onCloseCallback = null;
+        }
+
+        if (isProgrammatic) {
+            history.back();
+        }
     }
 };

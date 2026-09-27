@@ -1,6 +1,6 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 27.09.2026 22:59:18
+  Дата сборки: 27.09.2026 23:27:02
 ================================================================================
 
 
@@ -30,9 +30,7 @@
     <link rel="modulepreload" href="js/app.js">
     <link rel="modulepreload" href="js/router.js">
 
-    <!-- CSS Architecture -->
     <link rel="stylesheet" href="css/variables.css">
-    <!-- ДОБАВЛЕНО: Глобальные компоненты (модалки, лайтбоксы, тосты) -->
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/views/schedule.css">
@@ -48,6 +46,7 @@
         <header class="app-header">
             <h1 id="page-title">Расписание</h1>
             <a href="#/settings" class="icon-btn" aria-label="Настройки">
+                <!-- SVG шестеренки оставим тут, так как это не динамическая иконка -->
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -60,20 +59,21 @@
         </main>
 
         <nav class="bottom-nav glass">
+            <!-- Иконки сюда подтянет ThemeManager.js -> getIcon() -->
             <a href="#/schedule" class="nav-item active" data-title="Расписание">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <svg></svg>
                 <span>Уроки</span>
             </a>
             <a href="#/homework" class="nav-item" data-title="Домашка">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <svg></svg>
                 <span>ДЗ</span>
             </a>
             <a href="#/group" class="nav-item" data-title="Группа">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <svg></svg>
                 <span>Группа</span>
             </a>
             <a href="#/events" class="nav-item" data-title="События">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <svg></svg>
                 <span>Ивенты</span>
             </a>
         </nav>
@@ -136,7 +136,7 @@
    FILE: sw.js
    ОПТИМИЗАЦИЯ: Добавлены все недостающие модули для 100% Offline режима
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v15'; // Версия поднята для обновы кэша
+const CACHE_NAME = 'student-hub-v16'; // Версия поднята для обновы кэша
 
 const ASSETS = [
     './',
@@ -1562,7 +1562,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
     {
       "pair": 1,
       "lesson1": null,
-      "lesson2": { "subject": "Разговоры о важном", "room": "Актовый зал" }
+      "lesson2": { "subject": "Разговоры о важном", "room": "2/22" }
     },
     { "pair": 2, "subject": "География", "room": "2/20" },
     { "pair": 3, "subject": "Биология", "room": "1/22" },
@@ -2011,7 +2011,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 145
+   LINES: 146
 ===================================================================== */
 
 /* =====================================================================
@@ -2023,12 +2023,12 @@ import { PrefsManager } from './utils/prefs.js';
 import { Toast } from './components/Toast.js';
 import { ApiService } from './services/api.js';
 import { NotificationService } from './services/NotificationService.js';
+import { Store } from './store.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
         console.log('[App] Инициализация приложения...');
         
-        // --- 0. СЕКРЕТНАЯ ССЫЛКА ДЛЯ NFC ---
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auth') === 'dev') {
             PrefsManager.enableTempAdmin();
@@ -2036,10 +2036,13 @@ document.addEventListener('DOMContentLoaded', () => {
             window.history.replaceState(null, '', cleanUrl);
         }
 
+        Store.init({
+            prefs: PrefsManager.getPrefs()
+        });
+
         ThemeManager.init();
         PrefsManager.applySettingsToDOM(); 
         
-        // --- 1. РЕГИСТРАЦИЯ SERVICE WORKER (Надежное обновление) ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').then(reg => {
                 console.log('[SW] Зарегистрирован:', reg.scope);
@@ -2065,20 +2068,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- 2. ЗАПУСК РОУТЕРА И СЕРВИСОВ ---
         const router = new Router();
         window.appRouter = router; 
         router.init();
         
-        // Запускаем планировщик локальных Push-уведомлений
         NotificationService.init();
 
-        // --- 3. ИНДИКАТОР ОФЛАЙНА ---
         window.addEventListener('offline', () => {
+            Store.setState({ isOffline: true });
             Toast.show('Нет интернета. Показаны сохраненные данные.', 'offline', 0);
         });
         
         window.addEventListener('online', () => {
+            Store.setState({ isOffline: false });
             Toast.hide(); 
             setTimeout(() => {
                 Toast.show('Соединение восстановлено', 'success', 3000);
@@ -2087,11 +2089,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         setTimeout(() => {
             if (!navigator.onLine) {
+                Store.setState({ isOffline: true });
                 Toast.show('Нет интернета. Показаны сохраненные данные.', 'offline', 0);
             }
         }, 1500);
 
-        // --- 4. ПАТТЕРН PULL TO REFRESH ---
         initPullToRefresh();
 
     } catch (error) {
@@ -2106,10 +2108,8 @@ function initPullToRefresh() {
     let ptrEl = null;
 
     document.addEventListener('touchstart', (e) => {
-        // ЗАЩИТА: Отключаем PTR, если открыта любая модалка
         if (document.querySelector('dialog[open]')) return;
 
-        // ЗАЩИТА: Отключаем PTR при скролле горизонтальных элементов (темы, дни недели)
         const isHorizontalScroll = e.target.closest('.theme-scroll-wrapper, .days-wrapper');
         if (isHorizontalScroll) return;
 
@@ -2148,7 +2148,8 @@ function initPullToRefresh() {
             ptrEl.style.transform = `translateY(50px) rotate(360deg)`;
             
             ApiService.clearCache();
-            if (window.appRouter) await window.appRouter.handleRoute();
+            // ИСПРАВЛЕНИЕ: Передаем true, чтобы убить старый кэш и принудительно перерисовать экран
+            if (window.appRouter) await window.appRouter.handleRoute(true);
             
             ptrEl.classList.remove('refreshing');
             ptrEl.style.transform = `translateY(-50px)`;
@@ -2162,11 +2163,12 @@ function initPullToRefresh() {
 
 /* =====================================================================
    FILE: js/router.js
-   LINES: 114
+   LINES: 139
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/router.js
+   Умный роутер с поддержкой Deep Linking и принудительного рефреша (PTR)
 ===================================================================== */
 import { ScheduleView } from './views/ScheduleView.js';
 import { GroupView } from './views/GroupView.js';
@@ -2174,6 +2176,7 @@ import { HomeworkView } from './views/HomeworkView.js';
 import { EventsView } from './views/EventsView.js';
 import { SettingsView } from './views/SettingsView.js';
 import { PrefsManager } from './utils/prefs.js';
+import { Store } from './store.js';
 
 export class Router {
     constructor() {
@@ -2189,10 +2192,10 @@ export class Router {
             '/settings': new SettingsView(this.contentContainer)
         };
         
+        this.currentViewName = null;
         this.currentView = null;
         this.renderId = 0; 
 
-        // ИСПРАВЛЕНИЕ: Глобальное делегирование кликов для всех навигационных ссылок
         document.addEventListener('click', (e) => {
             const navLink = e.target.closest('a[href^="#/"]');
             if (navLink) {
@@ -2200,26 +2203,48 @@ export class Router {
             }
         });
 
-        window.addEventListener('hashchange', this.handleRoute.bind(this));
+        window.addEventListener('hashchange', () => this.handleRoute());
     }
 
     init() {
-        if (!window.location.hash) {
-            const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
-            window.location.hash = '#/' + firstPage;
+        if (!window.location.hash || window.location.hash === '#/') {
+            const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
+            window.location.replace('#/' + firstPage);
         } else {
             this.handleRoute();
         }
     }
 
-    async handleRoute() {
-        const path = window.location.hash.slice(1);
+    parseHash() {
+        const rawHash = window.location.hash.slice(1) || '/';
+        const [path, queryString] = rawHash.split('?');
+        const params = {};
+
+        if (queryString) {
+            const urlParams = new URLSearchParams(queryString);
+            for (const [key, value] of urlParams.entries()) {
+                params[key] = value;
+            }
+        }
+        return { path, params };
+    }
+
+    // Добавлен флаг forceReload для Pull-to-Refresh
+    async handleRoute(forceReload = false) {
+        const { path, params } = this.parseHash();
         const view = this.views[path];
 
         const currentRenderId = ++this.renderId;
 
         try {
-            // ИСПРАВЛЕНИЕ: Мягкое скрытие через инлайн-стили без конфликта с классами
+            // Если это не принудительный рефреш, пытаемся обновить мягко
+            if (!forceReload && this.currentViewName === path && this.currentView) {
+                if (typeof this.currentView.update === 'function') {
+                    await this.currentView.update(params);
+                    return; 
+                }
+            }
+
             this.contentContainer.classList.remove('fade-in');
             this.contentContainer.style.transition = 'opacity 0.15s ease-out, transform 0.15s ease-out';
             this.contentContainer.style.opacity = '0';
@@ -2229,29 +2254,28 @@ export class Router {
 
             if (this.renderId !== currentRenderId) return;
 
-            if (this.currentView) {
+            if (this.currentView && typeof this.currentView.unmount === 'function') {
                 this.currentView.unmount();
             }
 
             if (view) {
+                this.currentViewName = path;
                 this.currentView = view;
                 this.updateNavUI(path);
                 
-                await view.mount();
+                await view.mount(params);
 
                 if (this.renderId !== currentRenderId) return;
             } else {
-                const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
-                window.location.hash = '#/' + firstPage;
+                const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
+                window.location.replace('#/' + firstPage);
                 return;
             }
             
-            // ИСПРАВЛЕНИЕ: Полностью сбрасываем инлайн-стили, отдавая контроль CSS классу fade-in
             this.contentContainer.style.transition = '';
             this.contentContainer.style.opacity = '';
             this.contentContainer.style.transform = '';
             
-            // Форсируем перерисовку DOM (Reflow), чтобы браузер "забыл" старые стили
             void this.contentContainer.offsetWidth;
             
             this.contentContainer.classList.add('fade-in');
@@ -2266,7 +2290,9 @@ export class Router {
 
     updateNavUI(currentPath) {
         this.navItems.forEach(item => {
-            if (item.getAttribute('href').slice(1) === currentPath) {
+            const itemPath = item.getAttribute('href').slice(1).split('?')[0]; 
+            
+            if (itemPath === currentPath) {
                 item.classList.add('active');
                 this.pageTitle.textContent = item.getAttribute('data-title');
             } else {
@@ -2281,14 +2307,89 @@ export class Router {
 }
 
 /* =====================================================================
+   FILE: js/store.js
+   LINES: 64
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/store.js
+   Единое реактивное хранилище состояния приложения (Pub/Sub)
+===================================================================== */
+
+export const Store = {
+    state: {
+        isOffline: !navigator.onLine,
+        prefs: {}, // Здесь будут жить настройки из PrefsManager
+        currentTheme: 'burgundy',
+        homeworkCache: {}
+    },
+    
+    listeners: [],
+
+    /**
+     * Инициализация стартового состояния
+     */
+    init(initialState = {}) {
+        this.state = { ...this.state, ...initialState };
+        console.log('[Store] Инициализирован с состоянием:', this.state);
+    },
+
+    /**
+     * Получить текущее состояние целиком
+     */
+    getState() {
+        return this.state;
+    },
+
+    /**
+     * Обновить состояние (полностью или частично) и уведомить подписчиков
+     */
+    setState(updates) {
+        this.state = { ...this.state, ...updates };
+        this.notify();
+    },
+
+    /**
+     * Обновить конкретную настройку (preference)
+     */
+    updatePref(key, value) {
+        this.state.prefs = { ...this.state.prefs, [key]: value };
+        this.notify(`pref_${key}`);
+    },
+
+    /**
+     * Подписаться на изменения Store.
+     * Возвращает функцию для отписки (unsubscribe).
+     */
+    subscribe(listener) {
+        this.listeners.push(listener);
+        return () => {
+            this.listeners = this.listeners.filter(l => l !== listener);
+        };
+    },
+
+    /**
+     * Уведомить всех подписчиков об изменении
+     */
+    notify(changedKey = 'all') {
+        this.listeners.forEach(listener => listener(this.state, changedKey));
+    }
+};
+
+/* =====================================================================
    FILE: js/components/Lightbox.js
-   LINES: 50
+   LINES: 83
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/components/Lightbox.js
+   Просмотр фотографий на весь экран с поддержкой кнопки "Назад"
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const Lightbox = {
+    isOpen: false,
+
     init() {
         if (document.getElementById('global-lightbox')) return;
 
@@ -2299,13 +2400,11 @@ export const Lightbox = {
         dialog.innerHTML = `
             <div class="hw-lightbox-controls">
                 <a id="global-lightbox-download" href="" download class="hw-lightbox-btn" aria-label="Скачать">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    ${getIcon('download', { size: 20 })}
                 </a>
-                <form method="dialog" style="margin: 0; padding: 0;">
-                    <button class="hw-lightbox-btn" type="submit" aria-label="Закрыть">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </form>
+                <button class="hw-lightbox-btn" id="global-lightbox-close" aria-label="Закрыть">
+                    ${getIcon('close', { size: 24 })}
+                </button>
             </div>
             <div class="hw-lightbox-body" id="global-lightbox-body">
                 <img id="global-lightbox-img" src="" alt="Просмотр">
@@ -2313,8 +2412,22 @@ export const Lightbox = {
         `;
         document.body.appendChild(dialog);
 
+        // Закрытие по клику на фон
         dialog.querySelector('#global-lightbox-body').addEventListener('click', (e) => {
-            if (e.target.id === 'global-lightbox-body') dialog.close();
+            if (e.target.id === 'global-lightbox-body') this.close(true);
+        });
+
+        // Закрытие по кнопке-крестику
+        dialog.querySelector('#global-lightbox-close').addEventListener('click', () => {
+            this.close(true);
+        });
+
+        // ПЕРЕХВАТ системной кнопки "Назад"
+        window.addEventListener('popstate', () => {
+            if (this.isOpen) {
+                // Если сработал popstate (нажали "Назад"), историю откатывать уже не надо
+                this.close(false); 
+            }
         });
     },
 
@@ -2322,7 +2435,6 @@ export const Lightbox = {
         this.init();
         const dialog = document.getElementById('global-lightbox');
         
-        // ЗАЩИТА: Предотвращаем краш от двойного тапа
         if (dialog.open) return;
 
         const img = document.getElementById('global-lightbox-img');
@@ -2332,21 +2444,43 @@ export const Lightbox = {
         downloadBtn.href = imageSrc;
         downloadBtn.setAttribute('download', fileName);
         
+        // Помечаем, что модалка открыта, и забрасываем фейковый стейт в историю браузера
+        this.isOpen = true;
+        history.pushState({ modal: 'lightbox' }, '');
+        
         dialog.showModal();
+    },
+
+    close(isProgrammatic = true) {
+        const dialog = document.getElementById('global-lightbox');
+        if (!dialog || !dialog.open) return;
+
+        this.isOpen = false;
+        dialog.close();
+
+        // Если закрыли крестиком или фоном, откатываем фейковый стейт назад вручную
+        if (isProgrammatic) {
+            history.back();
+        }
     }
 };
 
 /* =====================================================================
    FILE: js/components/Modal.js
-   LINES: 62
+   LINES: 81
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/components/Modal.js
+   Системные уведомления с перехватом кнопки "Назад"
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
 import { PrefsManager } from '../utils/prefs.js';
 
 export const Modal = {
+    isOpen: false,
+    onCloseCallback: null,
+
     init() {
         if (document.getElementById('system-alert-dialog')) return;
 
@@ -2367,10 +2501,13 @@ export const Modal = {
 
         document.getElementById('btn-close-alert').addEventListener('click', () => {
             PrefsManager.vibrate(10);
-            dialog.close();
-            if (this.onCloseCallback) {
-                this.onCloseCallback();
-                this.onCloseCallback = null;
+            this.close(true);
+        });
+
+        // ПЕРЕХВАТ системной кнопки "Назад"
+        window.addEventListener('popstate', () => {
+            if (this.isOpen) {
+                this.close(false); 
             }
         });
     },
@@ -2379,40 +2516,53 @@ export const Modal = {
         this.init();
         const dialog = document.getElementById('system-alert-dialog');
         
-        // ЗАЩИТА: Если алерт уже открыт, корректно закрываем его перед показом нового
-        if (dialog.open) {
-            dialog.close();
-        }
+        if (dialog.open) dialog.close();
 
         const iconContainer = document.getElementById('system-alert-icon');
         
-        let svg = '';
-        if (type === 'admin') {
-            svg = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>`;
-        } else if (type === 'warning') {
-            svg = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18A2 2 0 0 0 3.53 21H20.47A2 2 0 0 0 22.18 18L13.71 3.86A2 2 0 0 0 10.29 3.86Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
-        } else {
-            svg = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
-        }
+        let iconName = 'success'; // Дефолт (кружок с инфо)
+        if (type === 'admin') iconName = 'admin';
+        else if (type === 'warning') iconName = 'warning';
         
-        iconContainer.innerHTML = svg;
+        iconContainer.innerHTML = getIcon(iconName, { size: 48, strokeWidth: 2 });
         document.getElementById('system-alert-title').textContent = title;
         document.getElementById('system-alert-text').textContent = message;
         
         this.onCloseCallback = onClose;
+        this.isOpen = true;
+        history.pushState({ modal: 'alert' }, '');
         dialog.showModal();
+    },
+
+    close(isProgrammatic = true) {
+        const dialog = document.getElementById('system-alert-dialog');
+        if (!dialog || !dialog.open) return;
+
+        this.isOpen = false;
+        dialog.close();
+
+        if (this.onCloseCallback) {
+            this.onCloseCallback();
+            this.onCloseCallback = null;
+        }
+
+        if (isProgrammatic) {
+            history.back();
+        }
     }
 };
 
 /* =====================================================================
    FILE: js/components/Toast.js
-   LINES: 56
+   LINES: 57
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/components/Toast.js
    Глобальный компонент всплывающих уведомлений (Toast)
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const Toast = {
     timeout: null,
 
@@ -2425,25 +2575,24 @@ export const Toast = {
             document.body.appendChild(toast);
         }
 
-        // Обновленная структура с крестиком
+        const iconName = type === 'offline' ? 'offline' : 'success';
+
+        // Формируем чистую разметку с использованием getIcon
         toast.innerHTML = `
             <div class="toast-content">
                 <div class="toast-icon">
-                    ${type === 'offline' 
-                        ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22"></path><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>' 
-                        : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
-                    }
+                    ${getIcon(iconName, { size: 22 })}
                 </div>
                 <span class="toast-text">${message}</span>
             </div>
             <button class="toast-close-btn" aria-label="Закрыть">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                ${getIcon('close', { size: 20 })}
             </button>
         `;
         
         toast.className = `toast-notification toast-${type} show`;
 
-        // Вешаем событие на крестик
+        // Событие на крестик
         toast.querySelector('.toast-close-btn').addEventListener('click', () => {
             this.hide();
         });
@@ -2666,8 +2815,9 @@ export const NotificationService = {
 
 /* =====================================================================
    FILE: js/templates/EventsTemplate.js
-   Шаблоны для раздела Ивентов
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const EventsTemplate = {
     renderSkeletons() {
         return `
@@ -2697,7 +2847,6 @@ export const EventsTemplate = {
             <article class="event-card">
                 <div class="event-image">
                     ${ev.image ? `<img src="${ev.image}" alt="${ev.title}" loading="lazy" decoding="async">` : ''}
-                    <!-- Блок с градиентом удален, теперь работает CSS mask-image -->
                     <div class="event-date-badge">
                         <div class="day">${ev.date}</div>
                     </div>
@@ -2710,13 +2859,13 @@ export const EventsTemplate = {
                         <div class="event-footer">
                             ${ev.location ? `
                                 <span>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                    ${getIcon('location', { size: 14 })}
                                     ${ev.location}
                                 </span>
                             ` : ''}
                             ${ev.time ? `
                                 <span>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    ${getIcon('clock', { size: 14 })}
                                     ${ev.time}
                                 </span>
                             ` : ''}
@@ -2732,12 +2881,14 @@ export const EventsTemplate = {
 
 /* =====================================================================
    FILE: js/templates/GroupTemplate.js
-   LINES: 56
+   LINES: 63
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/templates/GroupTemplate.js
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const GroupTemplate = {
     renderSkeletons() {
         return `
@@ -2775,6 +2926,11 @@ export const GroupTemplate = {
     },
 
     renderPerson(name, subText, avatarHtml, roleHtml = '', actionBtnHtml = '') {
+        // Подключаем иконку телеграма, если это кнопка ТГ
+        if (actionBtnHtml === 'TG_BTN') {
+            actionBtnHtml = `<a href="https://t.me/${subText.replace('@','')}" target="_blank" class="person-action-btn">${getIcon('telegram', { size: 18 })}</a>`;
+        }
+        
         return `
             <li class="person-card">
                 ${avatarHtml}
@@ -2794,13 +2950,15 @@ export const GroupTemplate = {
 
 /* =====================================================================
    FILE: js/templates/HomeworkTemplate.js
-   LINES: 141
+   LINES: 143
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/templates/HomeworkTemplate.js
    Шаблоны для раздела Домашних заданий
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const HomeworkTemplate = {
     renderSkeletons() {
         return `
@@ -2830,7 +2988,7 @@ export const HomeworkTemplate = {
                 task.links.forEach(link => {
                     extraHtml += `
                         <a href="${link.url}" target="_blank" class="hw-link interactive-element">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            ${getIcon('link', { size: 16 })}
                             <span>${link.title}</span>
                         </a>
                     `;
@@ -2842,7 +3000,7 @@ export const HomeworkTemplate = {
                     extraHtml += `
                         <a href="${file.url}" target="_blank" class="hw-attachment interactive-element local-file-check" data-url="${file.url}">
                             <div class="hw-file-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                ${getIcon('file', { size: 18 })}
                             </div>
                             <div class="hw-file-info">
                                 <span class="hw-file-name">${file.name}</span>
@@ -2873,7 +3031,7 @@ export const HomeworkTemplate = {
         return `
             <div class="hw-card ${isHistory ? 'history-item' : ''} ${task.done ? 'completed' : ''}" data-id="${task.id}">
                 <div class="hw-checkbox ${task.done ? 'checked' : ''}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    ${getIcon('check', { size: 14, color: '#fff', strokeWidth: 3 })}
                 </div>
                 <div class="hw-content">
                     <div class="hw-task">${task.task}</div>
@@ -2908,7 +3066,7 @@ export const HomeworkTemplate = {
                 html += `
                     <button class="hw-show-all-btn" data-subject="${subject}">
                         Все задания (${tasks.length})
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        ${getIcon('chevron-right', { size: 16 })}
                     </button>
                 `;
             }
@@ -2924,7 +3082,7 @@ export const HomeworkTemplate = {
             <div class="hw-container slide-left">
                 <div class="hw-history-header">
                     <button class="hw-back-btn" id="hw-back-btn" aria-label="Назад">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        ${getIcon('back', { size: 20 })}
                     </button>
                     <div class="hw-history-title">
                         <h2>${subject}</h2>
@@ -2941,19 +3099,21 @@ export const HomeworkTemplate = {
 
 /* =====================================================================
    FILE: js/templates/SettingsTemplate.js
-   LINES: 201
+   LINES: 199
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/templates/SettingsTemplate.js
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const SettingsTemplate = {
     renderMain(data) {
         return `
             <div class="settings-container">
                 <div class="settings-header">
                     <button class="settings-back-btn" id="settings-back-btn" aria-label="Назад">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        ${getIcon('back', { size: 20 })}
                     </button>
                     <div class="settings-title">
                         <h2>Настройки</h2>
@@ -3017,7 +3177,7 @@ export const SettingsTemplate = {
                             <div class="custom-select-wrapper" id="subgroup-wrapper">
                                 <button class="custom-select-btn" id="subgroup-btn">
                                     <span id="subgroup-text">${data.subgroupText}</span>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                    ${getIcon('chevron-down', { size: 16 })}
                                 </button>
                                 <div class="custom-select-menu">
                                     <div class="custom-select-option ${data.prefs.subgroup === 'all' ? 'selected' : ''}" data-value="all">Обе (Показывать всё)</div>
@@ -3051,10 +3211,6 @@ export const SettingsTemplate = {
                                 <span>Виброотклик</span>
                                 <span class="item-subtitle" style="display: flex; align-items: center; margin-top: 4px;">
                                     Тактильная отдача 
-                                    <div class="badge-experimental">
-                                        <div class="badge-experimental-dot"></div>
-                                        <span class="badge-experimental-text">BETA</span>
-                                    </div>
                                 </span>
                             </div>
                             <div class="toggle-switch ${data.prefs.haptic ? 'active' : ''}" id="toggle-haptic"></div>
@@ -3093,11 +3249,12 @@ export const SettingsTemplate = {
                 </section>
 
                 <footer class="settings-footer">
-                    <div class="version-text" id="app-version">v2.1.1 (Drag Fix)</div>
+                    <div class="version-text" id="app-version">v3.0.0 (Core Refactor)</div>
                     <div class="credits">Сделал <a href="https://t.me/bagerca" target="_blank">BAGERca</a> &copy; 2026 - ${data.currentYear}</div>
                 </footer>
             </div>
 
+            <!-- Модалки -->
             <dialog id="custom-theme-dialog" class="custom-theme-modal">
                 <h3>Создать тему</h3>
                 <div class="color-picker-group">
@@ -3126,7 +3283,6 @@ export const SettingsTemplate = {
     },
 
     renderNavList(navOrder, navNames) {
-        // ЗАЩИТА: Очищаем мусор, если он уже попал в память (undefined)
         const validOrder = navOrder.filter(id => id && navNames[id]);
         
         return validOrder.map((id, index) => `
@@ -3144,6 +3300,87 @@ export const SettingsTemplate = {
             </div>
         `).join('');
     }
+};
+
+/* =====================================================================
+   FILE: js/utils/icons.js
+   LINES: 75
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/utils/icons.js
+   Глобальный реестр SVG иконок приложения
+===================================================================== */
+
+const ICONS = {
+    // Навигация (дефолт)
+    'nav-schedule': '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
+    'nav-homework': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
+    'nav-group': '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
+    'nav-events': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>',
+
+    // Сезонные (Halloween)
+    'nav-schedule-halloween': '<path d="M2 12h20M12 2v20M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="7"></circle>', 
+    'nav-homework-halloween': '<path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"></path>', 
+    'nav-group-halloween': '<circle cx="12" cy="10" r="7"></circle><path d="M9 17v4H15v-4"></path><path d="M9 12h.01M15 12h.01"></path>', 
+    'nav-events-halloween': '<path d="M2 12l5-3 5 3 5-3 5 3v2l-5-2-5 2-5-2-5 2z"></path><circle cx="12" cy="8" r="2"></circle>',
+
+    // Сезонные (Новый год)
+    'nav-schedule-new-year': '<rect x="3" y="8" width="18" height="14" rx="2"></rect><path d="M12 5H8a2 2 0 0 0 0 4h4z"></path><path d="M12 5h4a2 2 0 0 1 0 4h-4z"></path><line x1="12" y1="8" x2="12" y2="22"></line>', 
+    'nav-homework-new-year': '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>', 
+    'nav-group-new-year': '<circle cx="12" cy="15" r="6"></circle><circle cx="12" cy="6" r="4"></circle><line x1="12" y1="13" x2="12" y2="13.01"></line><line x1="12" y1="17" x2="12" y2="17.01"></line>', 
+    'nav-events-new-year': '<line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line><line x1="4.93" y1="19.07" x2="19.07" y2="4.93"></line>',
+
+    // UI элементы
+    'settings': '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>',
+    'close': '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>',
+    'back': '<polyline points="15 18 9 12 15 6"></polyline>',
+    'chevron-down': '<polyline points="6 9 12 15 18 9"></polyline>',
+    'chevron-right': '<polyline points="9 18 15 12 9 6"></polyline>',
+    'check': '<polyline points="20 6 9 17 4 12"></polyline>',
+    
+    // Домашка / Файлы
+    'download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>',
+    'link': '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>',
+    'file': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
+    
+    // Ивенты / Группа
+    'location': '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>',
+    'clock': '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>',
+    'telegram': '<path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>',
+    
+    // Статусы / Алерты
+    'offline': '<path d="M1 1l22 22"></path><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line>',
+    'success': '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>', // Info icon in current project
+    'warning': '<path d="M10.29 3.86L1.82 18A2 2 0 0 0 3.53 21H20.47A2 2 0 0 0 22.18 18L13.71 3.86A2 2 0 0 0 10.29 3.86Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+    'admin': '<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>'
+};
+
+/**
+ * Возвращает полный тег <svg> с нужной иконкой
+ * @param {string} name - Ключ иконки из словаря ICONS
+ * @param {object} options - Параметры (размер, классы, цвет)
+ * @returns {string} HTML строка SVG
+ */
+export const getIcon = (name, options = {}) => {
+    const iconContent = ICONS[name];
+    if (!iconContent) {
+        console.warn(`[Icons] Иконка "${name}" не найдена`);
+        return '';
+    }
+
+    const size = options.size || 24;
+    const className = options.className ? `class="${options.className}"` : '';
+    const color = options.color || 'currentColor';
+    const strokeWidth = options.strokeWidth || 2;
+
+    return `
+        <svg ${className} width="${size}" height="${size}" viewBox="0 0 24 24" 
+             fill="none" stroke="${color}" stroke-width="${strokeWidth}" 
+             stroke-linecap="round" stroke-linejoin="round">
+            ${iconContent}
+        </svg>
+    `.trim();
 };
 
 /* =====================================================================
@@ -3332,14 +3569,15 @@ export const PrefsManager = {
 
 /* =====================================================================
    FILE: js/utils/theme.js
-   LINES: 328
+   LINES: 310
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/utils/theme.js
-   ОПТИМИЗАЦИЯ: Исправлен баг утечки контекста Canvas (партиклы больше не пропадают)
+   ОПТИМИЗАЦИЯ: SVG перенесены в глобальный реестр (icons.js)
 ===================================================================== */
-import { PrefsManager } from './prefs.js';
+import { Store } from '../store.js';
+import { getIcon } from './icons.js';
 
 // --- ДВИЖОК ЧАСТИЦ CANVAS ---
 class ParticleEngine {
@@ -3349,7 +3587,7 @@ class ParticleEngine {
         this.particles = [];
         this.animationId = null;
         this.theme = null; 
-        this.isActive = false; // Флаг для защиты от зомби-процессов
+        this.isActive = false; 
         
         this.width = 0;
         this.height = 0;
@@ -3359,7 +3597,7 @@ class ParticleEngine {
     }
 
     init(themeId) {
-        this.stop(); // Гарантированно убиваем старый цикл
+        this.stop(); 
         this.theme = themeId;
         this.isActive = true;
         
@@ -3370,8 +3608,6 @@ class ParticleEngine {
             document.body.appendChild(container);
         }
         
-        // ВАЖНО: Мы больше не пересоздаем элемент <canvas> через innerHTML. 
-        // Если его постоянно пересоздавать, браузер исчерпает лимит GPU-контекстов и снег исчезнет.
         this.canvas = document.getElementById('seasonal-canvas');
         if (!this.canvas) {
             this.canvas = document.createElement('canvas');
@@ -3379,20 +3615,19 @@ class ParticleEngine {
             this.canvas.style.width = '100%';
             this.canvas.style.height = '100%';
             this.canvas.style.display = 'block';
-            this.canvas.style.pointerEvents = 'none'; // Чтобы не мешал кликам
+            this.canvas.style.pointerEvents = 'none';
             container.appendChild(this.canvas);
             
             this.ctx = this.canvas.getContext('2d', { alpha: true });
         }
         
-        this.canvas.style.display = 'block'; // Показываем, если был скрыт
+        this.canvas.style.display = 'block'; 
         
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
 
-        // Создаем частицы
         const count = this.theme === 'new-year' ? 50 : 30;
-        this.particles = []; // Очищаем массив
+        this.particles = [];
         for (let i = 0; i < count; i++) {
             this.particles.push(this.createParticle(true));
         }
@@ -3404,7 +3639,6 @@ class ParticleEngine {
         if (this.theme === 'new-year') {
             return {
                 x: Math.random() * this.width,
-                // При старте раскидываем снег по всему экрану, а новые снежинки появляются только сверху
                 y: isInitial ? (Math.random() * this.height) : -10, 
                 r: Math.random() * 2 + 1, 
                 speedY: Math.random() * 1 + 0.5,
@@ -3412,7 +3646,6 @@ class ParticleEngine {
                 opacity: Math.random() * 0.5 + 0.3
             };
         } else {
-            // Halloween
             return {
                 x: Math.random() * this.width,
                 y: isInitial ? (Math.random() * this.height) : (this.height + 10), 
@@ -3429,7 +3662,6 @@ class ParticleEngine {
         if (!this.canvas) return;
         this.width = window.innerWidth;
         this.height = window.innerHeight;
-        // Установка width/height аппаратно очищает canvas, что нам и нужно
         this.canvas.width = this.width;
         this.canvas.height = this.height;
     }
@@ -3444,7 +3676,6 @@ class ParticleEngine {
                 p.y += p.speedY;
                 p.x += Math.sin(p.y / 50) * 0.5 + p.speedX; 
 
-                // Переиспользуем объект вместо создания нового (бережет память телефона)
                 if (p.y > this.height + 10) {
                     p.y = -10;
                     p.x = Math.random() * this.width;
@@ -3493,7 +3724,6 @@ class ParticleEngine {
         }
         window.removeEventListener('resize', this.handleResize);
         
-        // Очищаем и скрываем канвас, но НЕ удаляем его из DOM!
         if (this.ctx && this.canvas) {
             this.ctx.clearRect(0, 0, this.width, this.height);
             this.canvas.style.display = 'none';
@@ -3519,28 +3749,7 @@ export const ThemeManager = {
     ],
     seasonalThemes: {
         'halloween': { id: 'halloween', name: 'Halloween', color: '#F86903', bg: '#110300', start: {m: 10, d: 24}, end: {m: 11, d: 7} },
-        // Обновлены даты: с 1 декабря по 31 января
         'new-year': { id: 'new-year', name: 'Новый Год', color: '#00E5FF', bg: '#070B19', start: {m: 12, d: 1}, end: {m: 1, d: 31} }
-    },
-    icons: {
-        'default': {
-            'schedule': '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
-            'homework': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
-            'group': '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
-            'events': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>'
-        },
-        'halloween': {
-            'schedule': '<path d="M2 12h20M12 2v20M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="7"></circle>', 
-            'homework': '<path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"></path>', 
-            'group': '<circle cx="12" cy="10" r="7"></circle><path d="M9 17v4H15v-4"></path><path d="M9 12h.01M15 12h.01"></path>', 
-            'events': '<path d="M2 12l5-3 5 3 5-3 5 3v2l-5-2-5 2-5-2-5 2z"></path><circle cx="12" cy="8" r="2"></circle>' 
-        },
-        'new-year': {
-            'schedule': '<rect x="3" y="8" width="18" height="14" rx="2"></rect><path d="M12 5H8a2 2 0 0 0 0 4h4z"></path><path d="M12 5h4a2 2 0 0 1 0 4h-4z"></path><line x1="12" y1="8" x2="12" y2="22"></line>', 
-            'homework': '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>', 
-            'group': '<circle cx="12" cy="15" r="6"></circle><circle cx="12" cy="6" r="4"></circle><line x1="12" y1="13" x2="12" y2="13.01"></line><line x1="12" y1="17" x2="12" y2="17.01"></line>', 
-            'events': '<line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line><line x1="4.93" y1="19.07" x2="19.07" y2="4.93"></line>' 
-        }
     },
 
     getCurrentSeason() {
@@ -3625,20 +3834,28 @@ export const ThemeManager = {
     },
 
     applySeasonalEffects(themeId) {
-        const prefs = PrefsManager.getPrefs();
+        // Забираем настройку частиц из Store, если он готов
+        const prefs = Store.state?.prefs || JSON.parse(localStorage.getItem('sh_preferences') || '{}');
+        const particlesEnabled = prefs.particles !== false; // По дефолту включены
         
-        // Запуск Canvas движка, если включены партиклы и тема подходящая
-        if (prefs.particles && (themeId === 'halloween' || themeId === 'new-year')) {
+        if (particlesEnabled && (themeId === 'halloween' || themeId === 'new-year')) {
             pEngine.init(themeId);
         } else {
             pEngine.stop();
         }
 
-        const iconSet = this.icons[themeId] ? this.icons[themeId] : this.icons['default'];
+        const isSpecial = themeId === 'halloween' || themeId === 'new-year';
+        
+        // Подмена иконок в нижней панели (обращение к icons.js)
         document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
             const href = item.getAttribute('href').slice(2); 
-            const svgEl = item.querySelector('svg');
-            if (svgEl && iconSet[href]) svgEl.innerHTML = iconSet[href];
+            const iconKey = isSpecial ? `nav-${href}-${themeId}` : `nav-${href}`;
+            const svgHtml = getIcon(iconKey, { size: 24 });
+            
+            const existingSvg = item.querySelector('svg');
+            if (existingSvg && svgHtml) {
+                existingSvg.outerHTML = svgHtml;
+            }
         });
     },
 
@@ -3657,8 +3874,10 @@ export const ThemeManager = {
     
     getThemes() {
         let available = [...this.baseThemes];
+        // Проверка режима разработчика
+        const isAdm = localStorage.getItem('sh_admin_mode') === 'true' || sessionStorage.getItem('sh_temp_admin') === 'true';
         for (const key in this.seasonalThemes) {
-            if (PrefsManager.isAdmin() || this.getCurrentSeason() === key) available.push(this.seasonalThemes[key]);
+            if (isAdm || this.getCurrentSeason() === key) available.push(this.seasonalThemes[key]);
         }
         return available;
     }
@@ -3827,7 +4046,7 @@ export class EventsView {
 
 /* =====================================================================
    FILE: js/views/GroupView.js
-   LINES: 142
+   LINES: 141
 ===================================================================== */
 
 /* =====================================================================
@@ -3849,7 +4068,7 @@ export class GroupView {
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
-    async mount() {
+    async mount(params = {}) {
         this.isMounted = true;
         this.container.innerHTML = GroupTemplate.renderSkeletons();
         
@@ -3872,7 +4091,7 @@ export class GroupView {
 
                     if (!groupedTeachers[rawName]) {
                         groupedTeachers[rawName] = {
-                            name: rawName, // Теперь выводим как есть
+                            name: rawName,
                             rawName: rawName, 
                             avatar: data.avatar || '',
                             subjects: []
@@ -3913,16 +4132,15 @@ export class GroupView {
                     `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${st.name}" loading="lazy" decoding="async"></div>`;
                 
                 const role = st.role ? `<span class="person-badge">${st.role}</span>` : '';
-                const tgBtn = st.tg ? `<a href="https://t.me/${st.tg}" target="_blank" class="person-action-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></a>` : '';
                 
-                return GroupTemplate.renderPerson(st.name, `@${st.nickname}`, avatar, role, tgBtn);
+                // Передаем маркер TG_BTN, шаблон сам подставит иконку из icons.js
+                return GroupTemplate.renderPerson(st.name, `@${st.nickname}`, avatar, role, st.tg ? 'TG_BTN' : '');
             }).join('');
         } 
         else if (this.currentTab === 'teachers') {
             statsContainer.innerHTML = GroupTemplate.renderStats('teachers', this.teachersData.length);
 
             html = this.teachersData.map(tch => {
-                // Аватарка теперь корректно берет первую букву, даже если имя неполное
                 const initial = tch.name.charAt(0).toUpperCase();
                 const avatar = !tch.avatar ? 
                     `<div class="person-avatar" style="background: ${UIUtils.getAvatarGradient(tch.rawName)}">${initial}</div>` : 
@@ -3975,15 +4193,16 @@ export class GroupView {
 
 /* =====================================================================
    FILE: js/views/HomeworkView.js
-   LINES: 214
+   LINES: 222
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/HomeworkView.js
+   Отображение ДЗ с поддержкой Deep Linking
 ===================================================================== */
 import { ApiService } from '../services/api.js';
-import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
 import { Lightbox } from '../components/Lightbox.js';
+import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
 
 const triggerHaptic = () => {
     if (navigator.vibrate) navigator.vibrate(20);
@@ -3997,6 +4216,7 @@ export class HomeworkView {
         this.storageKey = 'sh_homework_state';
         this.groupedData = {}; 
         this.isMounted = false;
+        this.currentParams = {};
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
@@ -4030,8 +4250,9 @@ export class HomeworkView {
         }
     }
 
-    async mount() {
+    async mount(params = {}) {
         this.isMounted = true;
+        this.currentParams = params;
         this.container.innerHTML = HomeworkTemplate.renderSkeletons();
         this.container.addEventListener('click', this.handleGlobalClick);
         
@@ -4074,7 +4295,7 @@ export class HomeworkView {
                 this.groupedData[subject].sort((a, b) => this.parseDateStr(b.date) - this.parseDateStr(a.date));
             }
 
-            this.renderMainList(false);
+            this.renderBasedOnParams();
 
         } catch (error) {
             if (!this.isMounted) return;
@@ -4083,33 +4304,35 @@ export class HomeworkView {
         }
     }
 
-    switchViewWithTransition(renderCallback) {
+    // Роутер вызывает этот метод при изменении параметров URL
+    async update(params = {}) {
+        this.currentParams = params;
+        this.renderBasedOnParams();
+    }
+
+    renderBasedOnParams() {
         if (!this.isMounted) return;
+        const subject = this.currentParams.subject;
+        
+        this.switchViewWithTransition(() => {
+            if (!this.isMounted) return;
+            
+            if (subject && this.groupedData[subject]) {
+                this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
+            } else {
+                this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
+            }
+            
+            this.validateLocalFiles();
+        });
+    }
+
+    switchViewWithTransition(renderCallback) {
         if (document.startViewTransition) {
-            document.startViewTransition(() => {
-                if (this.isMounted) renderCallback();
-            });
+            document.startViewTransition(() => renderCallback());
         } else {
             renderCallback();
         }
-    }
-
-    renderMainList(animate = true) {
-        const render = () => {
-            if (!this.isMounted) return;
-            this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
-            this.validateLocalFiles();
-        };
-        if (animate) this.switchViewWithTransition(render);
-        else render();
-    }
-
-    renderSubjectHistory(subject) {
-        this.switchViewWithTransition(() => {
-            if (!this.isMounted) return;
-            this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
-            this.validateLocalFiles();
-        });
     }
 
     async validateLocalFiles() {
@@ -4149,17 +4372,20 @@ export class HomeworkView {
             return;
         }
 
+        // КЛИК "ВСЕ ЗАДАНИЯ" -> Меняем URL, а роутер сам сделает остальное
         const showAllBtn = e.target.closest('.hw-show-all-btn');
         if (showAllBtn) {
             triggerHaptic();
-            this.renderSubjectHistory(showAllBtn.getAttribute('data-subject'));
+            const subject = showAllBtn.getAttribute('data-subject');
+            window.location.hash = `#/homework?subject=${encodeURIComponent(subject)}`;
             return;
         }
 
+        // КЛИК "НАЗАД" -> Нативная навигация браузера
         const backBtn = e.target.closest('#hw-back-btn');
         if (backBtn) {
             triggerHaptic();
-            this.renderMainList(true);
+            window.history.back(); 
             return;
         }
 
@@ -4195,20 +4421,23 @@ export class HomeworkView {
 
 /* =====================================================================
    FILE: js/views/ScheduleView.js
-   LINES: 465
+   LINES: 486
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/ScheduleView.js
+   Реактивное расписание с поддержкой Deep Linking и Store
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { getCurrentScheduleStatus, getDateStringForDay, formatMinutes } from '../utils/time.js';
 import { PrefsManager } from '../utils/prefs.js';
+import { Store } from '../store.js';
 
 export class ScheduleView {
     constructor(container) {
         this.container = container;
         this.liveTimerId = null;
+        this.unsubscribeStore = null;
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null; 
         this.isMounted = false;
@@ -4222,7 +4451,7 @@ export class ScheduleView {
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
-    async mount() {
+    async mount(params = {}) {
         this.isMounted = true;
         this.container.innerHTML = `
             <div class="skeleton" style="height: 120px; width: 100%; margin-bottom: 24px;"></div>
@@ -4231,6 +4460,13 @@ export class ScheduleView {
         `;
         
         this.container.addEventListener('click', this.handleGlobalClick);
+
+        // ПОДПИСКА НА STORE: Ждем изменения подгруппы
+        this.unsubscribeStore = Store.subscribe((state, changedKey) => {
+            if (changedKey === 'pref_subgroup' && this.isMounted) {
+                this.fullRenderUI();
+            }
+        });
 
         try {
             const [bells, baseSchedule] = await Promise.all([
@@ -4245,7 +4481,9 @@ export class ScheduleView {
             
             const currentDayReal = new Date().getDay();
             this.state.currentDayNum = (currentDayReal >= 1 && currentDayReal <= 5) ? currentDayReal : 1;
-            this.state.selectedDay = this.state.currentDayNum;
+            
+            // Если в URL есть день (например, ?day=3), берем его, иначе сегодняшний
+            this.state.selectedDay = params.day ? Number(params.day) : this.state.currentDayNum;
 
             const todayStr = getDateStringForDay(this.state.currentDayNum);
             this.state.todayOverride = await ApiService.getOverride(todayStr);
@@ -4268,22 +4506,32 @@ export class ScheduleView {
         }
     }
 
+    // НОВЫЙ МЕТОД: Роутер вызывает его при изменении параметра ?day=...
+    async update(params = {}) {
+        const targetDay = params.day ? parseInt(params.day) : this.state.currentDayNum;
+        if (targetDay !== this.state.selectedDay) {
+            const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
+            await this.changeDay(targetDay, direction);
+        }
+    }
+
     unmount() {
         this.isMounted = false;
         if (this.liveTimerId) clearInterval(this.liveTimerId);
+        if (this.unsubscribeStore) this.unsubscribeStore();
+        
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null;
         this.container.removeEventListener('click', this.handleGlobalClick);
     }
 
-    // --- БРОНИРОВАННЫЕ КЛИКИ (Делегирование) ---
     handleGlobalClick(e) {
         const dayTab = e.target.closest('.day-tab');
         if (dayTab) {
             const targetDay = parseInt(dayTab.getAttribute('data-day'));
             if (targetDay !== this.state.selectedDay) {
-                const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
-                this.changeDay(targetDay, direction);
+                // МЕНЯЕМ URL, а не перерисовываем напрямую! Роутер всё сделает сам.
+                window.location.hash = `#/schedule?day=${targetDay}`;
             }
             return;
         }
@@ -4326,7 +4574,7 @@ export class ScheduleView {
     }
 
     async changeDay(newDay, direction) {
-        if (newDay < 1 || newDay > 5 || newDay === this.state.selectedDay) return;
+        if (newDay < 1 || newDay > 5) return;
         
         PrefsManager.vibrate(15);
         this.state.selectedDay = newDay;
@@ -4336,17 +4584,19 @@ export class ScheduleView {
         });
 
         const listContainer = document.getElementById('schedule-list');
-        listContainer.classList.add('updating');
+        if (listContainer) listContainer.classList.add('updating');
 
         await this.loadSelectedDayData();
         if (!this.isMounted) return;
 
         this.fullRenderUI();
 
-        listContainer.classList.remove('slide-left', 'slide-right');
-        void listContainer.offsetWidth;
-        listContainer.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
-        listContainer.classList.remove('updating');
+        if (listContainer) {
+            listContainer.classList.remove('slide-left', 'slide-right');
+            void listContainer.offsetWidth;
+            listContainer.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
+            listContainer.classList.remove('updating');
+        }
     }
 
     bindSwipeEvents() {
@@ -4367,10 +4617,13 @@ export class ScheduleView {
             const threshold = 50; 
             
             if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+                // Свайпы меняют URL!
                 if (diffX < -threshold) {
-                    this.changeDay(this.state.selectedDay + 1, 'right'); 
+                    const next = Math.min(this.state.selectedDay + 1, 5);
+                    if (next !== this.state.selectedDay) window.location.hash = `#/schedule?day=${next}`;
                 } else if (diffX > threshold) {
-                    this.changeDay(this.state.selectedDay - 1, 'left');
+                    const prev = Math.max(this.state.selectedDay - 1, 1);
+                    if (prev !== this.state.selectedDay) window.location.hash = `#/schedule?day=${prev}`;
                 }
             }
         }, { passive: true });
@@ -4414,7 +4667,9 @@ export class ScheduleView {
             return;
         }
 
-        const userSubgroup = PrefsManager.getPrefs().subgroup;
+        // БЕРЕМ ИЗ STORE!
+        const userSubgroup = Store.getState().prefs.subgroup;
+        
         const isSubjectVisible = (subjectName) => {
             if (!subjectName) return true; 
             const str = subjectName.toLowerCase();
@@ -4469,12 +4724,10 @@ export class ScheduleView {
         this.cached.pairCards = Array.from(listContainer.querySelectorAll('.pair-card'));
     }
 
-    // --- УМНЫЙ РАСЧЕТ ТАЙМЕРА (Уважает подгруппы) ---
     getSmartStatus() {
         let status = getCurrentScheduleStatus(this.state.bells);
         
         let overrideToUse = this.state.todayOverride;
-        // Берем актуальный оверрайд, только если смотрим на сегодняшний день
         if (this.state.selectedDay === this.state.currentDayNum) {
             overrideToUse = this.state.selectedDayOverride;
         }
@@ -4482,8 +4735,9 @@ export class ScheduleView {
         const rawSchedule = overrideToUse ? overrideToUse.lessons : (this.state.base[this.state.currentDayNum] || []);
         if (rawSchedule.length === 0) return { status: 'no_classes' };
 
-        // 1. Фильтруем расписание по подгруппе пользователя
-        const userSubgroup = PrefsManager.getPrefs().subgroup;
+        // БЕРЕМ ИЗ STORE!
+        const userSubgroup = Store.getState().prefs.subgroup;
+        
         const isVisible = (subjectName) => {
             if (!subjectName) return true; 
             const str = subjectName.toLowerCase();
@@ -4501,25 +4755,19 @@ export class ScheduleView {
             const hasL2 = isVisible(l2Subj);
             
             if (!hasL1 && !hasL2) {
-                // Вся пара для другой подгруппы -> делаем пустоту (окно)
-                p.subject = null;
-                p.lesson1 = null;
-                p.lesson2 = null;
+                p.subject = null; p.lesson1 = null; p.lesson2 = null;
             } else {
-                // Если только половина пары скрыта
                 if (!hasL1) p.lesson1 = { subject: null };
                 if (!hasL2) p.lesson2 = { subject: null };
             }
             return p;
         });
 
-        // 2. Ищем реальный конец дня (игнорируя пустые пары в конце)
         const validPairs = todaySchedule.filter(p => p.subject !== null || (p.lesson1 && p.lesson1.subject !== null) || (p.lesson2 && p.lesson2.subject !== null));
         const maxPair = validPairs.length > 0 ? Math.max(...validPairs.map(l => l.pair)) : 0;
 
         if (maxPair === 0) return { status: 'no_classes' };
 
-        // 3. Сверяем со временем
         if ((status.status.startsWith('active') || status.status === 'short_break') && status.currentPair.pair > maxPair) return { status: 'ended' };
         if (status.status === 'break' && status.nextPair.pair > maxPair) return { status: 'ended' };
 
@@ -4604,7 +4852,6 @@ export class ScheduleView {
         const now = new Date();
         const realDay = now.getDay();
         
-        // --- АВТО-ОБНОВЛЕНИЕ В ПОЛНОЧЬ ---
         const activeDayNum = (realDay >= 1 && realDay <= 5) ? realDay : 1;
         if (this.state.currentDayNum !== activeDayNum) {
             this.state.currentDayNum = activeDayNum;
@@ -4666,16 +4913,18 @@ export class ScheduleView {
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   LINES: 367
+   LINES: 391
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
+   Настройки с поддержкой Deep Linking для модалок
 ===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Modal } from '../components/Modal.js';
 import { SettingsTemplate } from '../templates/SettingsTemplate.js';
+import { Store } from '../store.js';
 
 export class SettingsView {
     constructor(container) {
@@ -4683,6 +4932,7 @@ export class SettingsView {
         this.adminTaps = 0;
         this.adminTapTimeout = null;
         this.isMounted = false;
+        this.currentParams = {};
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
         this.handleGlobalChange = this.handleGlobalChange.bind(this);
@@ -4694,9 +4944,11 @@ export class SettingsView {
         return 'Обе (Показывать всё)';
     }
 
-    async mount() {
+    async mount(params = {}) {
         this.isMounted = true;
-        const currentPrefs = PrefsManager.getPrefs(); 
+        this.currentParams = params;
+        
+        const currentPrefs = Store.getState().prefs; 
         const currentTheme = ThemeManager.getCurrent();
         const hasWp = await PrefsManager.hasWallpaper(); 
         
@@ -4720,8 +4972,15 @@ export class SettingsView {
         this.container.addEventListener('change', this.handleGlobalChange);
         
         this.initDesktopScroll();
+        this.handleModalState();
     }
 
+    async update(params = {}) {
+        this.currentParams = params;
+        this.handleModalState();
+    }
+
+    // ВОТ ОН, ПОТЕРЯННЫЙ МЕТОД: очищает подписки при уходе со страницы
     unmount() {
         this.isMounted = false;
         if (this.adminTapTimeout) clearTimeout(this.adminTapTimeout);
@@ -4729,11 +4988,34 @@ export class SettingsView {
         this.container.removeEventListener('change', this.handleGlobalChange);
     }
 
+    handleModalState() {
+        if (!this.isMounted) return;
+        
+        const customDialog = document.getElementById('custom-theme-dialog');
+        const navDialog = document.getElementById('nav-order-dialog');
+        
+        if (!customDialog || !navDialog) return;
+
+        if (this.currentParams.modal === 'custom-theme') {
+            if (!customDialog.open) customDialog.showModal();
+            if (navDialog.open) navDialog.close();
+        } else if (this.currentParams.modal === 'nav-order') {
+            if (!navDialog.open) {
+                this.refreshNavModal();
+                navDialog.showModal();
+            }
+            if (customDialog.open) customDialog.close();
+        } else {
+            if (customDialog.open) customDialog.close();
+            if (navDialog.open) navDialog.close();
+        }
+    }
+
     handleGlobalChange(e) {
         if (e.target.id === 'upload-wp') {
             const file = e.target.files[0];
             if (file) PrefsManager.saveWallpaper(file, (success) => { 
-                if (success && this.isMounted) this.mount(); 
+                if (success && this.isMounted) this.mount(this.currentParams); 
             });
         }
     }
@@ -4746,8 +5028,8 @@ export class SettingsView {
 
         if (e.target.closest('#settings-back-btn')) {
             PrefsManager.vibrate();
-            if (window.history.length > 1) window.history.back();
-            else window.location.hash = '#/schedule';
+            const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
+            window.location.hash = '#/' + firstPage;
             return;
         }
 
@@ -4758,48 +5040,44 @@ export class SettingsView {
             PrefsManager.vibrate();
 
             if (selectedId === 'custom') {
-                document.getElementById('custom-theme-dialog').showModal();
+                window.location.hash = '#/settings?modal=custom-theme';
             } else {
                 ThemeManager.setTheme(selectedId);
-                this.mount(); 
+                this.mount(this.currentParams); 
             }
             return;
         }
 
-        if (e.target.closest('#btn-cancel-custom')) {
+        if (e.target.closest('#btn-cancel-custom') || (e.target.tagName === 'DIALOG' && e.target.id === 'custom-theme-dialog')) {
             PrefsManager.vibrate(); 
-            document.getElementById('custom-theme-dialog').close();
+            window.history.back();
             return;
         }
+
         if (e.target.closest('#btn-save-custom')) {
             PrefsManager.vibrate();
             ThemeManager.saveCustomTheme(document.getElementById('picker-bg').value, document.getElementById('picker-accent').value);
-            document.getElementById('custom-theme-dialog').close();
-            this.mount(); 
+            window.history.back(); 
+            setTimeout(() => this.mount(this.currentParams), 100); 
             return;
         }
 
         if (e.target.closest('#btn-open-nav-order')) {
             PrefsManager.vibrate(10);
-            
-            // Фильтруем от багов прошлой версии
             const validNavs = ['schedule', 'homework', 'group', 'events'];
-            this.tempNavOrder = PrefsManager.getPrefs().navOrder.filter(id => validNavs.includes(id));
+            this.tempNavOrder = Store.getState().prefs.navOrder.filter(id => validNavs.includes(id));
+            if (this.tempNavOrder.length === 0) this.tempNavOrder = [...validNavs];
             
-            if (this.tempNavOrder.length === 0) {
-                this.tempNavOrder = ['schedule', 'homework', 'group', 'events'];
-            }
-
-            this.refreshNavModal();
-            document.getElementById('nav-order-dialog').showModal();
+            window.location.hash = '#/settings?modal=nav-order';
             return;
         }
 
         if (e.target.closest('#btn-save-nav')) {
             PrefsManager.vibrate(20);
             PrefsManager.updatePref('navOrder', this.tempNavOrder);
+            Store.updatePref('navOrder', this.tempNavOrder); 
             PrefsManager.applySettingsToDOM(); 
-            document.getElementById('nav-order-dialog').close();
+            window.history.back();
             return;
         }
 
@@ -4814,15 +5092,17 @@ export class SettingsView {
         const subgroupOpt = e.target.closest('.custom-select-option');
         if (subgroupOpt) {
             PrefsManager.vibrate();
-            PrefsManager.updatePref('subgroup', subgroupOpt.getAttribute('data-value'));
-            this.mount(); 
+            const val = subgroupOpt.getAttribute('data-value');
+            PrefsManager.updatePref('subgroup', val);
+            Store.updatePref('subgroup', val);
+            this.mount(this.currentParams); 
             return;
         }
 
         if (e.target.closest('#btn-clear-wp')) {
             PrefsManager.vibrate(); 
             PrefsManager.clearWallpaper(); 
-            this.mount();
+            this.mount(this.currentParams);
             return;
         }
 
@@ -4835,18 +5115,21 @@ export class SettingsView {
                 const toggle = document.getElementById('toggle-haptic');
                 const isNowEnabled = toggle.classList.toggle('active');
                 PrefsManager.updatePref('haptic', isNowEnabled);
+                Store.updatePref('haptic', isNowEnabled);
                 if (isNowEnabled && navigator.vibrate) navigator.vibrate(20);
             } 
             else if (wrapperId === 'toggle-power-wrapper') {
                 const toggle = document.getElementById('toggle-power');
                 const isNowEnabled = toggle.classList.toggle('active');
                 PrefsManager.updatePref('powerSave', isNowEnabled);
+                Store.updatePref('powerSave', isNowEnabled);
                 PrefsManager.applySettingsToDOM();
             }
             else if (wrapperId === 'toggle-particles-wrapper') {
                 const toggle = document.getElementById('toggle-particles');
                 const isNowEnabled = toggle.classList.toggle('active');
                 PrefsManager.updatePref('particles', isNowEnabled);
+                Store.updatePref('particles', isNowEnabled);
                 ThemeManager.applySeasonalEffects(ThemeManager.getCurrent());
             }
             else if (wrapperId === 'toggle-notif-wrapper') {
@@ -4861,6 +5144,7 @@ export class SettingsView {
                 }
                 const isNowEnabled = toggle.classList.toggle('active');
                 PrefsManager.updatePref('notifications', isNowEnabled);
+                Store.updatePref('notifications', isNowEnabled);
             }
             return;
         }
@@ -4895,7 +5179,7 @@ export class SettingsView {
                 Modal.showAlert(
                     isAdm ? 'Режим разработчика ВКЛЮЧЕН' : 'Режим разработчика ВЫКЛЮЧЕН',
                     isAdm ? 'Открыт доступ к скрытым функциям и сезонным темам.' : 'Стандартный вид.',
-                    'admin', () => { if(this.isMounted) this.mount(); }
+                    'admin', () => { if(this.isMounted) this.mount(this.currentParams); }
                 );
             }
             return;
@@ -4910,7 +5194,6 @@ export class SettingsView {
         this.initDragDrop(list); 
     }
 
-    // --- СОВЕРШЕННЫЙ ДВИЖОК DRAG & DROP ---
     initDragDrop(listContainer) {
         let activeItem = null;
         let clone = null;
@@ -4932,11 +5215,9 @@ export class SettingsView {
             const evt = getEvent(e);
             const rect = activeItem.getBoundingClientRect();
             
-            // Запоминаем сдвиг клика относительно верхнего левого угла элемента
             offsetX = evt.clientX - rect.left;
             offsetY = evt.clientY - rect.top;
 
-            // 1. Создаем летающего клона
             clone = activeItem.cloneNode(true);
             clone.classList.add('drag-clone');
             clone.style.width = `${rect.width}px`;
@@ -4944,17 +5225,15 @@ export class SettingsView {
             clone.style.left = `${evt.clientX - offsetX}px`;
             clone.style.top = `${evt.clientY - offsetY}px`;
             
-            // Добавляем клона прямо в body, чтобы его не резал overflow модалки
             document.body.appendChild(clone);
 
-            // 2. Оригинальный элемент делаем прозрачной рамкой
             activeItem.classList.add('drag-placeholder');
 
             document.addEventListener('mousemove', onMove, { passive: false });
             document.addEventListener('touchmove', onMove, { passive: false });
             document.addEventListener('mouseup', onEnd);
             document.addEventListener('touchend', onEnd);
-            document.addEventListener('touchcancel', onEnd); // Важно для срывов свайпа
+            document.addEventListener('touchcancel', onEnd); 
         };
 
         const onMove = (e) => {
@@ -4963,11 +5242,9 @@ export class SettingsView {
             
             const evt = getEvent(e);
             
-            // Двигаем клона за курсором
             clone.style.left = `${evt.clientX - offsetX}px`;
             clone.style.top = `${evt.clientY - offsetY}px`;
 
-            // Узнаем, над каким элементом мы сейчас находимся (игнорирует клона, т.к. у него pointer-events: none)
             const hoveredEl = document.elementFromPoint(evt.clientX, evt.clientY);
             if (!hoveredEl) return;
 
@@ -4977,7 +5254,6 @@ export class SettingsView {
                 const targetRect = targetItem.getBoundingClientRect();
                 const targetCenter = targetRect.top + (targetRect.height / 2);
                 
-                // Перемещаем оригинальный элемент в DOM (рамка просто скачет по списку)
                 if (evt.clientY < targetCenter) {
                     listContainer.insertBefore(activeItem, targetItem);
                 } else {
@@ -4989,12 +5265,9 @@ export class SettingsView {
 
         const onEnd = () => {
             if (!activeItem) return;
-
-            // Удаляем клона
             if (clone) clone.remove();
             clone = null;
 
-            // Возвращаем видимость оригинальному элементу
             activeItem.classList.remove('drag-placeholder');
             activeItem = null;
 
@@ -5004,13 +5277,11 @@ export class SettingsView {
             document.removeEventListener('touchend', onEnd);
             document.removeEventListener('touchcancel', onEnd);
 
-            // Сохраняем порядок
             const newOrder = [...listContainer.querySelectorAll('.nav-reorder-item')].map(el => el.dataset.id);
             this.tempNavOrder = newOrder;
             this.refreshNavModal(); 
         };
 
-        // Защита от дублей событий
         listContainer.removeEventListener('mousedown', onStart);
         listContainer.removeEventListener('touchstart', onStart);
         

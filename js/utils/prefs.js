@@ -1,3 +1,8 @@
+/* =====================================================================
+   FILE: js/utils/prefs.js
+===================================================================== */
+import { Store } from '../store.js';
+
 // Простая асинхронная обертка для IndexedDB
 const idb = {
     getDb() {
@@ -53,6 +58,7 @@ export const PrefsManager = {
         const prefs = this.getPrefs();
         prefs[key] = value;
         this.savePrefs(prefs);
+        Store.updatePref(key, value); // Синхронизируем со Store
     },
 
     enableTempAdmin() {

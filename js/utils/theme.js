@@ -1,8 +1,9 @@
 /* =====================================================================
    FILE: js/utils/theme.js
-   ОПТИМИЗАЦИЯ: Исправлен баг утечки контекста Canvas (партиклы больше не пропадают)
+   ОПТИМИЗАЦИЯ: SVG перенесены в глобальный реестр (icons.js)
 ===================================================================== */
-import { PrefsManager } from './prefs.js';
+import { Store } from '../store.js';
+import { getIcon } from './icons.js';
 
 // --- ДВИЖОК ЧАСТИЦ CANVAS ---
 class ParticleEngine {
@@ -12,7 +13,7 @@ class ParticleEngine {
         this.particles = [];
         this.animationId = null;
         this.theme = null; 
-        this.isActive = false; // Флаг для защиты от зомби-процессов
+        this.isActive = false; 
         
         this.width = 0;
         this.height = 0;
@@ -22,7 +23,7 @@ class ParticleEngine {
     }
 
     init(themeId) {
-        this.stop(); // Гарантированно убиваем старый цикл
+        this.stop(); 
         this.theme = themeId;
         this.isActive = true;
         
@@ -33,8 +34,6 @@ class ParticleEngine {
             document.body.appendChild(container);
         }
         
-        // ВАЖНО: Мы больше не пересоздаем элемент <canvas> через innerHTML. 
-        // Если его постоянно пересоздавать, браузер исчерпает лимит GPU-контекстов и снег исчезнет.
         this.canvas = document.getElementById('seasonal-canvas');
         if (!this.canvas) {
             this.canvas = document.createElement('canvas');
@@ -42,20 +41,19 @@ class ParticleEngine {
             this.canvas.style.width = '100%';
             this.canvas.style.height = '100%';
             this.canvas.style.display = 'block';
-            this.canvas.style.pointerEvents = 'none'; // Чтобы не мешал кликам
+            this.canvas.style.pointerEvents = 'none';
             container.appendChild(this.canvas);
             
             this.ctx = this.canvas.getContext('2d', { alpha: true });
         }
         
-        this.canvas.style.display = 'block'; // Показываем, если был скрыт
+        this.canvas.style.display = 'block'; 
         
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
 
-        // Создаем частицы
         const count = this.theme === 'new-year' ? 50 : 30;
-        this.particles = []; // Очищаем массив
+        this.particles = [];
         for (let i = 0; i < count; i++) {
             this.particles.push(this.createParticle(true));
         }
@@ -67,7 +65,6 @@ class ParticleEngine {
         if (this.theme === 'new-year') {
             return {
                 x: Math.random() * this.width,
-                // При старте раскидываем снег по всему экрану, а новые снежинки появляются только сверху
                 y: isInitial ? (Math.random() * this.height) : -10, 
                 r: Math.random() * 2 + 1, 
                 speedY: Math.random() * 1 + 0.5,
@@ -75,7 +72,6 @@ class ParticleEngine {
                 opacity: Math.random() * 0.5 + 0.3
             };
         } else {
-            // Halloween
             return {
                 x: Math.random() * this.width,
                 y: isInitial ? (Math.random() * this.height) : (this.height + 10), 
@@ -92,7 +88,6 @@ class ParticleEngine {
         if (!this.canvas) return;
         this.width = window.innerWidth;
         this.height = window.innerHeight;
-        // Установка width/height аппаратно очищает canvas, что нам и нужно
         this.canvas.width = this.width;
         this.canvas.height = this.height;
     }
@@ -107,7 +102,6 @@ class ParticleEngine {
                 p.y += p.speedY;
                 p.x += Math.sin(p.y / 50) * 0.5 + p.speedX; 
 
-                // Переиспользуем объект вместо создания нового (бережет память телефона)
                 if (p.y > this.height + 10) {
                     p.y = -10;
                     p.x = Math.random() * this.width;
@@ -156,7 +150,6 @@ class ParticleEngine {
         }
         window.removeEventListener('resize', this.handleResize);
         
-        // Очищаем и скрываем канвас, но НЕ удаляем его из DOM!
         if (this.ctx && this.canvas) {
             this.ctx.clearRect(0, 0, this.width, this.height);
             this.canvas.style.display = 'none';
@@ -182,28 +175,7 @@ export const ThemeManager = {
     ],
     seasonalThemes: {
         'halloween': { id: 'halloween', name: 'Halloween', color: '#F86903', bg: '#110300', start: {m: 10, d: 24}, end: {m: 11, d: 7} },
-        // Обновлены даты: с 1 декабря по 31 января
         'new-year': { id: 'new-year', name: 'Новый Год', color: '#00E5FF', bg: '#070B19', start: {m: 12, d: 1}, end: {m: 1, d: 31} }
-    },
-    icons: {
-        'default': {
-            'schedule': '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
-            'homework': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
-            'group': '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
-            'events': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>'
-        },
-        'halloween': {
-            'schedule': '<path d="M2 12h20M12 2v20M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="7"></circle>', 
-            'homework': '<path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"></path>', 
-            'group': '<circle cx="12" cy="10" r="7"></circle><path d="M9 17v4H15v-4"></path><path d="M9 12h.01M15 12h.01"></path>', 
-            'events': '<path d="M2 12l5-3 5 3 5-3 5 3v2l-5-2-5 2-5-2-5 2z"></path><circle cx="12" cy="8" r="2"></circle>' 
-        },
-        'new-year': {
-            'schedule': '<rect x="3" y="8" width="18" height="14" rx="2"></rect><path d="M12 5H8a2 2 0 0 0 0 4h4z"></path><path d="M12 5h4a2 2 0 0 1 0 4h-4z"></path><line x1="12" y1="8" x2="12" y2="22"></line>', 
-            'homework': '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>', 
-            'group': '<circle cx="12" cy="15" r="6"></circle><circle cx="12" cy="6" r="4"></circle><line x1="12" y1="13" x2="12" y2="13.01"></line><line x1="12" y1="17" x2="12" y2="17.01"></line>', 
-            'events': '<line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line><line x1="4.93" y1="19.07" x2="19.07" y2="4.93"></line>' 
-        }
     },
 
     getCurrentSeason() {
@@ -288,20 +260,28 @@ export const ThemeManager = {
     },
 
     applySeasonalEffects(themeId) {
-        const prefs = PrefsManager.getPrefs();
+        // Забираем настройку частиц из Store, если он готов
+        const prefs = Store.state?.prefs || JSON.parse(localStorage.getItem('sh_preferences') || '{}');
+        const particlesEnabled = prefs.particles !== false; // По дефолту включены
         
-        // Запуск Canvas движка, если включены партиклы и тема подходящая
-        if (prefs.particles && (themeId === 'halloween' || themeId === 'new-year')) {
+        if (particlesEnabled && (themeId === 'halloween' || themeId === 'new-year')) {
             pEngine.init(themeId);
         } else {
             pEngine.stop();
         }
 
-        const iconSet = this.icons[themeId] ? this.icons[themeId] : this.icons['default'];
+        const isSpecial = themeId === 'halloween' || themeId === 'new-year';
+        
+        // Подмена иконок в нижней панели (обращение к icons.js)
         document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
             const href = item.getAttribute('href').slice(2); 
-            const svgEl = item.querySelector('svg');
-            if (svgEl && iconSet[href]) svgEl.innerHTML = iconSet[href];
+            const iconKey = isSpecial ? `nav-${href}-${themeId}` : `nav-${href}`;
+            const svgHtml = getIcon(iconKey, { size: 24 });
+            
+            const existingSvg = item.querySelector('svg');
+            if (existingSvg && svgHtml) {
+                existingSvg.outerHTML = svgHtml;
+            }
         });
     },
 
@@ -320,8 +300,10 @@ export const ThemeManager = {
     
     getThemes() {
         let available = [...this.baseThemes];
+        // Проверка режима разработчика
+        const isAdm = localStorage.getItem('sh_admin_mode') === 'true' || sessionStorage.getItem('sh_temp_admin') === 'true';
         for (const key in this.seasonalThemes) {
-            if (PrefsManager.isAdmin() || this.getCurrentSeason() === key) available.push(this.seasonalThemes[key]);
+            if (isAdm || this.getCurrentSeason() === key) available.push(this.seasonalThemes[key]);
         }
         return available;
     }

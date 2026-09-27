@@ -2,6 +2,8 @@
    FILE: js/templates/HomeworkTemplate.js
    Шаблоны для раздела Домашних заданий
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const HomeworkTemplate = {
     renderSkeletons() {
         return `
@@ -31,7 +33,7 @@ export const HomeworkTemplate = {
                 task.links.forEach(link => {
                     extraHtml += `
                         <a href="${link.url}" target="_blank" class="hw-link interactive-element">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            ${getIcon('link', { size: 16 })}
                             <span>${link.title}</span>
                         </a>
                     `;
@@ -43,7 +45,7 @@ export const HomeworkTemplate = {
                     extraHtml += `
                         <a href="${file.url}" target="_blank" class="hw-attachment interactive-element local-file-check" data-url="${file.url}">
                             <div class="hw-file-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                ${getIcon('file', { size: 18 })}
                             </div>
                             <div class="hw-file-info">
                                 <span class="hw-file-name">${file.name}</span>
@@ -74,7 +76,7 @@ export const HomeworkTemplate = {
         return `
             <div class="hw-card ${isHistory ? 'history-item' : ''} ${task.done ? 'completed' : ''}" data-id="${task.id}">
                 <div class="hw-checkbox ${task.done ? 'checked' : ''}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    ${getIcon('check', { size: 14, color: '#fff', strokeWidth: 3 })}
                 </div>
                 <div class="hw-content">
                     <div class="hw-task">${task.task}</div>
@@ -109,7 +111,7 @@ export const HomeworkTemplate = {
                 html += `
                     <button class="hw-show-all-btn" data-subject="${subject}">
                         Все задания (${tasks.length})
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        ${getIcon('chevron-right', { size: 16 })}
                     </button>
                 `;
             }
@@ -125,7 +127,7 @@ export const HomeworkTemplate = {
             <div class="hw-container slide-left">
                 <div class="hw-history-header">
                     <button class="hw-back-btn" id="hw-back-btn" aria-label="Назад">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        ${getIcon('back', { size: 20 })}
                     </button>
                     <div class="hw-history-title">
                         <h2>${subject}</h2>

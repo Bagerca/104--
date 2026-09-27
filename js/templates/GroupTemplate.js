@@ -1,6 +1,8 @@
 /* =====================================================================
    FILE: js/templates/GroupTemplate.js
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const GroupTemplate = {
     renderSkeletons() {
         return `
@@ -38,6 +40,11 @@ export const GroupTemplate = {
     },
 
     renderPerson(name, subText, avatarHtml, roleHtml = '', actionBtnHtml = '') {
+        // Подключаем иконку телеграма, если это кнопка ТГ
+        if (actionBtnHtml === 'TG_BTN') {
+            actionBtnHtml = `<a href="https://t.me/${subText.replace('@','')}" target="_blank" class="person-action-btn">${getIcon('telegram', { size: 18 })}</a>`;
+        }
+        
         return `
             <li class="person-card">
                 ${avatarHtml}

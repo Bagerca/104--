@@ -1,14 +1,17 @@
 /* =====================================================================
    FILE: js/views/ScheduleView.js
+   Реактивное расписание с поддержкой Deep Linking и Store
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { getCurrentScheduleStatus, getDateStringForDay, formatMinutes } from '../utils/time.js';
 import { PrefsManager } from '../utils/prefs.js';
+import { Store } from '../store.js';
 
 export class ScheduleView {
     constructor(container) {
         this.container = container;
         this.liveTimerId = null;
+        this.unsubscribeStore = null;
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null; 
         this.isMounted = false;
@@ -22,7 +25,7 @@ export class ScheduleView {
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
-    async mount() {
+    async mount(params = {}) {
         this.isMounted = true;
         this.container.innerHTML = `
             <div class="skeleton" style="height: 120px; width: 100%; margin-bottom: 24px;"></div>
@@ -31,6 +34,12 @@ export class ScheduleView {
         `;
         
         this.container.addEventListener('click', this.handleGlobalClick);
+
+        this.unsubscribeStore = Store.subscribe((state, changedKey) => {
+            if (changedKey === 'pref_subgroup' && this.isMounted) {
+                this.fullRenderUI();
+            }
+        });
 
         try {
             const [bells, baseSchedule] = await Promise.all([
@@ -45,7 +54,8 @@ export class ScheduleView {
             
             const currentDayReal = new Date().getDay();
             this.state.currentDayNum = (currentDayReal >= 1 && currentDayReal <= 5) ? currentDayReal : 1;
-            this.state.selectedDay = this.state.currentDayNum;
+            
+            this.state.selectedDay = params.day ? Number(params.day) : this.state.currentDayNum;
 
             const todayStr = getDateStringForDay(this.state.currentDayNum);
             this.state.todayOverride = await ApiService.getOverride(todayStr);
@@ -68,22 +78,30 @@ export class ScheduleView {
         }
     }
 
+    async update(params = {}) {
+        const targetDay = params.day ? parseInt(params.day) : this.state.currentDayNum;
+        if (targetDay !== this.state.selectedDay) {
+            const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
+            await this.changeDay(targetDay, direction);
+        }
+    }
+
     unmount() {
         this.isMounted = false;
         if (this.liveTimerId) clearInterval(this.liveTimerId);
+        if (this.unsubscribeStore) this.unsubscribeStore();
+        
         this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
         this.currentWidgetState = null;
         this.container.removeEventListener('click', this.handleGlobalClick);
     }
 
-    // --- БРОНИРОВАННЫЕ КЛИКИ (Делегирование) ---
     handleGlobalClick(e) {
         const dayTab = e.target.closest('.day-tab');
         if (dayTab) {
             const targetDay = parseInt(dayTab.getAttribute('data-day'));
             if (targetDay !== this.state.selectedDay) {
-                const direction = targetDay > this.state.selectedDay ? 'right' : 'left';
-                this.changeDay(targetDay, direction);
+                window.location.hash = `#/schedule?day=${targetDay}`;
             }
             return;
         }
@@ -126,7 +144,7 @@ export class ScheduleView {
     }
 
     async changeDay(newDay, direction) {
-        if (newDay < 1 || newDay > 5 || newDay === this.state.selectedDay) return;
+        if (newDay < 1 || newDay > 5) return;
         
         PrefsManager.vibrate(15);
         this.state.selectedDay = newDay;
@@ -136,17 +154,19 @@ export class ScheduleView {
         });
 
         const listContainer = document.getElementById('schedule-list');
-        listContainer.classList.add('updating');
+        if (listContainer) listContainer.classList.add('updating');
 
         await this.loadSelectedDayData();
         if (!this.isMounted) return;
 
         this.fullRenderUI();
 
-        listContainer.classList.remove('slide-left', 'slide-right');
-        void listContainer.offsetWidth;
-        listContainer.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
-        listContainer.classList.remove('updating');
+        if (listContainer) {
+            listContainer.classList.remove('slide-left', 'slide-right');
+            void listContainer.offsetWidth;
+            listContainer.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
+            listContainer.classList.remove('updating');
+        }
     }
 
     bindSwipeEvents() {
@@ -168,9 +188,11 @@ export class ScheduleView {
             
             if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
                 if (diffX < -threshold) {
-                    this.changeDay(this.state.selectedDay + 1, 'right'); 
+                    const next = Math.min(this.state.selectedDay + 1, 5);
+                    if (next !== this.state.selectedDay) window.location.hash = `#/schedule?day=${next}`;
                 } else if (diffX > threshold) {
-                    this.changeDay(this.state.selectedDay - 1, 'left');
+                    const prev = Math.max(this.state.selectedDay - 1, 1);
+                    if (prev !== this.state.selectedDay) window.location.hash = `#/schedule?day=${prev}`;
                 }
             }
         }, { passive: true });
@@ -214,7 +236,8 @@ export class ScheduleView {
             return;
         }
 
-        const userSubgroup = PrefsManager.getPrefs().subgroup;
+        const userSubgroup = Store.getState().prefs.subgroup;
+        
         const isSubjectVisible = (subjectName) => {
             if (!subjectName) return true; 
             const str = subjectName.toLowerCase();
@@ -269,12 +292,10 @@ export class ScheduleView {
         this.cached.pairCards = Array.from(listContainer.querySelectorAll('.pair-card'));
     }
 
-    // --- УМНЫЙ РАСЧЕТ ТАЙМЕРА (Уважает подгруппы) ---
     getSmartStatus() {
         let status = getCurrentScheduleStatus(this.state.bells);
         
         let overrideToUse = this.state.todayOverride;
-        // Берем актуальный оверрайд, только если смотрим на сегодняшний день
         if (this.state.selectedDay === this.state.currentDayNum) {
             overrideToUse = this.state.selectedDayOverride;
         }
@@ -282,8 +303,8 @@ export class ScheduleView {
         const rawSchedule = overrideToUse ? overrideToUse.lessons : (this.state.base[this.state.currentDayNum] || []);
         if (rawSchedule.length === 0) return { status: 'no_classes' };
 
-        // 1. Фильтруем расписание по подгруппе пользователя
-        const userSubgroup = PrefsManager.getPrefs().subgroup;
+        const userSubgroup = Store.getState().prefs.subgroup;
+        
         const isVisible = (subjectName) => {
             if (!subjectName) return true; 
             const str = subjectName.toLowerCase();
@@ -301,25 +322,19 @@ export class ScheduleView {
             const hasL2 = isVisible(l2Subj);
             
             if (!hasL1 && !hasL2) {
-                // Вся пара для другой подгруппы -> делаем пустоту (окно)
-                p.subject = null;
-                p.lesson1 = null;
-                p.lesson2 = null;
+                p.subject = null; p.lesson1 = null; p.lesson2 = null;
             } else {
-                // Если только половина пары скрыта
                 if (!hasL1) p.lesson1 = { subject: null };
                 if (!hasL2) p.lesson2 = { subject: null };
             }
             return p;
         });
 
-        // 2. Ищем реальный конец дня (игнорируя пустые пары в конце)
         const validPairs = todaySchedule.filter(p => p.subject !== null || (p.lesson1 && p.lesson1.subject !== null) || (p.lesson2 && p.lesson2.subject !== null));
         const maxPair = validPairs.length > 0 ? Math.max(...validPairs.map(l => l.pair)) : 0;
 
         if (maxPair === 0) return { status: 'no_classes' };
 
-        // 3. Сверяем со временем
         if ((status.status.startsWith('active') || status.status === 'short_break') && status.currentPair.pair > maxPair) return { status: 'ended' };
         if (status.status === 'break' && status.nextPair.pair > maxPair) return { status: 'ended' };
 
@@ -386,7 +401,22 @@ export class ScheduleView {
         else if (status.status === 'break') {
             const nextLsn = this.getLessonDetails(status.nextPairData, 1);
             const roomTxt = nextLsn.room ? ` &bull; ${nextLsn.room}` : '';
-            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div><div class="live-subject" style="margin:0; font-size: 1rem; color: var(--text-secondary);">След: <span style="color:var(--text-primary);">${nextLsn.subj}</span>${roomTxt}</div></article>`;
+            this.cached.widgetContainer.innerHTML = `
+                <article class="live-widget widget-break">
+                    <div class="live-header">
+                        <div class="live-status-group">
+                            <div class="pulse-dot"></div>
+                            <span class="live-status">Перемена</span>
+                        </div>
+                        <span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span>
+                    </div>
+                    <div class="live-subject" style="margin-bottom: 16px; font-size: 1rem; color: var(--text-secondary);">
+                        След: <span style="color:var(--text-primary);">${nextLsn.subj}</span>${roomTxt}
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: #2196F3;"></div>
+                    </div>
+                </article>`;
         } 
         else {
             const nextLsn = this.getLessonDetails(status.nextPairData, 1);
@@ -404,7 +434,6 @@ export class ScheduleView {
         const now = new Date();
         const realDay = now.getDay();
         
-        // --- АВТО-ОБНОВЛЕНИЕ В ПОЛНОЧЬ ---
         const activeDayNum = (realDay >= 1 && realDay <= 5) ? realDay : 1;
         if (this.state.currentDayNum !== activeDayNum) {
             this.state.currentDayNum = activeDayNum;
@@ -444,7 +473,10 @@ export class ScheduleView {
                 const newTimeText = (status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break') ? formatMinutes(status.timeLeft) : formatMinutes(status.timeToNext);
                 if (this.cached.timeEl.textContent !== newTimeText) this.cached.timeEl.textContent = newTimeText;
             }
-            if (this.cached.progressEl && (status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break')) {
+            
+            // Расширенное условие: теперь обновляем прогресс и для перемены ('break')
+            const hasProgress = status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break' || status.status === 'break';
+            if (this.cached.progressEl && hasProgress) {
                 this.cached.progressEl.style.width = `${status.progressPercent}%`;
             }
         }

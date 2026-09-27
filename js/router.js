@@ -1,5 +1,6 @@
 /* =====================================================================
    FILE: js/router.js
+   Умный роутер с поддержкой Deep Linking и принудительного рефреша (PTR)
 ===================================================================== */
 import { ScheduleView } from './views/ScheduleView.js';
 import { GroupView } from './views/GroupView.js';
@@ -7,6 +8,7 @@ import { HomeworkView } from './views/HomeworkView.js';
 import { EventsView } from './views/EventsView.js';
 import { SettingsView } from './views/SettingsView.js';
 import { PrefsManager } from './utils/prefs.js';
+import { Store } from './store.js';
 
 export class Router {
     constructor() {
@@ -22,10 +24,10 @@ export class Router {
             '/settings': new SettingsView(this.contentContainer)
         };
         
+        this.currentViewName = null;
         this.currentView = null;
         this.renderId = 0; 
 
-        // ИСПРАВЛЕНИЕ: Глобальное делегирование кликов для всех навигационных ссылок
         document.addEventListener('click', (e) => {
             const navLink = e.target.closest('a[href^="#/"]');
             if (navLink) {
@@ -33,26 +35,48 @@ export class Router {
             }
         });
 
-        window.addEventListener('hashchange', this.handleRoute.bind(this));
+        window.addEventListener('hashchange', () => this.handleRoute());
     }
 
     init() {
-        if (!window.location.hash) {
-            const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
-            window.location.hash = '#/' + firstPage;
+        if (!window.location.hash || window.location.hash === '#/') {
+            const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
+            window.location.replace('#/' + firstPage);
         } else {
             this.handleRoute();
         }
     }
 
-    async handleRoute() {
-        const path = window.location.hash.slice(1);
+    parseHash() {
+        const rawHash = window.location.hash.slice(1) || '/';
+        const [path, queryString] = rawHash.split('?');
+        const params = {};
+
+        if (queryString) {
+            const urlParams = new URLSearchParams(queryString);
+            for (const [key, value] of urlParams.entries()) {
+                params[key] = value;
+            }
+        }
+        return { path, params };
+    }
+
+    // Добавлен флаг forceReload для Pull-to-Refresh
+    async handleRoute(forceReload = false) {
+        const { path, params } = this.parseHash();
         const view = this.views[path];
 
         const currentRenderId = ++this.renderId;
 
         try {
-            // ИСПРАВЛЕНИЕ: Мягкое скрытие через инлайн-стили без конфликта с классами
+            // Если это не принудительный рефреш, пытаемся обновить мягко
+            if (!forceReload && this.currentViewName === path && this.currentView) {
+                if (typeof this.currentView.update === 'function') {
+                    await this.currentView.update(params);
+                    return; 
+                }
+            }
+
             this.contentContainer.classList.remove('fade-in');
             this.contentContainer.style.transition = 'opacity 0.15s ease-out, transform 0.15s ease-out';
             this.contentContainer.style.opacity = '0';
@@ -62,29 +86,28 @@ export class Router {
 
             if (this.renderId !== currentRenderId) return;
 
-            if (this.currentView) {
+            if (this.currentView && typeof this.currentView.unmount === 'function') {
                 this.currentView.unmount();
             }
 
             if (view) {
+                this.currentViewName = path;
                 this.currentView = view;
                 this.updateNavUI(path);
                 
-                await view.mount();
+                await view.mount(params);
 
                 if (this.renderId !== currentRenderId) return;
             } else {
-                const firstPage = PrefsManager.getPrefs().navOrder[0] || 'schedule';
-                window.location.hash = '#/' + firstPage;
+                const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
+                window.location.replace('#/' + firstPage);
                 return;
             }
             
-            // ИСПРАВЛЕНИЕ: Полностью сбрасываем инлайн-стили, отдавая контроль CSS классу fade-in
             this.contentContainer.style.transition = '';
             this.contentContainer.style.opacity = '';
             this.contentContainer.style.transform = '';
             
-            // Форсируем перерисовку DOM (Reflow), чтобы браузер "забыл" старые стили
             void this.contentContainer.offsetWidth;
             
             this.contentContainer.classList.add('fade-in');
@@ -99,7 +122,9 @@ export class Router {
 
     updateNavUI(currentPath) {
         this.navItems.forEach(item => {
-            if (item.getAttribute('href').slice(1) === currentPath) {
+            const itemPath = item.getAttribute('href').slice(1).split('?')[0]; 
+            
+            if (itemPath === currentPath) {
                 item.classList.add('active');
                 this.pageTitle.textContent = item.getAttribute('data-title');
             } else {

@@ -1,13 +1,15 @@
 /* =====================================================================
    FILE: js/templates/SettingsTemplate.js
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const SettingsTemplate = {
     renderMain(data) {
         return `
             <div class="settings-container">
                 <div class="settings-header">
                     <button class="settings-back-btn" id="settings-back-btn" aria-label="Назад">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        ${getIcon('back', { size: 20 })}
                     </button>
                     <div class="settings-title">
                         <h2>Настройки</h2>
@@ -28,7 +30,7 @@ export const SettingsTemplate = {
                             
                             <div class="theme-swatch-container ${data.currentTheme === 'custom' ? 'active' : ''}" data-id="custom">
                                 <button class="theme-swatch custom-btn" id="btn-open-custom" style="--swatch-accent: ${data.customData.accent}; --swatch-bg: ${data.customData.bg};">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    ${getIcon('plus', { size: 24 })}
                                 </button>
                                 <span class="theme-name-label">Своя</span>
                             </div>
@@ -71,7 +73,7 @@ export const SettingsTemplate = {
                             <div class="custom-select-wrapper" id="subgroup-wrapper">
                                 <button class="custom-select-btn" id="subgroup-btn">
                                     <span id="subgroup-text">${data.subgroupText}</span>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                    ${getIcon('chevron-down', { size: 16 })}
                                 </button>
                                 <div class="custom-select-menu">
                                     <div class="custom-select-option ${data.prefs.subgroup === 'all' ? 'selected' : ''}" data-value="all">Обе (Показывать всё)</div>
@@ -105,10 +107,6 @@ export const SettingsTemplate = {
                                 <span>Виброотклик</span>
                                 <span class="item-subtitle" style="display: flex; align-items: center; margin-top: 4px;">
                                     Тактильная отдача 
-                                    <div class="badge-experimental">
-                                        <div class="badge-experimental-dot"></div>
-                                        <span class="badge-experimental-text">BETA</span>
-                                    </div>
                                 </span>
                             </div>
                             <div class="toggle-switch ${data.prefs.haptic ? 'active' : ''}" id="toggle-haptic"></div>
@@ -147,11 +145,12 @@ export const SettingsTemplate = {
                 </section>
 
                 <footer class="settings-footer">
-                    <div class="version-text" id="app-version">v2.1.1 (Drag Fix)</div>
+                    <div class="version-text" id="app-version">v3.0.0 (Core Refactor)</div>
                     <div class="credits">Сделал <a href="https://t.me/bagerca" target="_blank">BAGERca</a> &copy; 2026 - ${data.currentYear}</div>
                 </footer>
             </div>
 
+            <!-- Модалки -->
             <dialog id="custom-theme-dialog" class="custom-theme-modal">
                 <h3>Создать тему</h3>
                 <div class="color-picker-group">
@@ -180,7 +179,6 @@ export const SettingsTemplate = {
     },
 
     renderNavList(navOrder, navNames) {
-        // ЗАЩИТА: Очищаем мусор, если он уже попал в память (undefined)
         const validOrder = navOrder.filter(id => id && navNames[id]);
         
         return validOrder.map((id, index) => `
@@ -189,11 +187,8 @@ export const SettingsTemplate = {
                     <span class="nav-number">${index + 1}.</span>
                     <span>${navNames[id]}</span>
                 </div>
-                <div class="drag-handle" aria-label="Перетащить">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
-                        <circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
-                    </svg>
+                <div class="drag-handle" role="button" tabindex="0" aria-roledescription="sortable" aria-label="Перетащить панель">
+                    ${getIcon('drag-handle', { size: 20 })}
                 </div>
             </div>
         `).join('');

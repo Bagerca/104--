@@ -1,10 +1,12 @@
 /* =====================================================================
    FILE: js/views/SettingsView.js
+   Настройки с поддержкой Deep Linking для модалок
 ===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Modal } from '../components/Modal.js';
 import { SettingsTemplate } from '../templates/SettingsTemplate.js';
+import { Store } from '../store.js';
 
 export class SettingsView {
     constructor(container) {
@@ -12,6 +14,7 @@ export class SettingsView {
         this.adminTaps = 0;
         this.adminTapTimeout = null;
         this.isMounted = false;
+        this.currentParams = {};
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
         this.handleGlobalChange = this.handleGlobalChange.bind(this);
@@ -23,9 +26,11 @@ export class SettingsView {
         return 'Обе (Показывать всё)';
     }
 
-    async mount() {
+    async mount(params = {}) {
         this.isMounted = true;
-        const currentPrefs = PrefsManager.getPrefs(); 
+        this.currentParams = params;
+        
+        const currentPrefs = Store.getState().prefs; 
         const currentTheme = ThemeManager.getCurrent();
         const hasWp = await PrefsManager.hasWallpaper(); 
         
@@ -49,6 +54,12 @@ export class SettingsView {
         this.container.addEventListener('change', this.handleGlobalChange);
         
         this.initDesktopScroll();
+        this.handleModalState();
+    }
+
+    async update(params = {}) {
+        this.currentParams = params;
+        this.handleModalState();
     }
 
     unmount() {
@@ -58,11 +69,34 @@ export class SettingsView {
         this.container.removeEventListener('change', this.handleGlobalChange);
     }
 
+    handleModalState() {
+        if (!this.isMounted) return;
+        
+        const customDialog = document.getElementById('custom-theme-dialog');
+        const navDialog = document.getElementById('nav-order-dialog');
+        
+        if (!customDialog || !navDialog) return;
+
+        if (this.currentParams.modal === 'custom-theme') {
+            if (!customDialog.open) customDialog.showModal();
+            if (navDialog.open) navDialog.close();
+        } else if (this.currentParams.modal === 'nav-order') {
+            if (!navDialog.open) {
+                this.refreshNavModal();
+                navDialog.showModal();
+            }
+            if (customDialog.open) customDialog.close();
+        } else {
+            if (customDialog.open) customDialog.close();
+            if (navDialog.open) navDialog.close();
+        }
+    }
+
     handleGlobalChange(e) {
         if (e.target.id === 'upload-wp') {
             const file = e.target.files[0];
             if (file) PrefsManager.saveWallpaper(file, (success) => { 
-                if (success && this.isMounted) this.mount(); 
+                if (success && this.isMounted) this.mount(this.currentParams); 
             });
         }
     }
@@ -75,8 +109,8 @@ export class SettingsView {
 
         if (e.target.closest('#settings-back-btn')) {
             PrefsManager.vibrate();
-            if (window.history.length > 1) window.history.back();
-            else window.location.hash = '#/schedule';
+            const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
+            window.location.hash = '#/' + firstPage;
             return;
         }
 
@@ -87,40 +121,35 @@ export class SettingsView {
             PrefsManager.vibrate();
 
             if (selectedId === 'custom') {
-                document.getElementById('custom-theme-dialog').showModal();
+                window.location.hash = '#/settings?modal=custom-theme';
             } else {
                 ThemeManager.setTheme(selectedId);
-                this.mount(); 
+                this.mount(this.currentParams); 
             }
             return;
         }
 
-        if (e.target.closest('#btn-cancel-custom')) {
+        if (e.target.closest('#btn-cancel-custom') || (e.target.tagName === 'DIALOG' && e.target.id === 'custom-theme-dialog')) {
             PrefsManager.vibrate(); 
-            document.getElementById('custom-theme-dialog').close();
+            window.history.back();
             return;
         }
+
         if (e.target.closest('#btn-save-custom')) {
             PrefsManager.vibrate();
             ThemeManager.saveCustomTheme(document.getElementById('picker-bg').value, document.getElementById('picker-accent').value);
-            document.getElementById('custom-theme-dialog').close();
-            this.mount(); 
+            window.history.back(); 
+            setTimeout(() => this.mount(this.currentParams), 100); 
             return;
         }
 
         if (e.target.closest('#btn-open-nav-order')) {
             PrefsManager.vibrate(10);
-            
-            // Фильтруем от багов прошлой версии
             const validNavs = ['schedule', 'homework', 'group', 'events'];
-            this.tempNavOrder = PrefsManager.getPrefs().navOrder.filter(id => validNavs.includes(id));
+            this.tempNavOrder = Store.getState().prefs.navOrder.filter(id => validNavs.includes(id));
+            if (this.tempNavOrder.length === 0) this.tempNavOrder = [...validNavs];
             
-            if (this.tempNavOrder.length === 0) {
-                this.tempNavOrder = ['schedule', 'homework', 'group', 'events'];
-            }
-
-            this.refreshNavModal();
-            document.getElementById('nav-order-dialog').showModal();
+            window.location.hash = '#/settings?modal=nav-order';
             return;
         }
 
@@ -128,7 +157,7 @@ export class SettingsView {
             PrefsManager.vibrate(20);
             PrefsManager.updatePref('navOrder', this.tempNavOrder);
             PrefsManager.applySettingsToDOM(); 
-            document.getElementById('nav-order-dialog').close();
+            window.history.back();
             return;
         }
 
@@ -143,15 +172,16 @@ export class SettingsView {
         const subgroupOpt = e.target.closest('.custom-select-option');
         if (subgroupOpt) {
             PrefsManager.vibrate();
-            PrefsManager.updatePref('subgroup', subgroupOpt.getAttribute('data-value'));
-            this.mount(); 
+            const val = subgroupOpt.getAttribute('data-value');
+            PrefsManager.updatePref('subgroup', val);
+            this.mount(this.currentParams); 
             return;
         }
 
         if (e.target.closest('#btn-clear-wp')) {
             PrefsManager.vibrate(); 
             PrefsManager.clearWallpaper(); 
-            this.mount();
+            this.mount(this.currentParams);
             return;
         }
 
@@ -224,7 +254,7 @@ export class SettingsView {
                 Modal.showAlert(
                     isAdm ? 'Режим разработчика ВКЛЮЧЕН' : 'Режим разработчика ВЫКЛЮЧЕН',
                     isAdm ? 'Открыт доступ к скрытым функциям и сезонным темам.' : 'Стандартный вид.',
-                    'admin', () => { if(this.isMounted) this.mount(); }
+                    'admin', () => { if(this.isMounted) this.mount(this.currentParams); }
                 );
             }
             return;
@@ -239,7 +269,6 @@ export class SettingsView {
         this.initDragDrop(list); 
     }
 
-    // --- СОВЕРШЕННЫЙ ДВИЖОК DRAG & DROP ---
     initDragDrop(listContainer) {
         let activeItem = null;
         let clone = null;
@@ -261,11 +290,9 @@ export class SettingsView {
             const evt = getEvent(e);
             const rect = activeItem.getBoundingClientRect();
             
-            // Запоминаем сдвиг клика относительно верхнего левого угла элемента
             offsetX = evt.clientX - rect.left;
             offsetY = evt.clientY - rect.top;
 
-            // 1. Создаем летающего клона
             clone = activeItem.cloneNode(true);
             clone.classList.add('drag-clone');
             clone.style.width = `${rect.width}px`;
@@ -273,17 +300,15 @@ export class SettingsView {
             clone.style.left = `${evt.clientX - offsetX}px`;
             clone.style.top = `${evt.clientY - offsetY}px`;
             
-            // Добавляем клона прямо в body, чтобы его не резал overflow модалки
             document.body.appendChild(clone);
 
-            // 2. Оригинальный элемент делаем прозрачной рамкой
             activeItem.classList.add('drag-placeholder');
 
             document.addEventListener('mousemove', onMove, { passive: false });
             document.addEventListener('touchmove', onMove, { passive: false });
             document.addEventListener('mouseup', onEnd);
             document.addEventListener('touchend', onEnd);
-            document.addEventListener('touchcancel', onEnd); // Важно для срывов свайпа
+            document.addEventListener('touchcancel', onEnd); 
         };
 
         const onMove = (e) => {
@@ -292,11 +317,9 @@ export class SettingsView {
             
             const evt = getEvent(e);
             
-            // Двигаем клона за курсором
             clone.style.left = `${evt.clientX - offsetX}px`;
             clone.style.top = `${evt.clientY - offsetY}px`;
 
-            // Узнаем, над каким элементом мы сейчас находимся (игнорирует клона, т.к. у него pointer-events: none)
             const hoveredEl = document.elementFromPoint(evt.clientX, evt.clientY);
             if (!hoveredEl) return;
 
@@ -306,7 +329,6 @@ export class SettingsView {
                 const targetRect = targetItem.getBoundingClientRect();
                 const targetCenter = targetRect.top + (targetRect.height / 2);
                 
-                // Перемещаем оригинальный элемент в DOM (рамка просто скачет по списку)
                 if (evt.clientY < targetCenter) {
                     listContainer.insertBefore(activeItem, targetItem);
                 } else {
@@ -318,12 +340,9 @@ export class SettingsView {
 
         const onEnd = () => {
             if (!activeItem) return;
-
-            // Удаляем клона
             if (clone) clone.remove();
             clone = null;
 
-            // Возвращаем видимость оригинальному элементу
             activeItem.classList.remove('drag-placeholder');
             activeItem = null;
 
@@ -333,13 +352,11 @@ export class SettingsView {
             document.removeEventListener('touchend', onEnd);
             document.removeEventListener('touchcancel', onEnd);
 
-            // Сохраняем порядок
             const newOrder = [...listContainer.querySelectorAll('.nav-reorder-item')].map(el => el.dataset.id);
             this.tempNavOrder = newOrder;
             this.refreshNavModal(); 
         };
 
-        // Защита от дублей событий
         listContainer.removeEventListener('mousedown', onStart);
         listContainer.removeEventListener('touchstart', onStart);
         

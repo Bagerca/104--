@@ -1,7 +1,12 @@
 /* =====================================================================
    FILE: js/components/Lightbox.js
+   Просмотр фотографий на весь экран с поддержкой кнопки "Назад"
 ===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
 export const Lightbox = {
+    isOpen: false,
+
     init() {
         if (document.getElementById('global-lightbox')) return;
 
@@ -12,13 +17,11 @@ export const Lightbox = {
         dialog.innerHTML = `
             <div class="hw-lightbox-controls">
                 <a id="global-lightbox-download" href="" download class="hw-lightbox-btn" aria-label="Скачать">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    ${getIcon('download', { size: 20 })}
                 </a>
-                <form method="dialog" style="margin: 0; padding: 0;">
-                    <button class="hw-lightbox-btn" type="submit" aria-label="Закрыть">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </form>
+                <button class="hw-lightbox-btn" id="global-lightbox-close" aria-label="Закрыть">
+                    ${getIcon('close', { size: 24 })}
+                </button>
             </div>
             <div class="hw-lightbox-body" id="global-lightbox-body">
                 <img id="global-lightbox-img" src="" alt="Просмотр">
@@ -27,7 +30,20 @@ export const Lightbox = {
         document.body.appendChild(dialog);
 
         dialog.querySelector('#global-lightbox-body').addEventListener('click', (e) => {
-            if (e.target.id === 'global-lightbox-body') dialog.close();
+            if (e.target.id === 'global-lightbox-body') this.close(true);
+        });
+
+        dialog.querySelector('#global-lightbox-close').addEventListener('click', () => {
+            this.close(true);
+        });
+
+        window.addEventListener('popstate', (e) => {
+            if (this.isOpen) {
+                // Если стейт не наш - значит нажали кнопку назад. Закрываем.
+                if (!e.state || e.state.modal !== 'lightbox') {
+                    this.close(false); 
+                }
+            }
         });
     },
 
@@ -35,7 +51,6 @@ export const Lightbox = {
         this.init();
         const dialog = document.getElementById('global-lightbox');
         
-        // ЗАЩИТА: Предотвращаем краш от двойного тапа
         if (dialog.open) return;
 
         const img = document.getElementById('global-lightbox-img');
@@ -45,6 +60,22 @@ export const Lightbox = {
         downloadBtn.href = imageSrc;
         downloadBtn.setAttribute('download', fileName);
         
+        this.isOpen = true;
+        // Пушим стейт, сохраняя текущий URL (Hash), чтобы не триггерить роутер
+        history.pushState({ modal: 'lightbox' }, '', window.location.hash);
+        
         dialog.showModal();
+    },
+
+    close(isProgrammatic = true) {
+        const dialog = document.getElementById('global-lightbox');
+        if (!dialog || !dialog.open) return;
+
+        this.isOpen = false;
+        dialog.close();
+
+        if (isProgrammatic) {
+            history.back();
+        }
     }
 };

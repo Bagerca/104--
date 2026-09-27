@@ -1,9 +1,10 @@
 /* =====================================================================
    FILE: js/views/HomeworkView.js
+   Отображение ДЗ с поддержкой Deep Linking
 ===================================================================== */
 import { ApiService } from '../services/api.js';
-import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
 import { Lightbox } from '../components/Lightbox.js';
+import { HomeworkTemplate } from '../templates/HomeworkTemplate.js';
 
 const triggerHaptic = () => {
     if (navigator.vibrate) navigator.vibrate(20);
@@ -17,6 +18,7 @@ export class HomeworkView {
         this.storageKey = 'sh_homework_state';
         this.groupedData = {}; 
         this.isMounted = false;
+        this.currentParams = {};
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
@@ -50,8 +52,9 @@ export class HomeworkView {
         }
     }
 
-    async mount() {
+    async mount(params = {}) {
         this.isMounted = true;
+        this.currentParams = params;
         this.container.innerHTML = HomeworkTemplate.renderSkeletons();
         this.container.addEventListener('click', this.handleGlobalClick);
         
@@ -94,7 +97,7 @@ export class HomeworkView {
                 this.groupedData[subject].sort((a, b) => this.parseDateStr(b.date) - this.parseDateStr(a.date));
             }
 
-            this.renderMainList(false);
+            this.renderBasedOnParams();
 
         } catch (error) {
             if (!this.isMounted) return;
@@ -103,33 +106,35 @@ export class HomeworkView {
         }
     }
 
-    switchViewWithTransition(renderCallback) {
+    // Роутер вызывает этот метод при изменении параметров URL
+    async update(params = {}) {
+        this.currentParams = params;
+        this.renderBasedOnParams();
+    }
+
+    renderBasedOnParams() {
         if (!this.isMounted) return;
+        const subject = this.currentParams.subject;
+        
+        this.switchViewWithTransition(() => {
+            if (!this.isMounted) return;
+            
+            if (subject && this.groupedData[subject]) {
+                this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
+            } else {
+                this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
+            }
+            
+            this.validateLocalFiles();
+        });
+    }
+
+    switchViewWithTransition(renderCallback) {
         if (document.startViewTransition) {
-            document.startViewTransition(() => {
-                if (this.isMounted) renderCallback();
-            });
+            document.startViewTransition(() => renderCallback());
         } else {
             renderCallback();
         }
-    }
-
-    renderMainList(animate = true) {
-        const render = () => {
-            if (!this.isMounted) return;
-            this.container.innerHTML = HomeworkTemplate.renderMainList(this.groupedData);
-            this.validateLocalFiles();
-        };
-        if (animate) this.switchViewWithTransition(render);
-        else render();
-    }
-
-    renderSubjectHistory(subject) {
-        this.switchViewWithTransition(() => {
-            if (!this.isMounted) return;
-            this.container.innerHTML = HomeworkTemplate.renderSubjectHistory(subject, this.groupedData[subject]);
-            this.validateLocalFiles();
-        });
     }
 
     async validateLocalFiles() {
@@ -169,17 +174,20 @@ export class HomeworkView {
             return;
         }
 
+        // КЛИК "ВСЕ ЗАДАНИЯ" -> Меняем URL, а роутер сам сделает остальное
         const showAllBtn = e.target.closest('.hw-show-all-btn');
         if (showAllBtn) {
             triggerHaptic();
-            this.renderSubjectHistory(showAllBtn.getAttribute('data-subject'));
+            const subject = showAllBtn.getAttribute('data-subject');
+            window.location.hash = `#/homework?subject=${encodeURIComponent(subject)}`;
             return;
         }
 
+        // КЛИК "НАЗАД" -> Нативная навигация браузера
         const backBtn = e.target.closest('#hw-back-btn');
         if (backBtn) {
             triggerHaptic();
-            this.renderMainList(true);
+            window.history.back(); 
             return;
         }
 

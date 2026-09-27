@@ -17,7 +17,7 @@ export class GroupView {
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
-    async mount() {
+    async mount(params = {}) {
         this.isMounted = true;
         this.container.innerHTML = GroupTemplate.renderSkeletons();
         
@@ -40,7 +40,7 @@ export class GroupView {
 
                     if (!groupedTeachers[rawName]) {
                         groupedTeachers[rawName] = {
-                            name: rawName, // Теперь выводим как есть
+                            name: rawName,
                             rawName: rawName, 
                             avatar: data.avatar || '',
                             subjects: []
@@ -81,16 +81,15 @@ export class GroupView {
                     `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${st.name}" loading="lazy" decoding="async"></div>`;
                 
                 const role = st.role ? `<span class="person-badge">${st.role}</span>` : '';
-                const tgBtn = st.tg ? `<a href="https://t.me/${st.tg}" target="_blank" class="person-action-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></a>` : '';
                 
-                return GroupTemplate.renderPerson(st.name, `@${st.nickname}`, avatar, role, tgBtn);
+                // Передаем маркер TG_BTN, шаблон сам подставит иконку из icons.js
+                return GroupTemplate.renderPerson(st.name, `@${st.nickname}`, avatar, role, st.tg ? 'TG_BTN' : '');
             }).join('');
         } 
         else if (this.currentTab === 'teachers') {
             statsContainer.innerHTML = GroupTemplate.renderStats('teachers', this.teachersData.length);
 
             html = this.teachersData.map(tch => {
-                // Аватарка теперь корректно берет первую букву, даже если имя неполное
                 const initial = tch.name.charAt(0).toUpperCase();
                 const avatar = !tch.avatar ? 
                     `<div class="person-avatar" style="background: ${UIUtils.getAvatarGradient(tch.rawName)}">${initial}</div>` : 

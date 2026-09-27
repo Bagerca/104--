@@ -16,20 +16,16 @@ export function formatMinutes(totalMinutes) {
 export function getDateStringForDay(targetDayNum) {
     const now = new Date();
     let currentDay = now.getDay();
-    if (currentDay === 0) currentDay = 7; // Воскресенье делаем 7 днем
+    if (currentDay === 0) currentDay = 7; 
     
-    // Якоримся к понедельнику нужной недели
     const monday = new Date(now);
     
     if (currentDay > 5) {
-        // Если сегодня выходной, якоримся к понедельнику СЛЕДУЮЩЕЙ недели
         monday.setDate(now.getDate() + (8 - currentDay));
     } else {
-        // Если сегодня будни, якоримся к понедельнику ТЕКУЩЕЙ недели
         monday.setDate(now.getDate() - (currentDay - 1));
     }
     
-    // Рассчитываем целевой день относительно найденного понедельника
     const targetDate = new Date(monday);
     targetDate.setDate(monday.getDate() + (targetDayNum - 1));
     
@@ -58,7 +54,9 @@ export function getCurrentScheduleStatus(bellsData) {
             
             const prevEndSecs = parseTimeToMinutes(bellsData[i - 1].end) * 60;
             if (currentTotalSeconds >= prevEndSecs) {
-                return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes };
+                // Вычисляем процент прохождения перемены
+                const progressPercent = ((currentTotalSeconds - prevEndSecs) / (startSecs - prevEndSecs)) * 100;
+                return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes, progressPercent };
             }
         }
 
