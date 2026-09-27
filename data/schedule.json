@@ -3,7 +3,7 @@
     {
       "pair": 1,
       "lesson1": null,
-      "lesson2": { "subject": "Разговоры о важном", "room": "Актовый зал" }
+      "lesson2": { "subject": "Разговоры о важном", "room": "2/22" }
     },
     { "pair": 2, "subject": "География", "room": "2/20" },
     { "pair": 3, "subject": "Биология", "room": "1/22" },

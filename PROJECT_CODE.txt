@@ -1,6 +1,6 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 25.09.2026 19:35:55
+  Дата сборки: 27.09.2026 22:59:18
 ================================================================================
 
 
@@ -129,14 +129,14 @@
 
 /* =====================================================================
    FILE: sw.js
-   LINES: 96
+   LINES: 111
 ===================================================================== */
 
 /* =====================================================================
    FILE: sw.js
-   ОПТИМИЗАЦИЯ: Исправлен механизм обновлений (Controlled skipWaiting)
+   ОПТИМИЗАЦИЯ: Добавлены все недостающие модули для 100% Offline режима
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v14'; // Версия поднята для сброса старого кривого кэша
+const CACHE_NAME = 'student-hub-v15'; // Версия поднята для обновы кэша
 
 const ASSETS = [
     './',
@@ -149,25 +149,45 @@ const ASSETS = [
     './css/views/homework.css',
     './css/views/events.css',
     './css/views/settings.css',
+    
+    // Core JS
     './js/app.js',
     './js/router.js',
+    './js/services/api.js',
     './js/utils/theme.js',
     './js/utils/prefs.js',
     './js/utils/time.js',
-    './js/services/api.js',
+    './js/utils/ui.js',
+    
+    // Components
+    './js/components/Lightbox.js',
+    './js/components/Modal.js',
+    './js/components/Toast.js',
+    
+    // Templates
+    './js/templates/EventsTemplate.js',
+    './js/templates/GroupTemplate.js',
+    './js/templates/HomeworkTemplate.js',
+    './js/templates/SettingsTemplate.js',
+    
+    // Views
+    './js/views/EventsView.js',
+    './js/views/GroupView.js',
+    './js/views/HomeworkView.js',
+    './js/views/ScheduleView.js',
     './js/views/SettingsView.js',
+    
+    // Assets
     './icons/icon.svg',
     './icons/icon-mobile.svg'
 ];
 
 self.addEventListener('install', (event) => {
-    // Больше НЕТ автоматического self.skipWaiting(). Мы ждем команды от пользователя.
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
     );
 });
 
-// Слушаем команду на принудительное обновление от app.js
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
@@ -191,12 +211,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // 1. Пропускаем сторонние запросы (CORS, расширения, аналитика)
     if (!url.origin.startsWith(self.location.origin) || url.protocol === 'chrome-extension:') {
         return;
     }
 
-    // 2. Стратегия Network First для JSON-данных (Расписание, ДЗ должны быть свежими)
     if (url.pathname.endsWith('.json')) {
         event.respondWith(
             fetch(event.request)
@@ -205,12 +223,11 @@ self.addEventListener('fetch', (event) => {
                     caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
                     return response;
                 })
-                .catch(() => caches.match(event.request)) // Офлайн фоллбэк
+                .catch(() => caches.match(event.request)) 
         );
         return;
     }
 
-    // 3. Стратегия Cache First для статики (CSS, JS, Картинки)
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
             if (cachedResponse) return cachedResponse;
@@ -223,9 +240,7 @@ self.addEventListener('fetch', (event) => {
                 caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
                 return response;
             });
-        }).catch(() => {
-            // Опционально: вернуть заглушку
-        })
+        }).catch(() => {})
     );
 });
 
@@ -1266,7 +1281,7 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/settings.css
-   LINES: 170
+   LINES: 195
 ===================================================================== */
 
 /* =====================================================================
@@ -1322,7 +1337,6 @@ body.power-save-mode {
     font-size: 0.8rem; 
     color: var(--text-muted); 
 }
-/* ============================ */
 
 .settings-section { margin-bottom: 28px; }
 .settings-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 4px; }
@@ -1356,12 +1370,72 @@ body.power-save-mode {
 .modal-btn.cancel { background: var(--overlay-bg-active); color: var(--text-primary); }
 .modal-btn.save { background: var(--theme-accent); color: var(--text-on-accent); }
 
-/* Модалка Порядок Навигации */
-.nav-reorder-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--overlay-bg); border-radius: var(--radius-md); font-size: 0.9rem; font-weight: 500; }
-.nav-reorder-controls { display: flex; gap: 8px; }
-.nav-move-btn { background: var(--overlay-bg-active); border: none; color: var(--text-primary); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
-.nav-move-btn:disabled { opacity: 0.3; cursor: default; }
-.nav-move-btn:not(:disabled):active { background: var(--theme-accent); color: var(--text-on-accent); transform: scale(0.9); }
+/* === НАДЁЖНЫЙ DRAG & DROP === */
+.nav-reorder-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 14px 16px; 
+    background: var(--overlay-bg); 
+    border-radius: var(--radius-md); 
+    font-size: 1rem; 
+    font-weight: 500; 
+    touch-action: none; 
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background 0.2s ease;
+    border: 1px solid transparent;
+}
+/* Состояние оригинального элемента (становится пунктирной рамкой) */
+.nav-reorder-item.drag-placeholder {
+    background: transparent;
+    border: 2px dashed var(--overlay-bg-active);
+    box-shadow: none;
+}
+/* Прячем содержимое оригинального элемента, оставляя только рамку */
+.nav-reorder-item.drag-placeholder * {
+    opacity: 0;
+}
+/* Стили для летающей копии (клона), которая тянется за курсором */
+.drag-clone {
+    position: fixed !important;
+    z-index: 99999 !important;
+    pointer-events: none !important; /* Клик должен проходить сквозь неё */
+    background: var(--theme-bg-secondary);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    border: var(--glass-border);
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    font-size: 1rem;
+    font-weight: 500;
+    box-sizing: border-box;
+    transform: scale(1.05);
+    opacity: 0.95;
+    margin: 0;
+}
+.drag-clone .drag-handle { color: var(--theme-accent); }
+
+.nav-number {
+    color: var(--text-muted);
+    margin-right: 12px;
+    font-weight: 600;
+    display: inline-block;
+    width: 20px;
+}
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    cursor: grab;
+    padding: 8px;
+    margin: -8px; 
+    transition: color 0.2s;
+}
+/* =================================================== */
 
 /* Элементы списка */
 .settings-list { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-lg); overflow: visible; }
@@ -1400,45 +1474,11 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .settings-footer .credits a { color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid var(--overlay-bg-active); transition: color 0.2s, border-color 0.2s; }
 .settings-footer .credits a:active { color: var(--theme-accent); border-color: var(--theme-accent); }
 
-/* =====================================================================
-   ЭКСПЕРИМЕНТАЛЬНЫЙ БЕЙДЖ (Neon Amber Style)
-===================================================================== */
-.badge-experimental {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(255, 171, 0, 0.1); /* Полупрозрачный янтарный фон */
-    border: 1px solid rgba(255, 171, 0, 0.25); /* Тонкая рамка */
-    padding: 3px 8px 3px 6px;
-    border-radius: 12px;
-    margin-left: 8px;
-    box-shadow: 0 2px 10px rgba(255, 171, 0, 0.05); /* Мягкое свечение */
-}
-
-.badge-experimental-dot {
-    width: 6px;
-    height: 6px;
-    background: #FFAB00;
-    border-radius: 50%;
-    box-shadow: 0 0 6px #FFAB00;
-    animation: pulseBeta 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.badge-experimental-text {
-    color: #FFAB00;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1;
-    padding-top: 1px;
-}
-
-@keyframes pulseBeta {
-    0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0.6); }
-    70% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(255, 171, 0, 0); }
-    100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0); }
-}
+/* ЭКСПЕРИМЕНТАЛЬНЫЙ БЕЙДЖ */
+.badge-experimental { display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 171, 0, 0.1); border: 1px solid rgba(255, 171, 0, 0.25); padding: 3px 8px 3px 6px; border-radius: 12px; margin-left: 8px; box-shadow: 0 2px 10px rgba(255, 171, 0, 0.05); }
+.badge-experimental-dot { width: 6px; height: 6px; background: #FFAB00; border-radius: 50%; box-shadow: 0 0 6px #FFAB00; animation: pulseBeta 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.badge-experimental-text { color: #FFAB00; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; padding-top: 1px; }
+@keyframes pulseBeta { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0.6); } 70% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(255, 171, 0, 0); } 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0); } }
 
 /* =====================================================================
    FILE: data/bells.json
@@ -1971,7 +2011,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 141
+   LINES: 145
 ===================================================================== */
 
 /* =====================================================================
@@ -1982,6 +2022,7 @@ import { ThemeManager } from './utils/theme.js';
 import { PrefsManager } from './utils/prefs.js';
 import { Toast } from './components/Toast.js';
 import { ApiService } from './services/api.js';
+import { NotificationService } from './services/NotificationService.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -2024,10 +2065,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- 2. ЗАПУСК РОУТЕРА ---
+        // --- 2. ЗАПУСК РОУТЕРА И СЕРВИСОВ ---
         const router = new Router();
         window.appRouter = router; 
         router.init();
+        
+        // Запускаем планировщик локальных Push-уведомлений
+        NotificationService.init();
 
         // --- 3. ИНДИКАТОР ОФЛАЙНА ---
         window.addEventListener('offline', () => {
@@ -2509,6 +2553,113 @@ export const ApiService = {
 };
 
 /* =====================================================================
+   FILE: js/services/NotificationService.js
+   LINES: 101
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/services/NotificationService.js
+   Локальный планировщик PWA Push-уведомлений
+===================================================================== */
+import { PrefsManager } from '../utils/prefs.js';
+import { ApiService } from './api.js';
+import { getDateStringForDay } from '../utils/time.js';
+
+export const NotificationService = {
+    timerId: null,
+
+    init() {
+        if (this.timerId) clearInterval(this.timerId);
+        
+        // Запускаем первую проверку через 5 секунд после старта приложения,
+        // затем проверяем каждую минуту.
+        setTimeout(() => this.checkSchedule(), 5000);
+        this.timerId = setInterval(() => this.checkSchedule(), 60000);
+        console.log('[NotificationService] Планировщик уведомлений запущен.');
+    },
+
+    async checkSchedule() {
+        try {
+            const prefs = PrefsManager.getPrefs();
+            // Если уведомления выключены или нет прав в системе — выходим
+            if (!prefs.notifications || Notification.permission !== 'granted') return;
+
+            const now = new Date();
+            const currentDayReal = now.getDay();
+            
+            // На выходных пар нет, не проверяем
+            if (currentDayReal === 0 || currentDayReal === 6) return; 
+
+            const todayStr = getDateStringForDay(currentDayReal);
+            const notifiedKey = `sh_notified_${todayStr}`;
+
+            // Защита от спама: если сегодня уже уведомляли - пропускаем
+            if (localStorage.getItem(notifiedKey) === 'true') return;
+
+            const [bells, baseSchedule, override] = await Promise.all([
+                ApiService.getBells(),
+                ApiService.getSchedule(),
+                ApiService.getOverride(todayStr)
+            ]);
+
+            const schedule = override ? override.lessons : (baseSchedule[currentDayReal] || []);
+            if (!schedule || schedule.length === 0) return;
+
+            const userSubgroup = prefs.subgroup;
+            let firstPair = null;
+
+            // Ищем самую первую пару, на которую нужно идти ЭТОЙ подгруппе
+            for (const pair of schedule) {
+                const l1Subj = pair.lesson1 ? pair.lesson1.subject : pair.subject;
+                const l2Subj = pair.lesson2 ? pair.lesson2.subject : pair.subject;
+
+                const isVisible = (subjectName) => {
+                    if (!subjectName) return true;
+                    const str = subjectName.toLowerCase();
+                    if (userSubgroup === '1' && (str.includes('2г') || str.includes('2 п/г') || str.includes('2 группа'))) return false;
+                    if (userSubgroup === '2' && (str.includes('1г') || str.includes('1 п/г') || str.includes('1 группа'))) return false;
+                    return true;
+                };
+
+                if (isVisible(l1Subj) || isVisible(l2Subj)) {
+                    firstPair = pair;
+                    break;
+                }
+            }
+
+            // Пар для этой подгруппы сегодня нет
+            if (!firstPair) return;
+
+            const bell = bells.find(b => b.pair === firstPair.pair);
+            if (!bell) return;
+
+            const [startH, startM] = bell.start.split(':').map(Number);
+            const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
+
+            // Разница в минутах между началом пары и текущим временем
+            const diffMins = (startTime.getTime() - now.getTime()) / 60000;
+
+            // Если до пары осталось от 29 до 30.5 минут — отправляем Push!
+            if (diffMins > 29 && diffMins <= 30.5) {
+                let subjName = firstPair.subject || (firstPair.lesson1 ? firstPair.lesson1.subject : 'Занятие');
+                
+                PrefsManager.sendLocalNotification(
+                    'Скоро на пары!', 
+                    `Через 30 минут начнется ${firstPair.pair} пара (${subjName}).`
+                );
+                
+                // Записываем, что сегодня уже уведомили
+                localStorage.setItem(notifiedKey, 'true');
+                console.log(`[NotificationService] Уведомление отправлено для ${todayStr}`);
+            }
+
+        } catch (error) {
+            console.error('[NotificationService] Ошибка проверки расписания:', error);
+        }
+    }
+};
+
+/* =====================================================================
    FILE: js/templates/EventsTemplate.js
    LINES: 65
 ===================================================================== */
@@ -2790,7 +2941,7 @@ export const HomeworkTemplate = {
 
 /* =====================================================================
    FILE: js/templates/SettingsTemplate.js
-   LINES: 193
+   LINES: 201
 ===================================================================== */
 
 /* =====================================================================
@@ -2942,7 +3093,7 @@ export const SettingsTemplate = {
                 </section>
 
                 <footer class="settings-footer">
-                    <div class="version-text" id="app-version">v2.1.0 (Core Stabilized)</div>
+                    <div class="version-text" id="app-version">v2.1.1 (Drag Fix)</div>
                     <div class="credits">Сделал <a href="https://t.me/bagerca" target="_blank">BAGERca</a> &copy; 2026 - ${data.currentYear}</div>
                 </footer>
             </div>
@@ -2965,7 +3116,7 @@ export const SettingsTemplate = {
 
             <dialog id="nav-order-dialog" class="custom-theme-modal">
                 <h3>Порядок панелей</h3>
-                <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-bottom: 16px;">Первая кнопка открывается при запуске</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-bottom: 16px;">Удерживайте и тащите элементы</p>
                 <div id="nav-order-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 <div class="modal-actions" style="margin-top: 20px;">
                     <button class="modal-btn save" id="btn-save-nav">Сохранить</button>
@@ -2975,12 +3126,20 @@ export const SettingsTemplate = {
     },
 
     renderNavList(navOrder, navNames) {
-        return navOrder.map((id, index) => `
-            <div class="nav-reorder-item">
-                <span>${index + 1}. ${navNames[id]}</span>
-                <div class="nav-reorder-controls">
-                    <button class="nav-move-btn" data-dir="-1" data-idx="${index}" ${index === 0 ? 'disabled' : ''}>▲</button>
-                    <button class="nav-move-btn" data-dir="1" data-idx="${index}" ${index === navOrder.length - 1 ? 'disabled' : ''}>▼</button>
+        // ЗАЩИТА: Очищаем мусор, если он уже попал в память (undefined)
+        const validOrder = navOrder.filter(id => id && navNames[id]);
+        
+        return validOrder.map((id, index) => `
+            <div class="nav-reorder-item" data-id="${id}">
+                <div>
+                    <span class="nav-number">${index + 1}.</span>
+                    <span>${navNames[id]}</span>
+                </div>
+                <div class="drag-handle" aria-label="Перетащить">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
+                        <circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
+                    </svg>
                 </div>
             </div>
         `).join('');
@@ -3507,9 +3666,12 @@ export const ThemeManager = {
 
 /* =====================================================================
    FILE: js/utils/time.js
-   LINES: 88
+   LINES: 92
 ===================================================================== */
 
+/* =====================================================================
+   FILE: js/utils/time.js
+===================================================================== */
 export function parseTimeToMinutes(timeStr) {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
@@ -3525,13 +3687,22 @@ export function formatMinutes(totalMinutes) {
 export function getDateStringForDay(targetDayNum) {
     const now = new Date();
     let currentDay = now.getDay();
-    if (currentDay === 0) currentDay = 7; 
+    if (currentDay === 0) currentDay = 7; // Воскресенье делаем 7 днем
     
-    let diff = targetDayNum - currentDay;
-    if (currentDay > 5) diff += 7;
+    // Якоримся к понедельнику нужной недели
+    const monday = new Date(now);
     
-    const targetDate = new Date(now);
-    targetDate.setDate(now.getDate() + diff);
+    if (currentDay > 5) {
+        // Если сегодня выходной, якоримся к понедельнику СЛЕДУЮЩЕЙ недели
+        monday.setDate(now.getDate() + (8 - currentDay));
+    } else {
+        // Если сегодня будни, якоримся к понедельнику ТЕКУЩЕЙ недели
+        monday.setDate(now.getDate() - (currentDay - 1));
+    }
+    
+    // Рассчитываем целевой день относительно найденного понедельника
+    const targetDate = new Date(monday);
+    targetDate.setDate(monday.getDate() + (targetDayNum - 1));
     
     const dd = String(targetDate.getDate()).padStart(2, '0');
     const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
@@ -3542,7 +3713,6 @@ export function getDateStringForDay(targetDayNum) {
 
 export function getCurrentScheduleStatus(bellsData) {
     const now = new Date();
-    // Считаем время в секундах для идеальной плавности полосы прогресса
     const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     const currentMinutes = Math.floor(currentTotalSeconds / 60);
 
@@ -3554,7 +3724,6 @@ export function getCurrentScheduleStatus(bellsData) {
         const startSecs = startMins * 60;
         const endSecs = endMins * 60;
 
-        // 1. Состояние: До начала этой пары или большая перемена
         if (currentTotalSeconds < startSecs) {
             if (i === 0) return { status: 'before_classes', nextPair: bell, timeToNext: startMins - currentMinutes };
             
@@ -3564,7 +3733,6 @@ export function getCurrentScheduleStatus(bellsData) {
             }
         }
 
-        // 2. Состояние: Внутри пары (Проверяем 45-минутки и 5-минутную переменку)
         if (currentTotalSeconds >= startSecs && currentTotalSeconds <= endSecs) {
             if (bell.lesson1 && bell.lesson2) {
                 const l1StartSecs = parseTimeToMinutes(bell.lesson1.start) * 60;
@@ -3572,30 +3740,25 @@ export function getCurrentScheduleStatus(bellsData) {
                 const l2StartSecs = parseTimeToMinutes(bell.lesson2.start) * 60;
                 const l2EndSecs = parseTimeToMinutes(bell.lesson2.end) * 60;
 
-                // Урок 1
                 if (currentTotalSeconds <= l1EndSecs) {
                     const progressPercent = ((currentTotalSeconds - l1StartSecs) / (l1EndSecs - l1StartSecs)) * 100;
                     return { status: 'active_lesson1', currentPair: bell, timeLeft: Math.ceil((l1EndSecs - currentTotalSeconds)/60), progressPercent };
                 } 
-                // 5-минутная перемена
                 else if (currentTotalSeconds < l2StartSecs) {
                     const progressPercent = ((currentTotalSeconds - l1EndSecs) / (l2StartSecs - l1EndSecs)) * 100;
                     return { status: 'short_break', currentPair: bell, timeLeft: Math.ceil((l2StartSecs - currentTotalSeconds)/60), progressPercent };
                 } 
-                // Урок 2
                 else {
                     const progressPercent = ((currentTotalSeconds - l2StartSecs) / (l2EndSecs - l2StartSecs)) * 100;
                     return { status: 'active_lesson2', currentPair: bell, timeLeft: Math.ceil((l2EndSecs - currentTotalSeconds)/60), progressPercent };
                 }
             }
             
-            // Фолбэк, если в JSON вдруг нет разбивки на lesson1 и lesson2
             const progressPercent = ((currentTotalSeconds - startSecs) / (endSecs - startSecs)) * 100;
             return { status: 'active', currentPair: bell, timeLeft: endMins - currentMinutes, progressPercent };
         }
     }
     
-    // Если прошли все циклы и текущее время больше конца последней пары
     return { status: 'ended' };
 }
 
@@ -4503,7 +4666,7 @@ export class ScheduleView {
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   LINES: 277
+   LINES: 367
 ===================================================================== */
 
 /* =====================================================================
@@ -4521,9 +4684,7 @@ export class SettingsView {
         this.adminTapTimeout = null;
         this.isMounted = false;
         
-        // Глобальный перехватчик для настроек
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
-        // Перехватчик для инпутов (файлы)
         this.handleGlobalChange = this.handleGlobalChange.bind(this);
     }
 
@@ -4555,7 +4716,6 @@ export class SettingsView {
 
         this.container.innerHTML = SettingsTemplate.renderMain(templateData);
         
-        // ВАЖНО: Вешаем делегатов
         this.container.addEventListener('click', this.handleGlobalClick);
         this.container.addEventListener('change', this.handleGlobalChange);
         
@@ -4569,7 +4729,6 @@ export class SettingsView {
         this.container.removeEventListener('change', this.handleGlobalChange);
     }
 
-    // --- ОБРАБОТКА INPUT CHANGE (Обои) ---
     handleGlobalChange(e) {
         if (e.target.id === 'upload-wp') {
             const file = e.target.files[0];
@@ -4579,15 +4738,12 @@ export class SettingsView {
         }
     }
 
-    // --- ЕДИНЫЙ БРОНИРОВАННЫЙ ОБРАБОТЧИК КЛИКОВ ---
     async handleGlobalClick(e) {
-        // Закрытие выпадающего списка подгрупп, если клик был вне его
         const subgroupWrapper = document.getElementById('subgroup-wrapper');
         if (subgroupWrapper && !subgroupWrapper.contains(e.target)) {
             subgroupWrapper.classList.remove('open');
         }
 
-        // 1. Кнопка "Назад"
         if (e.target.closest('#settings-back-btn')) {
             PrefsManager.vibrate();
             if (window.history.length > 1) window.history.back();
@@ -4595,7 +4751,6 @@ export class SettingsView {
             return;
         }
 
-        // 2. Смена темы
         const themeContainer = e.target.closest('.theme-swatch-container');
         if (themeContainer) {
             if (this.isDragging) return;
@@ -4611,7 +4766,6 @@ export class SettingsView {
             return;
         }
 
-        // 3. Модалка кастомной темы
         if (e.target.closest('#btn-cancel-custom')) {
             PrefsManager.vibrate(); 
             document.getElementById('custom-theme-dialog').close();
@@ -4625,25 +4779,19 @@ export class SettingsView {
             return;
         }
 
-        // 4. Порядок навигации
         if (e.target.closest('#btn-open-nav-order')) {
             PrefsManager.vibrate(10);
-            this.tempNavOrder = [...PrefsManager.getPrefs().navOrder];
+            
+            // Фильтруем от багов прошлой версии
+            const validNavs = ['schedule', 'homework', 'group', 'events'];
+            this.tempNavOrder = PrefsManager.getPrefs().navOrder.filter(id => validNavs.includes(id));
+            
+            if (this.tempNavOrder.length === 0) {
+                this.tempNavOrder = ['schedule', 'homework', 'group', 'events'];
+            }
+
             this.refreshNavModal();
             document.getElementById('nav-order-dialog').showModal();
-            return;
-        }
-        
-        // Внутри модалки порядка навигации (Стрелочки)
-        const moveBtn = e.target.closest('.nav-move-btn');
-        if (moveBtn) {
-            const idx = parseInt(moveBtn.dataset.idx);
-            const dir = parseInt(moveBtn.dataset.dir);
-            if (idx + dir >= 0 && idx + dir < this.tempNavOrder.length) {
-                PrefsManager.vibrate(10);
-                [this.tempNavOrder[idx], this.tempNavOrder[idx+dir]] = [this.tempNavOrder[idx+dir], this.tempNavOrder[idx]];
-                this.refreshNavModal();
-            }
             return;
         }
 
@@ -4655,7 +4803,6 @@ export class SettingsView {
             return;
         }
 
-        // 5. Выбор подгруппы
         const subgroupBtn = e.target.closest('#subgroup-btn');
         if (subgroupBtn) {
             e.stopPropagation(); 
@@ -4672,7 +4819,6 @@ export class SettingsView {
             return;
         }
 
-        // 6. Обои (Очистка)
         if (e.target.closest('#btn-clear-wp')) {
             PrefsManager.vibrate(); 
             PrefsManager.clearWallpaper(); 
@@ -4680,7 +4826,6 @@ export class SettingsView {
             return;
         }
 
-        // 7. Тогглы (Переключатели)
         const toggleWrapper = e.target.closest('.settings-list-item[id^="toggle-"]');
         if (toggleWrapper) {
             PrefsManager.vibrate();
@@ -4720,7 +4865,6 @@ export class SettingsView {
             return;
         }
 
-        // 8. Сброс кэша и домашки
         if (e.target.closest('#btn-reset-hw')) {
             PrefsManager.vibrate();
             if (confirm('Удалить галочки со всех заданий?')) {
@@ -4742,7 +4886,6 @@ export class SettingsView {
             return;
         }
 
-        // 9. Пасхалка разработчика
         if (e.target.closest('#app-version')) {
             this.adminTaps++;
             if (this.adminTaps === 1) this.adminTapTimeout = setTimeout(() => this.adminTaps = 0, 3000);
@@ -4761,8 +4904,118 @@ export class SettingsView {
 
     refreshNavModal() {
         const list = document.getElementById('nav-order-list');
+        if (!list) return;
         const navNames = { 'schedule': 'Расписание', 'homework': 'Домашка', 'group': 'Группа', 'events': 'Ивенты' };
         list.innerHTML = SettingsTemplate.renderNavList(this.tempNavOrder, navNames);
+        this.initDragDrop(list); 
+    }
+
+    // --- СОВЕРШЕННЫЙ ДВИЖОК DRAG & DROP ---
+    initDragDrop(listContainer) {
+        let activeItem = null;
+        let clone = null;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        const getEvent = (e) => e.touches ? e.touches[0] : e;
+
+        const onStart = (e) => {
+            const handle = e.target.closest('.drag-handle');
+            if (!handle) return;
+            
+            activeItem = e.target.closest('.nav-reorder-item');
+            if (!activeItem) return;
+
+            e.preventDefault(); 
+            if (navigator.vibrate) navigator.vibrate(15);
+
+            const evt = getEvent(e);
+            const rect = activeItem.getBoundingClientRect();
+            
+            // Запоминаем сдвиг клика относительно верхнего левого угла элемента
+            offsetX = evt.clientX - rect.left;
+            offsetY = evt.clientY - rect.top;
+
+            // 1. Создаем летающего клона
+            clone = activeItem.cloneNode(true);
+            clone.classList.add('drag-clone');
+            clone.style.width = `${rect.width}px`;
+            clone.style.height = `${rect.height}px`;
+            clone.style.left = `${evt.clientX - offsetX}px`;
+            clone.style.top = `${evt.clientY - offsetY}px`;
+            
+            // Добавляем клона прямо в body, чтобы его не резал overflow модалки
+            document.body.appendChild(clone);
+
+            // 2. Оригинальный элемент делаем прозрачной рамкой
+            activeItem.classList.add('drag-placeholder');
+
+            document.addEventListener('mousemove', onMove, { passive: false });
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchend', onEnd);
+            document.addEventListener('touchcancel', onEnd); // Важно для срывов свайпа
+        };
+
+        const onMove = (e) => {
+            if (!activeItem || !clone) return;
+            e.preventDefault(); 
+            
+            const evt = getEvent(e);
+            
+            // Двигаем клона за курсором
+            clone.style.left = `${evt.clientX - offsetX}px`;
+            clone.style.top = `${evt.clientY - offsetY}px`;
+
+            // Узнаем, над каким элементом мы сейчас находимся (игнорирует клона, т.к. у него pointer-events: none)
+            const hoveredEl = document.elementFromPoint(evt.clientX, evt.clientY);
+            if (!hoveredEl) return;
+
+            const targetItem = hoveredEl.closest('.nav-reorder-item:not(.drag-placeholder)');
+            
+            if (targetItem && targetItem.parentNode === listContainer) {
+                const targetRect = targetItem.getBoundingClientRect();
+                const targetCenter = targetRect.top + (targetRect.height / 2);
+                
+                // Перемещаем оригинальный элемент в DOM (рамка просто скачет по списку)
+                if (evt.clientY < targetCenter) {
+                    listContainer.insertBefore(activeItem, targetItem);
+                } else {
+                    listContainer.insertBefore(activeItem, targetItem.nextSibling);
+                }
+                if (navigator.vibrate) navigator.vibrate(5);
+            }
+        };
+
+        const onEnd = () => {
+            if (!activeItem) return;
+
+            // Удаляем клона
+            if (clone) clone.remove();
+            clone = null;
+
+            // Возвращаем видимость оригинальному элементу
+            activeItem.classList.remove('drag-placeholder');
+            activeItem = null;
+
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchend', onEnd);
+            document.removeEventListener('touchcancel', onEnd);
+
+            // Сохраняем порядок
+            const newOrder = [...listContainer.querySelectorAll('.nav-reorder-item')].map(el => el.dataset.id);
+            this.tempNavOrder = newOrder;
+            this.refreshNavModal(); 
+        };
+
+        // Защита от дублей событий
+        listContainer.removeEventListener('mousedown', onStart);
+        listContainer.removeEventListener('touchstart', onStart);
+        
+        listContainer.addEventListener('mousedown', onStart);
+        listContainer.addEventListener('touchstart', onStart, { passive: false });
     }
 
     initDesktopScroll() {
