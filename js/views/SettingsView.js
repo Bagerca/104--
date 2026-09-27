@@ -1,6 +1,5 @@
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   Настройки с поддержкой Deep Linking для модалок
 ===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
@@ -107,10 +106,10 @@ export class SettingsView {
             subgroupWrapper.classList.remove('open');
         }
 
+        // ФИКС: Теперь кнопка честно откатывает историю назад, не создавая циклов
         if (e.target.closest('#settings-back-btn')) {
             PrefsManager.vibrate();
-            const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
-            window.location.hash = '#/' + firstPage;
+            window.history.back();
             return;
         }
 
