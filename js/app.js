@@ -97,9 +97,11 @@ function initPullToRefresh() {
     let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null;
     
     document.addEventListener('touchstart', (e) => {
-        // ФИКС: Если мы тапаем внутри игровых зон, модалок или горизонтальных скроллов - игнорируем кастомный PTR
+        // Блокируем PTR если мы в игре
+        if (document.body.classList.contains('game-mode-active')) return;
+        
         if (document.querySelector('dialog[open]') || 
-            e.target.closest('.theme-scroll-wrapper, .days-wrapper, .snake-game-area, .g2048-game-area, .flappy-game-area')) {
+            e.target.closest('.theme-scroll-wrapper, .days-wrapper')) {
             return;
         }
         

@@ -16,6 +16,7 @@ export class Game2048View {
 
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
         this.handleKeydown = this.handleKeydown.bind(this);
+        this.preventScroll = (e) => e.preventDefault();
     }
 
     async mount() {
@@ -29,6 +30,9 @@ export class Game2048View {
         
         this.container.addEventListener('click', this.handleGlobalClick);
         document.addEventListener('keydown', this.handleKeydown);
+        
+        // Жесткая блокировка скролла
+        this.container.addEventListener('touchmove', this.preventScroll, { passive: false });
         this.initTouchControls();
     }
 
@@ -36,6 +40,7 @@ export class Game2048View {
         this.isMounted = false;
         this.container.removeEventListener('click', this.handleGlobalClick);
         document.removeEventListener('keydown', this.handleKeydown);
+        this.container.removeEventListener('touchmove', this.preventScroll);
     }
 
     handleGlobalClick(e) {
@@ -55,10 +60,7 @@ export class Game2048View {
         document.getElementById('g2048-gameover-overlay').classList.remove('active');
         
         this.board = [
-            [0,0,0,0],
-            [0,0,0,0],
-            [0,0,0,0],
-            [0,0,0,0]
+            [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]
         ];
         this.score = 0;
         this.isPlaying = true;
@@ -100,12 +102,8 @@ export class Game2048View {
         document.getElementById('g2048-gameover-overlay').classList.add('active');
     }
 
-    // --- Математика логики 2048 ---
-
     operate(row) {
-        // Сдвиг влево (удаляем нули)
         let arr = row.filter(val => val);
-        // Слияние одинаковых
         for (let i = 0; i < arr.length - 1; i++) {
             if (arr[i] !== 0 && arr[i] === arr[i + 1]) {
                 arr[i] *= 2;
@@ -113,19 +111,16 @@ export class Game2048View {
                 arr[i + 1] = 0;
             }
         }
-        // Снова сдвиг влево
         arr = arr.filter(val => val);
-        // Добиваем нулями до длины 4
         while (arr.length < 4) arr.push(0);
         return arr;
     }
 
     move(direction) {
-        // direction: 0 = up, 1 = right, 2 = down, 3 = left
         if (!this.isPlaying) return;
         let oldBoard = JSON.stringify(this.board);
 
-        if (direction === 3 || direction === 1) { // Left or Right
+        if (direction === 3 || direction === 1) { 
             for (let r = 0; r < 4; r++) {
                 let row = this.board[r];
                 if (direction === 1) row.reverse();
@@ -133,7 +128,7 @@ export class Game2048View {
                 if (direction === 1) row.reverse();
                 this.board[r] = row;
             }
-        } else { // Up or Down
+        } else { 
             for (let c = 0; c < 4; c++) {
                 let col = [this.board[0][c], this.board[1][c], this.board[2][c], this.board[3][c]];
                 if (direction === 2) col.reverse();
@@ -162,8 +157,6 @@ export class Game2048View {
         return true;
     }
 
-    // --- УПРАВЛЕНИЕ ---
-
     handleKeydown(e) {
         if (!this.isPlaying) return;
         switch(e.key) {
@@ -182,8 +175,6 @@ export class Game2048View {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
         }, { passive: false });
-
-        this.area.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 
         this.area.addEventListener('touchend', e => {
             if (!this.isPlaying) return;

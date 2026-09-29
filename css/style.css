@@ -13,7 +13,6 @@ html { scrollbar-width: none; }
 
 body {
     -ms-overflow-style: none;
-    /* ФИКС: Жестко отключаем системную перезагрузку страницы при свайпе вниз */
     overscroll-behavior-y: none; 
     font-family: var(--font-main);
     background-color: var(--theme-bg-main);
@@ -21,6 +20,24 @@ body {
     line-height: 1.5;
     overflow-x: hidden;
     transition: background-color var(--transition-smooth);
+}
+
+/* Игровой режим на весь экран (Fullscreen Immersive) */
+body.game-mode-active {
+    overflow: hidden !important;
+    touch-action: none !important;
+    overscroll-behavior: none !important;
+}
+body.game-mode-active .app-header,
+body.game-mode-active .bottom-nav {
+    display: none !important;
+}
+body.game-mode-active .app-container {
+    padding: 0 !important;
+    max-width: none !important;
+}
+body.game-mode-active main {
+    padding: 0 !important;
 }
 
 .ambient-glow {

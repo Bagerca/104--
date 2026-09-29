@@ -2,14 +2,22 @@
    FILE: css/views/flappy.css
 ===================================================================== */
 .flappy-container {
-    animation: fadeIn 0.3s ease;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: var(--theme-bg-main);
+    z-index: 90;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    box-sizing: border-box;
+    animation: fadeIn 0.3s ease;
 }
 
 .flappy-header {
     width: 100%;
+    max-width: 500px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -17,43 +25,33 @@
     border: var(--glass-border);
     padding: 16px;
     border-radius: var(--radius-lg);
-    margin-bottom: 20px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+    margin-bottom: auto;
 }
 
-.flappy-scores {
-    display: flex;
-    gap: 16px;
-}
+.flappy-scores { display: flex; gap: 16px; }
 
 .flappy-game-area {
     position: relative;
     width: 100%;
     max-width: 450px;
-    height: 60vh;
-    max-height: 700px;
-    min-height: 400px;
+    flex-grow: 1; /* Растягиваем высоту */
+    max-height: 70vh; /* Ограничиваем, чтобы не было слишком высоким */
     background: rgba(0, 0, 0, 0.4);
     border-radius: var(--radius-md);
     border: var(--glass-border);
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    touch-action: none;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
-.flappy-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
+.flappy-canvas { width: 100%; height: 100%; display: block; }
 
-/* Единые стили оверлея и кнопок как у Змейки и 2048 */
 .flappy-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); /* ФИКС: выровняли прозрачность */
-    backdrop-filter: blur(4px);   /* ФИКС: выровняли блюр */
-    -webkit-backdrop-filter: blur(4px);
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
     text-align: center; padding: 20px; z-index: 10;
@@ -68,4 +66,4 @@
     box-shadow: 0 4px 15px var(--theme-accent-glow); transition: transform 0.2s;
 }
 .flappy-btn:active { transform: scale(0.95); }
-.flappy-controls-hint { margin-top: 16px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+.flappy-controls-hint { margin-top: auto; font-size: 0.8rem; color: var(--text-muted); text-align: center; flex-shrink: 0; }

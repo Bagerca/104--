@@ -9,15 +9,13 @@ export class SnakeView {
         this.container = container;
         this.isMounted = false;
         
-        // Настройки игры
-        this.gridSize = 20; // 20x20 клеток
+        this.gridSize = 20; 
         this.tileCount = 20;
-        this.speed = 130; // миллисекунды на 1 кадр (чем меньше, тем быстрее)
+        this.speed = 130; 
         
-        // Игровое состояние
         this.snake = [];
         this.velocity = { x: 0, y: 0 };
-        this.nextVelocity = { x: 0, y: 0 }; // Для защиты от быстрого двойного свайпа
+        this.nextVelocity = { x: 0, y: 0 }; 
         this.food = { x: 15, y: 15 };
         this.score = 0;
         this.bestScore = parseInt(localStorage.getItem('sh_snake_best')) || 0;
@@ -26,16 +24,14 @@ export class SnakeView {
         this.lastTime = 0;
         this.animationId = null;
 
-        // Привязка методов (важно для снятия слушателей)
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
         this.handleKeydown = this.handleKeydown.bind(this);
         this.gameLoop = this.gameLoop.bind(this);
+        this.preventScroll = (e) => e.preventDefault();
     }
 
     async mount() {
         this.isMounted = true;
-        document.getElementById('page-title').textContent = 'Змейка';
-        
         this.container.innerHTML = SnakeTemplate.renderUI(this.bestScore);
         
         this.canvas = document.getElementById('snake-canvas');
@@ -47,6 +43,9 @@ export class SnakeView {
         
         this.container.addEventListener('click', this.handleGlobalClick);
         document.addEventListener('keydown', this.handleKeydown);
+        
+        // Жесткая блокировка любого скролла и свайпов на всем экране
+        this.container.addEventListener('touchmove', this.preventScroll, { passive: false });
         this.initTouchControls();
     }
 
@@ -55,16 +54,15 @@ export class SnakeView {
         this.stopGame();
         this.container.removeEventListener('click', this.handleGlobalClick);
         document.removeEventListener('keydown', this.handleKeydown);
-        // Ресайз можно оставить, он не критичен, либо тоже отвязать, но мы не сохраняли ссылку на bind
+        this.container.removeEventListener('touchmove', this.preventScroll);
     }
 
     resizeCanvas() {
         if (!this.canvas) return;
-        // Делаем разрешение канваса физическим, чтобы не было мыла
         const rect = this.area.getBoundingClientRect();
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
-        this.draw(); // перерисовываем статику
+        this.draw(); 
     }
 
     handleGlobalClick(e) {
@@ -73,7 +71,6 @@ export class SnakeView {
             window.history.back();
             return;
         }
-
         if (e.target.id === 'snake-start-btn' || e.target.id === 'snake-restart-btn') {
             PrefsManager.vibrate(15);
             this.startGame();
@@ -89,7 +86,7 @@ export class SnakeView {
             { x: 10, y: 11 },
             { x: 10, y: 12 }
         ];
-        this.velocity = { x: 0, y: -1 }; // Движемся вверх
+        this.velocity = { x: 0, y: -1 };
         this.nextVelocity = { x: 0, y: -1 };
         this.score = 0;
         this.updateScoreUI();
@@ -109,7 +106,7 @@ export class SnakeView {
 
     gameOver() {
         this.stopGame();
-        PrefsManager.vibrate([30, 50, 50]); // Двойная вибрация при проигрыше
+        PrefsManager.vibrate([30, 50, 50]); 
         
         if (this.score > this.bestScore) {
             this.bestScore = this.score;
@@ -126,7 +123,7 @@ export class SnakeView {
         
         this.animationId = requestAnimationFrame(this.gameLoop);
         
-        if (timestamp - this.lastTime < this.speed) return; // Контроль скорости (FPS)
+        if (timestamp - this.lastTime < this.speed) return; 
         this.lastTime = timestamp;
         
         this.updatePhysics();
@@ -134,20 +131,18 @@ export class SnakeView {
     }
 
     updatePhysics() {
-        this.velocity = { ...this.nextVelocity }; // Применяем буферизированный ввод
+        this.velocity = { ...this.nextVelocity }; 
         
         let head = { 
             x: this.snake[0].x + this.velocity.x, 
             y: this.snake[0].y + this.velocity.y 
         };
 
-        // Столкновение со стенами (прохождение насквозь отключено, врезаемся = смерть)
         if (head.x < 0 || head.x >= this.tileCount || head.y < 0 || head.y >= this.tileCount) {
             this.gameOver();
             return;
         }
 
-        // Столкновение с собой
         for (let i = 0; i < this.snake.length; i++) {
             if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
                 this.gameOver();
@@ -155,18 +150,16 @@ export class SnakeView {
             }
         }
 
-        this.snake.unshift(head); // Добавляем новую голову
+        this.snake.unshift(head); 
 
-        // Проверка еды
         if (head.x === this.food.x && head.y === this.food.y) {
             this.score += 10;
             this.updateScoreUI();
             this.placeFood();
-            PrefsManager.vibrate(10); // Легкий тактильный отклик при съедании
-            // Слегка ускоряем игру со временем
+            PrefsManager.vibrate(10); 
             if (this.speed > 60) this.speed -= 2; 
         } else {
-            this.snake.pop(); // Удаляем хвост (движение)
+            this.snake.pop(); 
         }
     }
 
@@ -180,7 +173,6 @@ export class SnakeView {
                 if (part.x === newX && part.y === newY) isOnSnake = true;
             }
         } while (isOnSnake);
-        
         this.food = { x: newX, y: newY };
     }
 
@@ -196,15 +188,12 @@ export class SnakeView {
         const tileW = w / this.tileCount;
         const tileH = h / this.tileCount;
 
-        // Очистка
         this.ctx.clearRect(0, 0, w, h);
 
-        // Получаем цвета из CSS переменных темы
         const rootStyles = getComputedStyle(document.documentElement);
         const accentColor = rootStyles.getPropertyValue('--theme-accent').trim() || '#4CAF50';
-        const foodColor = '#FF4D4D'; // Красное яблоко
+        const foodColor = '#FF4D4D'; 
 
-        // Рисуем еду
         this.ctx.fillStyle = foodColor;
         this.ctx.beginPath();
         this.ctx.arc(
@@ -215,15 +204,11 @@ export class SnakeView {
         );
         this.ctx.fill();
 
-        // Рисуем змею
         for (let i = 0; i < this.snake.length; i++) {
             this.ctx.fillStyle = i === 0 ? accentColor : rootStyles.getPropertyValue('--theme-accent-soft').trim() || 'rgba(255,255,255,0.5)';
-            
-            // Если это не голова и нет цвета (soft accent) - даем дефолтный белый прозрачный
             if (i !== 0 && (!this.ctx.fillStyle || this.ctx.fillStyle === '')) {
                 this.ctx.fillStyle = 'rgba(255,255,255,0.4)';
             }
-            
             this.ctx.fillRect(
                 this.snake[i].x * tileW + 1, 
                 this.snake[i].y * tileH + 1, 
@@ -233,11 +218,8 @@ export class SnakeView {
         }
     }
 
-    // --- УПРАВЛЕНИЕ ---
-
     handleKeydown(e) {
         if (!this.isPlaying) return;
-        // Исключаем разворот на 180 градусов
         switch(e.key) {
             case 'ArrowUp': case 'w': case 'W':
                 if (this.velocity.y !== 1) this.nextVelocity = { x: 0, y: -1 }; break;
@@ -252,17 +234,11 @@ export class SnakeView {
 
     initTouchControls() {
         if (!this.area) return;
-        
         let startX = 0, startY = 0;
         
-        // touch-action: none в CSS блокирует скролл, но e.preventDefault() страхует
         this.area.addEventListener('touchstart', e => {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
-        }, { passive: false });
-
-        this.area.addEventListener('touchmove', e => {
-            e.preventDefault(); // Запрет скролла страницы при возне по канвасу
         }, { passive: false });
 
         this.area.addEventListener('touchend', e => {
@@ -273,17 +249,14 @@ export class SnakeView {
             const dx = endX - startX;
             const dy = endY - startY;
             
-            // Защита от случайных микро-тапов
             if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
 
             if (Math.abs(dx) > Math.abs(dy)) {
-                // Горизонтальный свайп
-                if (dx > 0 && this.velocity.x !== -1) this.nextVelocity = { x: 1, y: 0 }; // Право
-                else if (dx < 0 && this.velocity.x !== 1) this.nextVelocity = { x: -1, y: 0 }; // Лево
+                if (dx > 0 && this.velocity.x !== -1) this.nextVelocity = { x: 1, y: 0 }; 
+                else if (dx < 0 && this.velocity.x !== 1) this.nextVelocity = { x: -1, y: 0 };
             } else {
-                // Вертикальный свайп
-                if (dy > 0 && this.velocity.y !== -1) this.nextVelocity = { x: 0, y: 1 }; // Вниз
-                else if (dy < 0 && this.velocity.y !== 1) this.nextVelocity = { x: 0, y: -1 }; // Вверх
+                if (dy > 0 && this.velocity.y !== -1) this.nextVelocity = { x: 0, y: 1 }; 
+                else if (dy < 0 && this.velocity.y !== 1) this.nextVelocity = { x: 0, y: -1 };
             }
         });
     }

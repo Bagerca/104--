@@ -1,3 +1,6 @@
+/* =====================================================================
+   FILE: js/router.js
+===================================================================== */
 import { ScheduleView } from './views/ScheduleView.js';
 import { GroupView } from './views/GroupView.js';
 import { HomeworkView } from './views/HomeworkView.js';
@@ -66,13 +69,20 @@ export class Router {
         const view = this.views[path];
         const currentRenderId = ++this.renderId;
 
-        // --- Глобальные модалки (Deep Linking) ---
+        // --- Управление Fullscreen Режимом для Игр ---
+        if (path.startsWith('/games/') && path !== '/games') {
+            document.body.classList.add('game-mode-active');
+        } else {
+            document.body.classList.remove('game-mode-active');
+        }
+
+        // --- Глобальные модалки ---
         if (params.lightbox) Lightbox.render(decodeURIComponent(params.lightbox));
         else Lightbox.hide();
 
         if (params.alert) Modal.render();
         else Modal.hide();
-        // ------------------------------------------
+        // --------------------------
 
         try {
             if (!forceReload && this.currentViewName === path && this.currentView) {
