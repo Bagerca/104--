@@ -1,0 +1,414 @@
+/* =====================================================================
+   FILE: css/views/game-shell.css
+   Единая оболочка для всех мини-игр и их специфичные стили
+===================================================================== */
+
+/* =====================================================================
+   БАЗОВЫЙ ИГРОВОЙ ИНТЕРФЕЙС
+===================================================================== */
+.game-container {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh;
+    background: var(--theme-bg-main); 
+    z-index: 90;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    box-sizing: border-box; 
+    animation: fadeIn 0.3s ease;
+}
+
+.game-header {
+    width: 100%; 
+    max-width: 500px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    background: var(--glass-bg); 
+    border: var(--glass-border); 
+    padding: 16px;
+    border-radius: var(--radius-lg); 
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15); 
+    flex-shrink: 0; 
+    margin-bottom: auto;
+}
+
+.game-scores { 
+    display: flex; 
+    gap: 16px; 
+}
+
+.score-box { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+}
+
+.score-label { 
+    font-size: 0.7rem; 
+    color: var(--text-muted); 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+}
+
+.score-value { 
+    font-size: 1.2rem; 
+    font-weight: 700; 
+    color: var(--text-primary); 
+    font-variant-numeric: tabular-nums; 
+}
+
+.score-value.best { 
+    color: var(--theme-accent-text); 
+}
+
+.game-area {
+    position: relative; 
+    width: 100%; 
+    max-width: 450px; 
+    flex-grow: 1; 
+    max-height: 70vh;
+    background: rgba(0, 0, 0, 0.4); 
+    border-radius: var(--radius-md); 
+    border: var(--glass-border);
+    overflow: hidden; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    margin-top: auto; 
+    margin-bottom: auto;
+}
+
+.game-area.square { 
+    aspect-ratio: 1; 
+    max-height: none; 
+    flex-grow: 0; 
+    padding: 10px; 
+}
+
+.game-area.no-padding { 
+    padding: 0; 
+}
+
+.game-canvas { 
+    width: 100%; 
+    height: 100%; 
+    display: block; 
+}
+
+.game-overlay {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.6); 
+    backdrop-filter: blur(4px); 
+    -webkit-backdrop-filter: blur(4px);
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
+    opacity: 0; 
+    pointer-events: none; 
+    transition: opacity 0.3s ease;
+    text-align: center; 
+    padding: 20px; 
+    z-index: 10;
+}
+
+.game-overlay.active { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+.game-overlay h2 { 
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    margin-bottom: 8px; 
+    color: #fff; 
+}
+
+.game-overlay p { 
+    font-size: 0.9rem; 
+    color: rgba(255, 255, 255, 0.7); 
+    margin-bottom: 20px; 
+}
+
+.game-btn {
+    padding: 12px 24px; 
+    background: var(--theme-accent); 
+    color: var(--text-on-accent);
+    border: none; 
+    border-radius: 20px; 
+    font-size: 1rem; 
+    font-weight: 600; 
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--theme-accent-glow); 
+    transition: transform 0.2s;
+}
+
+.game-btn:active { 
+    transform: scale(0.95); 
+}
+
+.game-controls-hint { 
+    margin-top: auto; 
+    font-size: 0.8rem; 
+    color: var(--text-muted); 
+    text-align: center; 
+    flex-shrink: 0; 
+}
+
+/* =====================================================================
+   === 2048 Специфика ===
+===================================================================== */
+.g2048-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    grid-template-rows: repeat(4, 1fr); 
+    gap: 10px; 
+    width: 100%; 
+    height: 100%; 
+}
+
+.g2048-cell { 
+    background: var(--overlay-bg); 
+    border-radius: 8px; 
+    position: relative; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.g2048-tile { 
+    width: 100%; 
+    height: 100%; 
+    border-radius: 8px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-weight: 800; 
+    font-size: 1.8rem; 
+    color: #fff; 
+    animation: popIn 0.15s ease-out; 
+}
+
+@keyframes popIn { 
+    0% { transform: scale(0.5); opacity: 0; } 
+    80% { transform: scale(1.1); } 
+    100% { transform: scale(1); opacity: 1; } 
+}
+
+.tile-2 { background: #3d3b3b; color: #fff; }
+.tile-4 { background: #4f4a45; color: #fff; }
+.tile-8 { background: #b87c53; color: #fff; font-size: 1.6rem;}
+.tile-16 { background: #cf6f42; color: #fff; font-size: 1.5rem;}
+.tile-32 { background: #e05c36; color: #fff; font-size: 1.5rem;}
+.tile-64 { background: #eb4217; color: #fff; font-size: 1.5rem;}
+.tile-128 { background: #eac04d; color: #fff; font-size: 1.3rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
+.tile-256 { background: #f0c953; color: #fff; font-size: 1.3rem; box-shadow: 0 0 10px rgba(240, 201, 83, 0.4);}
+.tile-512 { background: #f2cb4e; color: #fff; font-size: 1.3rem; box-shadow: 0 0 12px rgba(242, 203, 78, 0.6);}
+.tile-1024 { background: #f5cf47; color: #fff; font-size: 1.1rem; box-shadow: 0 0 15px rgba(245, 207, 71, 0.8);}
+.tile-2048 { background: #f7d13e; color: #fff; font-size: 1.1rem; box-shadow: 0 0 20px rgba(247, 209, 62, 1);}
+.tile-super { background: #ff3366; color: #fff; font-size: 1.1rem; box-shadow: 0 0 20px rgba(255, 51, 102, 0.8);}
+
+/* =====================================================================
+   === MINESWEEPER (САПЁР) ===
+===================================================================== */
+.ms-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    gap: 16px;
+}
+
+.ms-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    gap: 2px;
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--glass-border);
+    padding: 2px;
+    border-radius: 8px;
+}
+
+.ms-cell {
+    background: var(--overlay-bg-active);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+}
+
+.ms-cell:active {
+    background: var(--overlay-bg);
+}
+
+.ms-cell.revealed {
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    cursor: default;
+}
+
+.ms-cell.mine {
+    background: rgba(255, 50, 50, 0.2);
+}
+
+.ms-num-1 { color: #4facfe; }
+.ms-num-2 { color: #4caf50; }
+.ms-num-3 { color: #f44336; }
+.ms-num-4 { color: #9c27b0; }
+.ms-num-5 { color: #ff9800; }
+.ms-num-6 { color: #00bcd4; }
+.ms-num-7 { color: #3f51b5; }
+.ms-num-8 { color: #795548; }
+
+.ms-mode-toggle {
+    display: flex;
+    background: var(--overlay-bg);
+    border-radius: 24px;
+    padding: 4px;
+    width: 200px;
+    border: var(--glass-border);
+}
+
+.ms-mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 0;
+    border-radius: 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.ms-mode-btn.active {
+    background: var(--theme-accent);
+    color: var(--text-on-accent);
+    box-shadow: 0 4px 12px var(--theme-accent-glow);
+}
+
+/* =====================================================================
+   === TIC-TAC-TOE (КРЕСТИКИ-НОЛИКИ) ===
+===================================================================== */
+.ttt-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
+
+.ttt-mode-toggle {
+    display: flex;
+    background: var(--overlay-bg);
+    border-radius: 24px;
+    padding: 4px;
+    width: 240px;
+    border: var(--glass-border);
+    margin-bottom: 16px;
+}
+
+.ttt-mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 0;
+    border-radius: 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.ttt-mode-btn.active {
+    background: var(--theme-accent);
+    color: var(--text-on-accent);
+    box-shadow: 0 4px 12px var(--theme-accent-glow);
+}
+
+.ttt-turn-indicator {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+}
+
+.ttt-turn-indicator span {
+    font-size: 1.4rem;
+}
+
+.ttt-turn-indicator span.x-turn { color: var(--theme-accent-text); }
+.ttt-turn-indicator span.o-turn { color: #4facfe; }
+
+.ttt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+    padding: 8px;
+    background: var(--glass-border);
+    border-radius: 16px;
+    box-sizing: border-box;
+}
+
+.ttt-cell {
+    background: var(--overlay-bg-active);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    font-weight: 900;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s, transform 0.1s;
+    line-height: 1;
+}
+
+.ttt-cell:active {
+    transform: scale(0.95);
+    background: var(--overlay-bg);
+}
+
+.ttt-cell.x { color: var(--theme-accent-text); }
+.ttt-cell.o { color: #4facfe; }
+
+.ttt-cell.win {
+    background: rgba(76, 175, 80, 0.25);
+    animation: popIn 0.3s ease-out;
+}

@@ -1,7 +1,7 @@
 /* =====================================================================
    FILE: sw.js
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v22';
+const CACHE_NAME = 'student-hub-v24';
 
 const ASSETS = [
     './',
@@ -15,14 +15,14 @@ const ASSETS = [
     './css/views/events.css',
     './css/views/settings.css',
     './css/views/games.css',
-    './css/views/snake.css',
-    './css/views/2048.css',
-    './css/views/flappy.css',
+    './css/views/game-shell.css',
     
     // Core JS
     './js/app.js',
     './js/router.js',
+    './js/store.js',
     './js/services/api.js',
+    './js/services/NotificationService.js',
     './js/utils/theme.js',
     './js/utils/prefs.js',
     './js/utils/time.js',
@@ -40,9 +40,8 @@ const ASSETS = [
     './js/templates/HomeworkTemplate.js',
     './js/templates/SettingsTemplate.js',
     './js/templates/GamesTemplate.js',
-    './js/templates/SnakeTemplate.js',
-    './js/templates/2048Template.js',
-    './js/templates/FlappyTemplate.js',
+    './js/templates/ScheduleTemplate.js',
+    './js/templates/GameShellTemplate.js',
     
     // Views
     './js/views/EventsView.js',
@@ -51,9 +50,12 @@ const ASSETS = [
     './js/views/ScheduleView.js',
     './js/views/SettingsView.js',
     './js/views/GamesView.js',
+    './js/views/BaseGameView.js',
     './js/views/SnakeView.js',
     './js/views/2048View.js',
     './js/views/FlappyView.js',
+    './js/views/MinesweeperView.js',
+    './js/views/TicTacToeView.js', // ДОБАВЛЕНО
     
     // Assets
     './icons/icon.svg',

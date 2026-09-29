@@ -11,12 +11,27 @@ export class GamesView {
         
         this.gamesList = [
             {
+                id: 'minesweeper',
+                title: 'Сапёр',
+                genre: 'Логика',
+                description: 'Классическая головоломка. Найди все мины на поле, используя цифры-подсказки. Удобный мобильный режим с переключателем лопаты и флага!',
+                cover: 'img/games/minesweeper.webp', 
+                status: 'ready'
+            },
+            {
+                id: 'tictactoe',
+                title: 'Крестики-нолики',
+                genre: 'Настольная',
+                description: 'Классическая игра против умного бота. Сможешь ли ты перехитрить его и собрать линию из трёх крестиков?',
+                cover: 'img/games/tictactoe.webp', // Закинь картинку в папку
+                status: 'ready'
+            },
+            {
                 id: 'snake',
                 title: 'Змейка',
                 genre: 'Аркада',
                 description: 'Классическая ретро-игра. Управление свайпами, сбор яблок и растущий хвост. Попробуй побить рекорд группы!',
                 cover: 'img/games/snake.webp', 
-                iconId: 'snake',
                 status: 'ready'
             },
             {
@@ -25,7 +40,6 @@ export class GamesView {
                 genre: 'Головоломка',
                 description: 'Сдвигай плитки, чтобы объединить одинаковые цифры. Собери заветную 2048!',
                 cover: 'img/games/2048.webp', 
-                iconId: 'game-2048',
                 status: 'ready'
             },
             {
@@ -34,7 +48,6 @@ export class GamesView {
                 genre: 'Хардкор',
                 description: 'Лети сквозь трубы, не касаясь их. Кажется простым? Попробуй набрать хотя бы 10 очков!',
                 cover: 'img/games/flappy.webp', 
-                iconId: 'flappy',
                 status: 'ready'
             }
         ];

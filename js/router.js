@@ -10,6 +10,8 @@ import { GamesView } from './views/GamesView.js';
 import { SnakeView } from './views/SnakeView.js';
 import { Game2048View } from './views/2048View.js';
 import { FlappyView } from './views/FlappyView.js';
+import { MinesweeperView } from './views/MinesweeperView.js';
+import { TicTacToeView } from './views/TicTacToeView.js'; // ИМПОРТ НОВОЙ ИГРЫ
 import { PrefsManager } from './utils/prefs.js';
 import { Store } from './store.js';
 import { Lightbox } from './components/Lightbox.js';
@@ -29,7 +31,9 @@ export class Router {
             '/games': new GamesView(this.contentContainer),
             '/games/snake': new SnakeView(this.contentContainer),
             '/games/2048': new Game2048View(this.contentContainer),
-            '/games/flappy': new FlappyView(this.contentContainer)
+            '/games/flappy': new FlappyView(this.contentContainer),
+            '/games/minesweeper': new MinesweeperView(this.contentContainer),
+            '/games/tictactoe': new TicTacToeView(this.contentContainer) // РЕГИСТРАЦИЯ РОУТА
         };
         
         this.currentViewName = null;
@@ -69,20 +73,17 @@ export class Router {
         const view = this.views[path];
         const currentRenderId = ++this.renderId;
 
-        // --- Управление Fullscreen Режимом для Игр ---
         if (path.startsWith('/games/') && path !== '/games') {
             document.body.classList.add('game-mode-active');
         } else {
             document.body.classList.remove('game-mode-active');
         }
 
-        // --- Глобальные модалки ---
         if (params.lightbox) Lightbox.render(decodeURIComponent(params.lightbox));
         else Lightbox.hide();
 
         if (params.alert) Modal.render();
         else Modal.hide();
-        // --------------------------
 
         try {
             if (!forceReload && this.currentViewName === path && this.currentView) {
@@ -124,6 +125,10 @@ export class Router {
 
         } catch (error) {
             console.error(`[Router Error] Ошибка перехода на ${path}:`, error);
+            this.contentContainer.style.transition = '';
+            this.contentContainer.style.opacity = '1';
+            this.contentContainer.style.transform = 'none';
+            this.contentContainer.innerHTML = `<div class="placeholder-card" style="text-align:center; color:#ff4d4d; margin-top: 20px;">Критическая ошибка экрана.<br>Проверьте консоль.</div>`;
         }
     }
 
