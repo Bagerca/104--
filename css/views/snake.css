@@ -49,14 +49,13 @@
 .snake-game-area {
     position: relative;
     width: 100%;
-    max-width: 400px; /* Чтобы не было слишком огромно на планшетах */
-    aspect-ratio: 1; /* Квадратное поле */
+    max-width: 400px;
+    aspect-ratio: 1;
     background: rgba(0, 0, 0, 0.4);
     border-radius: var(--radius-md);
     border: var(--glass-border);
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    /* Запрещаем браузеру обрабатывать жесты скролла внутри поля */
     touch-action: none; 
 }
 
@@ -66,61 +65,25 @@
     display: block;
 }
 
+/* Единые стили оверлея и кнопок */
 .snake-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.6);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    text-align: center;
-    padding: 20px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    text-align: center; padding: 20px; z-index: 10;
 }
-
-.snake-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.snake-overlay h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: #fff;
-}
-
-.snake-overlay p {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 20px;
-}
+.snake-overlay.active { opacity: 1; pointer-events: auto; }
+.snake-overlay h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: #fff; }
+.snake-overlay p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; }
 
 .snake-btn {
-    padding: 12px 24px;
-    background: var(--theme-accent);
-    color: var(--text-on-accent);
-    border: none;
-    border-radius: 20px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 15px var(--theme-accent-glow);
-    transition: transform 0.2s;
+    padding: 12px 24px; background: var(--theme-accent); color: var(--text-on-accent);
+    border: none; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    box-shadow: 0 4px 15px var(--theme-accent-glow); transition: transform 0.2s;
 }
-
-.snake-btn:active {
-    transform: scale(0.95);
-}
-
-.snake-controls-hint {
-    margin-top: 16px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-align: center;
-}
+.snake-btn:active { transform: scale(0.95); }
+.snake-controls-hint { margin-top: 16px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }

@@ -36,6 +36,7 @@
     border: var(--glass-border);
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     padding: 10px;
+    overflow: hidden; /* ФИКС: Прячем квадратные углы меню */
     touch-action: none;
 }
 
@@ -76,7 +77,30 @@
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* Цвета плиток, адаптированные под темную тему */
+/* Единые стили оверлея и кнопок как у Змейки */
+.g2048-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    text-align: center; padding: 20px; z-index: 10;
+}
+.g2048-overlay.active { opacity: 1; pointer-events: auto; }
+.g2048-overlay h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: #fff; }
+.g2048-overlay p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; }
+
+.g2048-btn {
+    padding: 12px 24px; background: var(--theme-accent); color: var(--text-on-accent);
+    border: none; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    box-shadow: 0 4px 15px var(--theme-accent-glow); transition: transform 0.2s;
+}
+.g2048-btn:active { transform: scale(0.95); }
+.g2048-controls-hint { margin-top: 16px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+
+/* Цвета плиток */
 .tile-2 { background: #3d3b3b; color: #fff; }
 .tile-4 { background: #4f4a45; color: #fff; }
 .tile-8 { background: #b87c53; color: #fff; font-size: 1.6rem;}

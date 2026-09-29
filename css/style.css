@@ -13,6 +13,8 @@ html { scrollbar-width: none; }
 
 body {
     -ms-overflow-style: none;
+    /* ФИКС: Жестко отключаем системную перезагрузку страницы при свайпе вниз */
+    overscroll-behavior-y: none; 
     font-family: var(--font-main);
     background-color: var(--theme-bg-main);
     color: var(--text-primary);

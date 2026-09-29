@@ -1,3 +1,6 @@
+/* =====================================================================
+   FILE: js/app.js
+===================================================================== */
 import { Router } from './router.js';
 import { ThemeManager } from './utils/theme.js';
 import { PrefsManager } from './utils/prefs.js';
@@ -92,11 +95,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initPullToRefresh() {
     let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null;
+    
     document.addEventListener('touchstart', (e) => {
-        if (document.querySelector('dialog[open]') || e.target.closest('.theme-scroll-wrapper, .days-wrapper')) return;
+        // ФИКС: Если мы тапаем внутри игровых зон, модалок или горизонтальных скроллов - игнорируем кастомный PTR
+        if (document.querySelector('dialog[open]') || 
+            e.target.closest('.theme-scroll-wrapper, .days-wrapper, .snake-game-area, .g2048-game-area, .flappy-game-area')) {
+            return;
+        }
+        
         if (window.scrollY === 0) {
-            ptrStartY = e.touches[0].clientY; isPtrActive = true;
-            if (!ptrEl) { ptrEl = document.createElement('div'); ptrEl.id = 'ptr-indicator'; ptrEl.innerHTML = getIcon('refresh-spinner', { size: 24 }); document.body.appendChild(ptrEl); }
+            ptrStartY = e.touches[0].clientY; 
+            isPtrActive = true;
+            if (!ptrEl) { 
+                ptrEl = document.createElement('div'); 
+                ptrEl.id = 'ptr-indicator'; 
+                ptrEl.innerHTML = getIcon('refresh-spinner', { size: 24 }); 
+                document.body.appendChild(ptrEl); 
+            }
         }
     }, {passive: true});
 

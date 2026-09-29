@@ -28,20 +28,20 @@ export const Game2048Template = {
                         <!-- Сетка рендерится через JS -->
                     </div>
                     
-                    <div class="snake-overlay active" id="g2048-start-overlay">
+                    <div class="g2048-overlay active" id="g2048-start-overlay">
                         <h2>2048</h2>
                         <p>Свайпай, чтобы объединять цифры!</p>
-                        <button class="snake-btn" id="g2048-start-btn">Начать</button>
+                        <button class="g2048-btn" id="g2048-start-btn">Начать</button>
                     </div>
 
-                    <div class="snake-overlay" id="g2048-gameover-overlay">
+                    <div class="g2048-overlay" id="g2048-gameover-overlay">
                         <h2>Игра окончена</h2>
                         <p id="g2048-final-score-text">Твой счет: 0</p>
-                        <button class="snake-btn" id="g2048-restart-btn">Еще раз</button>
+                        <button class="g2048-btn" id="g2048-restart-btn">Еще раз</button>
                     </div>
                 </div>
 
-                <div class="snake-controls-hint">Свайпай пальцем или используй стрелочки на ПК</div>
+                <div class="g2048-controls-hint">Свайпай пальцем или используй стрелочки на ПК</div>
             </div>
         `;
     },
