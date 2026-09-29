@@ -1,12 +1,12 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 27.09.2026 23:27:02
+  Дата сборки: 29.09.2026 19:34:17
 ================================================================================
 
 
 /* =====================================================================
    FILE: index.html
-   LINES: 73
+   LINES: 82
 ===================================================================== */
 
 <!DOCTYPE html>
@@ -20,6 +20,19 @@
     <meta name="apple-mobile-web-app-title" content="Hub">
     
     <title>Student Hub</title>
+    
+    <!-- Open Graph (Telegram, VK, Discord, WhatsApp) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Student Hub">
+    <meta property="og:site_name" content="Student Hub">
+    <meta property="og:description" content="Удобная платформа для отслеживания расписания, домашних заданий и событий группы.">
+    <meta property="og:image" content="icons/icon-512.png">
+
+    <!-- Twitter Card (Twitter, iMessage) -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Student Hub">
+    <meta name="twitter:description" content="Удобная платформа для отслеживания расписания, домашних заданий и событий группы.">
+    <meta name="twitter:image" content="icons/icon-512.png">
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -45,12 +58,8 @@
     <div class="app-container">
         <header class="app-header">
             <h1 id="page-title">Расписание</h1>
-            <a href="#/settings" class="icon-btn" aria-label="Настройки">
-                <!-- SVG шестеренки оставим тут, так как это не динамическая иконка -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
+            <a href="#/settings" class="icon-btn" aria-label="Настройки" id="header-settings-btn">
+                <!-- SVG генерируется через js/app.js -->
             </a>
         </header>
 
@@ -61,19 +70,19 @@
         <nav class="bottom-nav glass">
             <!-- Иконки сюда подтянет ThemeManager.js -> getIcon() -->
             <a href="#/schedule" class="nav-item active" data-title="Расписание">
-                <svg></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24"></svg>
                 <span>Уроки</span>
             </a>
             <a href="#/homework" class="nav-item" data-title="Домашка">
-                <svg></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24"></svg>
                 <span>ДЗ</span>
             </a>
             <a href="#/group" class="nav-item" data-title="Группа">
-                <svg></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24"></svg>
                 <span>Группа</span>
             </a>
             <a href="#/events" class="nav-item" data-title="События">
-                <svg></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24"></svg>
                 <span>Ивенты</span>
             </a>
         </nav>
@@ -136,7 +145,7 @@
    FILE: sw.js
    ОПТИМИЗАЦИЯ: Добавлены все недостающие модули для 100% Offline режима
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v16'; // Версия поднята для обновы кэша
+const CACHE_NAME = 'student-hub-v18'; // Версия поднята для обновы кэша
 
 const ASSETS = [
     './',
@@ -424,12 +433,11 @@ self.addEventListener('fetch', (event) => {
 
 /* =====================================================================
    FILE: css/style.css
-   LINES: 218
+   LINES: 208
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/style.css
-   ОПТИМИЗАЦИЯ: Добавлены микроинтеракции для кнопки настроек
 ===================================================================== */
 html { scrollbar-width: none; }
 
@@ -501,7 +509,6 @@ body {
     margin-bottom: 2px;
 }
 
-/* === ПРОКАЧАННАЯ КНОПКА НАСТРОЕК === */
 .icon-btn { 
     background: transparent; 
     border: none; 
@@ -510,20 +517,18 @@ body {
     display: flex; 
     align-items: center;
     justify-content: center;
-    width: 44px;  /* Строгий размер для идеального круга */
+    width: 44px;
     height: 44px;
-    margin: -10px; /* Компенсация отступа, чтобы не ломать верстку шапки */
+    margin: -10px;
     border-radius: 50%;
     transition: all var(--transition-fast);
     outline: none;
 }
 
-/* Пружинистая анимация вращения шестеренки */
 .icon-btn svg {
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Ховер для тех, кто сидит с ПК/Мышки */
 @media (hover: hover) {
     .icon-btn:hover {
         background: var(--overlay-bg);
@@ -534,16 +539,14 @@ body {
     }
 }
 
-/* Реакция на нажатие (Тап на телефоне) */
 .icon-btn:active {
     background: var(--overlay-bg-active);
     color: var(--theme-accent);
-    transform: scale(0.85); /* Эффект физического продавливания */
+    transform: scale(0.85); 
 }
 .icon-btn:active svg {
-    transform: rotate(90deg); /* Крутим шестеренку */
+    transform: rotate(90deg); 
 }
-/* =================================== */
 
 main { padding: var(--spacing-main); }
 
@@ -593,7 +596,6 @@ main { padding: var(--spacing-main); }
 
 .placeholder-card { background: var(--theme-bg-secondary); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; border: var(--glass-border); }
 
-/* Обои */
 #app-wallpaper {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     object-fit: cover; z-index: var(--z-wallpaper); opacity: 0;
@@ -602,7 +604,6 @@ main { padding: var(--spacing-main); }
     transform: scale(1.1); 
 }
 
-/* Pull to Refresh Indicator */
 #ptr-indicator {
     position: fixed; top: -40px; left: 50%; margin-left: -20px;
     width: 40px; height: 40px; background: var(--glass-bg);
@@ -622,7 +623,6 @@ main { padding: var(--spacing-main); }
     to { transform: translateY(50px) rotate(360deg); }
 }
 
-/* Энергосбережение */
 body.power-save-mode .glass,
 body.power-save-mode .app-header {
     background: var(--theme-bg-secondary);
@@ -634,7 +634,6 @@ body.power-save-mode #seasonal-fx-container {
     display: none; 
 }
 
-/* Сезонные эффекты Canvas */
 #seasonal-fx-container {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     pointer-events: none; z-index: var(--z-fx); overflow: hidden;
@@ -1281,15 +1280,15 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/settings.css
-   LINES: 195
+   LINES: 190
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/views/settings.css
+   ОПТИМИЗАЦИЯ: Фикс залипающих hover-эффектов на мобильных устройствах
 ===================================================================== */
 .settings-container { animation: fadeIn 0.3s ease; }
 
-/* === НОВАЯ КАРТОЧКА ШАПКИ === */
 .settings-header { 
     display: flex; 
     align-items: center; 
@@ -1341,7 +1340,6 @@ body.power-save-mode {
 .settings-section { margin-bottom: 28px; }
 .settings-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 4px; }
 
-/* Карточка ТЕМ */
 .theme-card { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-lg); padding: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
 .theme-scroll-wrapper { display: flex; gap: 20px; overflow-x: auto; padding: 10px 20px; -webkit-overflow-scrolling: touch; scrollbar-width: none; cursor: grab; }
 .theme-scroll-wrapper:active { cursor: grabbing; }
@@ -1357,7 +1355,6 @@ body.power-save-mode {
 .theme-name-label { font-size: 0.7rem; color: var(--text-secondary); text-align: center; line-height: 1.2; width: 100%; white-space: normal; transition: color 0.3s; }
 .theme-swatch-container.active .theme-name-label { color: var(--text-primary); font-weight: 600; }
 
-/* Уникальные классы модалок Настроек */
 .custom-theme-modal h3 { margin-bottom: 16px; font-size: 1.1rem; text-align: center; }
 .color-picker-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: var(--overlay-bg); padding: 12px; border-radius: var(--radius-md); }
 .color-picker-group label { font-size: 0.9rem; font-weight: 500; }
@@ -1370,7 +1367,6 @@ body.power-save-mode {
 .modal-btn.cancel { background: var(--overlay-bg-active); color: var(--text-primary); }
 .modal-btn.save { background: var(--theme-accent); color: var(--text-on-accent); }
 
-/* === НАДЁЖНЫЙ DRAG & DROP === */
 .nav-reorder-item { 
     display: flex; 
     justify-content: space-between; 
@@ -1386,21 +1382,18 @@ body.power-save-mode {
     transition: background 0.2s ease;
     border: 1px solid transparent;
 }
-/* Состояние оригинального элемента (становится пунктирной рамкой) */
 .nav-reorder-item.drag-placeholder {
     background: transparent;
     border: 2px dashed var(--overlay-bg-active);
     box-shadow: none;
 }
-/* Прячем содержимое оригинального элемента, оставляя только рамку */
 .nav-reorder-item.drag-placeholder * {
     opacity: 0;
 }
-/* Стили для летающей копии (клона), которая тянется за курсором */
 .drag-clone {
     position: fixed !important;
     z-index: 99999 !important;
-    pointer-events: none !important; /* Клик должен проходить сквозь неё */
+    pointer-events: none !important; 
     background: var(--theme-bg-secondary);
     box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     border: var(--glass-border);
@@ -1435,9 +1428,7 @@ body.power-save-mode {
     margin: -8px; 
     transition: color 0.2s;
 }
-/* =================================================== */
 
-/* Элементы списка */
 .settings-list { background: var(--glass-bg); border: var(--glass-border); border-radius: var(--radius-lg); overflow: visible; }
 .settings-list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; width: 100%; border: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--overlay-bg); }
 .settings-list-item:last-child { border-bottom: none; }
@@ -1447,7 +1438,6 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .item-label-group { display: flex; flex-direction: column; }
 .item-subtitle { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
-/* Кастомный Select */
 .custom-select-wrapper { position: relative; user-select: none; }
 .custom-select-btn { display: flex; align-items: center; gap: 8px; background: var(--overlay-bg); border: var(--glass-border); color: var(--text-primary); padding: 8px 14px; border-radius: var(--radius-md); font-family: inherit; font-size: 0.9rem; cursor: pointer; transition: all var(--transition-fast); }
 .custom-select-btn:active { background: var(--overlay-bg-active); transform: scale(0.98); }
@@ -1456,10 +1446,16 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .custom-select-menu { position: absolute; top: calc(100% + 8px); right: 0; width: 200px; background: var(--theme-bg-secondary); border: var(--glass-border); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; padding: 6px; }
 .custom-select-wrapper.open .custom-select-menu { opacity: 1; visibility: visible; transform: translateY(0); }
 .custom-select-option { padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); transition: all 0.2s; }
-.custom-select-option:hover { background: var(--overlay-bg); color: var(--text-primary); }
+
+/* ФИКС: Включаем :hover только на ПК, чтобы избежать залипания пальца на телефоне */
+@media (hover: hover) {
+    .custom-select-option:hover { background: var(--overlay-bg); color: var(--text-primary); }
+}
+/* Мобильные пользователи увидят активное состояние при тапе */
+.custom-select-option:active { background: var(--overlay-bg); color: var(--text-primary); }
+
 .custom-select-option.selected { background: var(--theme-accent-soft); color: var(--theme-accent-text); font-weight: 600; }
 
-/* iOS Switch */
 .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--overlay-bg-active); border-radius: 12px; transition: background 0.3s ease; cursor: pointer; border: var(--glass-border); }
 .toggle-switch::after { content: ''; position: absolute; top: 1px; left: 1px; width: 20px; height: 20px; background: var(--text-primary); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.3s ease; }
 .toggle-switch.active { background: var(--theme-accent); border-color: var(--theme-accent); }
@@ -1467,14 +1463,12 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 .inline-select { background: var(--overlay-bg); border: var(--glass-border); color: var(--text-primary); padding: 8px 14px; border-radius: 8px; font-family: inherit; font-size: 0.9rem; transition: background 0.2s; }
 .inline-select:active { background: var(--overlay-bg-active); }
 
-/* Футер */
 .settings-footer { text-align: center; margin-top: 40px; margin-bottom: 20px; }
 .settings-footer .version-text { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; user-select: none; padding: 10px; display: inline-block; cursor: pointer;}
 .settings-footer .credits { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 .settings-footer .credits a { color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid var(--overlay-bg-active); transition: color 0.2s, border-color 0.2s; }
 .settings-footer .credits a:active { color: var(--theme-accent); border-color: var(--theme-accent); }
 
-/* ЭКСПЕРИМЕНТАЛЬНЫЙ БЕЙДЖ */
 .badge-experimental { display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 171, 0, 0.1); border: 1px solid rgba(255, 171, 0, 0.25); padding: 3px 8px 3px 6px; border-radius: 12px; margin-left: 8px; box-shadow: 0 2px 10px rgba(255, 171, 0, 0.05); }
 .badge-experimental-dot { width: 6px; height: 6px; background: #FFAB00; border-radius: 50%; box-shadow: 0 0 6px #FFAB00; animation: pulseBeta 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 .badge-experimental-text { color: #FFAB00; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; padding-top: 1px; }
@@ -2011,7 +2005,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 146
+   LINES: 152
 ===================================================================== */
 
 /* =====================================================================
@@ -2024,11 +2018,18 @@ import { Toast } from './components/Toast.js';
 import { ApiService } from './services/api.js';
 import { NotificationService } from './services/NotificationService.js';
 import { Store } from './store.js';
+import { getIcon } from './utils/icons.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
         console.log('[App] Инициализация приложения...');
         
+        // Внедряем иконку настроек
+        const settingsBtn = document.getElementById('header-settings-btn');
+        if (settingsBtn) {
+            settingsBtn.innerHTML = getIcon('settings', { size: 24 });
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auth') === 'dev') {
             PrefsManager.enableTempAdmin();
@@ -2119,7 +2120,7 @@ function initPullToRefresh() {
             if (!ptrEl) {
                 ptrEl = document.createElement('div');
                 ptrEl.id = 'ptr-indicator';
-                ptrEl.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`;
+                ptrEl.innerHTML = getIcon('refresh-spinner', { size: 24 });
                 document.body.appendChild(ptrEl);
             }
         }
@@ -2148,7 +2149,6 @@ function initPullToRefresh() {
             ptrEl.style.transform = `translateY(50px) rotate(360deg)`;
             
             ApiService.clearCache();
-            // ИСПРАВЛЕНИЕ: Передаем true, чтобы убить старый кэш и принудительно перерисовать экран
             if (window.appRouter) await window.appRouter.handleRoute(true);
             
             ptrEl.classList.remove('refreshing');
@@ -2308,7 +2308,7 @@ export class Router {
 
 /* =====================================================================
    FILE: js/store.js
-   LINES: 64
+   LINES: 66
 ===================================================================== */
 
 /* =====================================================================
@@ -2319,7 +2319,7 @@ export class Router {
 export const Store = {
     state: {
         isOffline: !navigator.onLine,
-        prefs: {}, // Здесь будут жить настройки из PrefsManager
+        prefs: {}, 
         currentTheme: 'burgundy',
         homeworkCache: {}
     },
@@ -2346,15 +2346,17 @@ export const Store = {
      */
     setState(updates) {
         this.state = { ...this.state, ...updates };
-        this.notify();
+        this.notify('all');
     },
 
     /**
      * Обновить конкретную настройку (preference)
      */
     updatePref(key, value) {
-        this.state.prefs = { ...this.state.prefs, [key]: value };
-        this.notify(`pref_${key}`);
+        if (this.state.prefs[key] !== value) {
+            this.state.prefs = { ...this.state.prefs, [key]: value };
+            this.notify(`pref_${key}`);
+        }
     },
 
     /**
@@ -2378,7 +2380,7 @@ export const Store = {
 
 /* =====================================================================
    FILE: js/components/Lightbox.js
-   LINES: 83
+   LINES: 81
 ===================================================================== */
 
 /* =====================================================================
@@ -2412,21 +2414,20 @@ export const Lightbox = {
         `;
         document.body.appendChild(dialog);
 
-        // Закрытие по клику на фон
         dialog.querySelector('#global-lightbox-body').addEventListener('click', (e) => {
             if (e.target.id === 'global-lightbox-body') this.close(true);
         });
 
-        // Закрытие по кнопке-крестику
         dialog.querySelector('#global-lightbox-close').addEventListener('click', () => {
             this.close(true);
         });
 
-        // ПЕРЕХВАТ системной кнопки "Назад"
-        window.addEventListener('popstate', () => {
+        window.addEventListener('popstate', (e) => {
             if (this.isOpen) {
-                // Если сработал popstate (нажали "Назад"), историю откатывать уже не надо
-                this.close(false); 
+                // Если стейт не наш - значит нажали кнопку назад. Закрываем.
+                if (!e.state || e.state.modal !== 'lightbox') {
+                    this.close(false); 
+                }
             }
         });
     },
@@ -2444,9 +2445,9 @@ export const Lightbox = {
         downloadBtn.href = imageSrc;
         downloadBtn.setAttribute('download', fileName);
         
-        // Помечаем, что модалка открыта, и забрасываем фейковый стейт в историю браузера
         this.isOpen = true;
-        history.pushState({ modal: 'lightbox' }, '');
+        // Пушим стейт, сохраняя текущий URL (Hash), чтобы не триггерить роутер
+        history.pushState({ modal: 'lightbox' }, '', window.location.hash);
         
         dialog.showModal();
     },
@@ -2458,7 +2459,6 @@ export const Lightbox = {
         this.isOpen = false;
         dialog.close();
 
-        // Если закрыли крестиком или фоном, откатываем фейковый стейт назад вручную
         if (isProgrammatic) {
             history.back();
         }
@@ -2467,7 +2467,7 @@ export const Lightbox = {
 
 /* =====================================================================
    FILE: js/components/Modal.js
-   LINES: 81
+   LINES: 82
 ===================================================================== */
 
 /* =====================================================================
@@ -2504,10 +2504,11 @@ export const Modal = {
             this.close(true);
         });
 
-        // ПЕРЕХВАТ системной кнопки "Назад"
-        window.addEventListener('popstate', () => {
+        window.addEventListener('popstate', (e) => {
             if (this.isOpen) {
-                this.close(false); 
+                if (!e.state || e.state.modal !== 'alert') {
+                    this.close(false); 
+                }
             }
         });
     },
@@ -2520,7 +2521,7 @@ export const Modal = {
 
         const iconContainer = document.getElementById('system-alert-icon');
         
-        let iconName = 'success'; // Дефолт (кружок с инфо)
+        let iconName = 'success';
         if (type === 'admin') iconName = 'admin';
         else if (type === 'warning') iconName = 'warning';
         
@@ -2530,7 +2531,7 @@ export const Modal = {
         
         this.onCloseCallback = onClose;
         this.isOpen = true;
-        history.pushState({ modal: 'alert' }, '');
+        history.pushState({ modal: 'alert' }, '', window.location.hash);
         dialog.showModal();
     },
 
@@ -2617,12 +2618,12 @@ export const Toast = {
 
 /* =====================================================================
    FILE: js/services/api.js
-   LINES: 80
+   LINES: 86
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/services/api.js
-   ОПТИМИЗАЦИЯ: Внедрен Cache Buster для пробития кэша Service Worker'а
+   ОПТИМИЗАЦИЯ: Добавлено логирование ошибки протокола file://
 ===================================================================== */
 const cache = new Map();
 let globalCacheBuster = ''; // Уникальный токен для обхода кэша
@@ -2643,15 +2644,21 @@ async function fetchJson(url, useCache = true, fetchOptions = {}) {
         
         return data;
     } catch (error) {
+        console.error(`[ApiService] Ошибка загрузки ${url}:`, error);
+        
+        // Диагностика протокола для локальной разработки
+        if (window.location.protocol === 'file:') {
+            console.warn('[ApiService] Внимание: Вы используете протокол file://. Fetch API блокирует запросы к файлам из-за CORS. Для тестирования используйте веб-сервер (например, VS Code Live Server).');
+        }
+        
         return null; 
     }
 }
 
 export const ApiService = {
-    // Вызывается при Pull-to-Refresh
     clearCache: () => {
         cache.clear();
-        globalCacheBuster = Date.now().toString(); // Генерируем новый токен
+        globalCacheBuster = Date.now().toString();
     },
     
     getBells: () => fetchJson('data/bells.json'),
@@ -3099,7 +3106,7 @@ export const HomeworkTemplate = {
 
 /* =====================================================================
    FILE: js/templates/SettingsTemplate.js
-   LINES: 199
+   LINES: 196
 ===================================================================== */
 
 /* =====================================================================
@@ -3134,7 +3141,7 @@ export const SettingsTemplate = {
                             
                             <div class="theme-swatch-container ${data.currentTheme === 'custom' ? 'active' : ''}" data-id="custom">
                                 <button class="theme-swatch custom-btn" id="btn-open-custom" style="--swatch-accent: ${data.customData.accent}; --swatch-bg: ${data.customData.bg};">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    ${getIcon('plus', { size: 24 })}
                                 </button>
                                 <span class="theme-name-label">Своя</span>
                             </div>
@@ -3291,11 +3298,8 @@ export const SettingsTemplate = {
                     <span class="nav-number">${index + 1}.</span>
                     <span>${navNames[id]}</span>
                 </div>
-                <div class="drag-handle" aria-label="Перетащить">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
-                        <circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
-                    </svg>
+                <div class="drag-handle" role="button" tabindex="0" aria-roledescription="sortable" aria-label="Перетащить панель">
+                    ${getIcon('drag-handle', { size: 20 })}
                 </div>
             </div>
         `).join('');
@@ -3304,7 +3308,7 @@ export const SettingsTemplate = {
 
 /* =====================================================================
    FILE: js/utils/icons.js
-   LINES: 75
+   LINES: 78
 ===================================================================== */
 
 /* =====================================================================
@@ -3338,6 +3342,9 @@ const ICONS = {
     'chevron-down': '<polyline points="6 9 12 15 18 9"></polyline>',
     'chevron-right': '<polyline points="9 18 15 12 9 6"></polyline>',
     'check': '<polyline points="20 6 9 17 4 12"></polyline>',
+    'plus': '<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>',
+    'drag-handle': '<circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>',
+    'refresh-spinner': '<path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>',
     
     // Домашка / Файлы
     'download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>',
@@ -3351,7 +3358,7 @@ const ICONS = {
     
     // Статусы / Алерты
     'offline': '<path d="M1 1l22 22"></path><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line>',
-    'success': '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>', // Info icon in current project
+    'success': '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>', // Info icon
     'warning': '<path d="M10.29 3.86L1.82 18A2 2 0 0 0 3.53 21H20.47A2 2 0 0 0 22.18 18L13.71 3.86A2 2 0 0 0 10.29 3.86Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
     'admin': '<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>'
 };
@@ -3385,8 +3392,13 @@ export const getIcon = (name, options = {}) => {
 
 /* =====================================================================
    FILE: js/utils/prefs.js
-   LINES: 178
+   LINES: 184
 ===================================================================== */
+
+/* =====================================================================
+   FILE: js/utils/prefs.js
+===================================================================== */
+import { Store } from '../store.js';
 
 // Простая асинхронная обертка для IndexedDB
 const idb = {
@@ -3443,6 +3455,7 @@ export const PrefsManager = {
         const prefs = this.getPrefs();
         prefs[key] = value;
         this.savePrefs(prefs);
+        Store.updatePref(key, value); // Синхронизируем со Store
     },
 
     enableTempAdmin() {
@@ -3885,7 +3898,7 @@ export const ThemeManager = {
 
 /* =====================================================================
    FILE: js/utils/time.js
-   LINES: 92
+   LINES: 90
 ===================================================================== */
 
 /* =====================================================================
@@ -3906,20 +3919,16 @@ export function formatMinutes(totalMinutes) {
 export function getDateStringForDay(targetDayNum) {
     const now = new Date();
     let currentDay = now.getDay();
-    if (currentDay === 0) currentDay = 7; // Воскресенье делаем 7 днем
+    if (currentDay === 0) currentDay = 7; 
     
-    // Якоримся к понедельнику нужной недели
     const monday = new Date(now);
     
     if (currentDay > 5) {
-        // Если сегодня выходной, якоримся к понедельнику СЛЕДУЮЩЕЙ недели
         monday.setDate(now.getDate() + (8 - currentDay));
     } else {
-        // Если сегодня будни, якоримся к понедельнику ТЕКУЩЕЙ недели
         monday.setDate(now.getDate() - (currentDay - 1));
     }
     
-    // Рассчитываем целевой день относительно найденного понедельника
     const targetDate = new Date(monday);
     targetDate.setDate(monday.getDate() + (targetDayNum - 1));
     
@@ -3948,7 +3957,9 @@ export function getCurrentScheduleStatus(bellsData) {
             
             const prevEndSecs = parseTimeToMinutes(bellsData[i - 1].end) * 60;
             if (currentTotalSeconds >= prevEndSecs) {
-                return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes };
+                // Вычисляем процент прохождения перемены
+                const progressPercent = ((currentTotalSeconds - prevEndSecs) / (startSecs - prevEndSecs)) * 100;
+                return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes, progressPercent };
             }
         }
 
@@ -4421,7 +4432,7 @@ export class HomeworkView {
 
 /* =====================================================================
    FILE: js/views/ScheduleView.js
-   LINES: 486
+   LINES: 497
 ===================================================================== */
 
 /* =====================================================================
@@ -4461,7 +4472,6 @@ export class ScheduleView {
         
         this.container.addEventListener('click', this.handleGlobalClick);
 
-        // ПОДПИСКА НА STORE: Ждем изменения подгруппы
         this.unsubscribeStore = Store.subscribe((state, changedKey) => {
             if (changedKey === 'pref_subgroup' && this.isMounted) {
                 this.fullRenderUI();
@@ -4482,7 +4492,6 @@ export class ScheduleView {
             const currentDayReal = new Date().getDay();
             this.state.currentDayNum = (currentDayReal >= 1 && currentDayReal <= 5) ? currentDayReal : 1;
             
-            // Если в URL есть день (например, ?day=3), берем его, иначе сегодняшний
             this.state.selectedDay = params.day ? Number(params.day) : this.state.currentDayNum;
 
             const todayStr = getDateStringForDay(this.state.currentDayNum);
@@ -4506,7 +4515,6 @@ export class ScheduleView {
         }
     }
 
-    // НОВЫЙ МЕТОД: Роутер вызывает его при изменении параметра ?day=...
     async update(params = {}) {
         const targetDay = params.day ? parseInt(params.day) : this.state.currentDayNum;
         if (targetDay !== this.state.selectedDay) {
@@ -4530,7 +4538,6 @@ export class ScheduleView {
         if (dayTab) {
             const targetDay = parseInt(dayTab.getAttribute('data-day'));
             if (targetDay !== this.state.selectedDay) {
-                // МЕНЯЕМ URL, а не перерисовываем напрямую! Роутер всё сделает сам.
                 window.location.hash = `#/schedule?day=${targetDay}`;
             }
             return;
@@ -4617,7 +4624,6 @@ export class ScheduleView {
             const threshold = 50; 
             
             if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
-                // Свайпы меняют URL!
                 if (diffX < -threshold) {
                     const next = Math.min(this.state.selectedDay + 1, 5);
                     if (next !== this.state.selectedDay) window.location.hash = `#/schedule?day=${next}`;
@@ -4667,7 +4673,6 @@ export class ScheduleView {
             return;
         }
 
-        // БЕРЕМ ИЗ STORE!
         const userSubgroup = Store.getState().prefs.subgroup;
         
         const isSubjectVisible = (subjectName) => {
@@ -4735,7 +4740,6 @@ export class ScheduleView {
         const rawSchedule = overrideToUse ? overrideToUse.lessons : (this.state.base[this.state.currentDayNum] || []);
         if (rawSchedule.length === 0) return { status: 'no_classes' };
 
-        // БЕРЕМ ИЗ STORE!
         const userSubgroup = Store.getState().prefs.subgroup;
         
         const isVisible = (subjectName) => {
@@ -4834,7 +4838,22 @@ export class ScheduleView {
         else if (status.status === 'break') {
             const nextLsn = this.getLessonDetails(status.nextPairData, 1);
             const roomTxt = nextLsn.room ? ` &bull; ${nextLsn.room}` : '';
-            this.cached.widgetContainer.innerHTML = `<article class="live-widget widget-break"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">Перемена</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div><div class="live-subject" style="margin:0; font-size: 1rem; color: var(--text-secondary);">След: <span style="color:var(--text-primary);">${nextLsn.subj}</span>${roomTxt}</div></article>`;
+            this.cached.widgetContainer.innerHTML = `
+                <article class="live-widget widget-break">
+                    <div class="live-header">
+                        <div class="live-status-group">
+                            <div class="pulse-dot"></div>
+                            <span class="live-status">Перемена</span>
+                        </div>
+                        <span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span>
+                    </div>
+                    <div class="live-subject" style="margin-bottom: 16px; font-size: 1rem; color: var(--text-secondary);">
+                        След: <span style="color:var(--text-primary);">${nextLsn.subj}</span>${roomTxt}
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="widget-progress" style="width: ${status.progressPercent}%; background: #2196F3;"></div>
+                    </div>
+                </article>`;
         } 
         else {
             const nextLsn = this.getLessonDetails(status.nextPairData, 1);
@@ -4891,7 +4910,10 @@ export class ScheduleView {
                 const newTimeText = (status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break') ? formatMinutes(status.timeLeft) : formatMinutes(status.timeToNext);
                 if (this.cached.timeEl.textContent !== newTimeText) this.cached.timeEl.textContent = newTimeText;
             }
-            if (this.cached.progressEl && (status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break')) {
+            
+            // Расширенное условие: теперь обновляем прогресс и для перемены ('break')
+            const hasProgress = status.status.startsWith('active') || status.status === 'window' || status.status === 'short_break' || status.status === 'break';
+            if (this.cached.progressEl && hasProgress) {
                 this.cached.progressEl.style.width = `${status.progressPercent}%`;
             }
         }
@@ -4913,12 +4935,11 @@ export class ScheduleView {
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   LINES: 391
+   LINES: 383
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   Настройки с поддержкой Deep Linking для модалок
 ===================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
@@ -4980,7 +5001,6 @@ export class SettingsView {
         this.handleModalState();
     }
 
-    // ВОТ ОН, ПОТЕРЯННЫЙ МЕТОД: очищает подписки при уходе со страницы
     unmount() {
         this.isMounted = false;
         if (this.adminTapTimeout) clearTimeout(this.adminTapTimeout);
@@ -5026,10 +5046,10 @@ export class SettingsView {
             subgroupWrapper.classList.remove('open');
         }
 
+        // ФИКС: Теперь кнопка честно откатывает историю назад, не создавая циклов
         if (e.target.closest('#settings-back-btn')) {
             PrefsManager.vibrate();
-            const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
-            window.location.hash = '#/' + firstPage;
+            window.history.back();
             return;
         }
 
@@ -5075,7 +5095,6 @@ export class SettingsView {
         if (e.target.closest('#btn-save-nav')) {
             PrefsManager.vibrate(20);
             PrefsManager.updatePref('navOrder', this.tempNavOrder);
-            Store.updatePref('navOrder', this.tempNavOrder); 
             PrefsManager.applySettingsToDOM(); 
             window.history.back();
             return;
@@ -5094,7 +5113,6 @@ export class SettingsView {
             PrefsManager.vibrate();
             const val = subgroupOpt.getAttribute('data-value');
             PrefsManager.updatePref('subgroup', val);
-            Store.updatePref('subgroup', val);
             this.mount(this.currentParams); 
             return;
         }
@@ -5115,21 +5133,18 @@ export class SettingsView {
                 const toggle = document.getElementById('toggle-haptic');
                 const isNowEnabled = toggle.classList.toggle('active');
                 PrefsManager.updatePref('haptic', isNowEnabled);
-                Store.updatePref('haptic', isNowEnabled);
                 if (isNowEnabled && navigator.vibrate) navigator.vibrate(20);
             } 
             else if (wrapperId === 'toggle-power-wrapper') {
                 const toggle = document.getElementById('toggle-power');
                 const isNowEnabled = toggle.classList.toggle('active');
                 PrefsManager.updatePref('powerSave', isNowEnabled);
-                Store.updatePref('powerSave', isNowEnabled);
                 PrefsManager.applySettingsToDOM();
             }
             else if (wrapperId === 'toggle-particles-wrapper') {
                 const toggle = document.getElementById('toggle-particles');
                 const isNowEnabled = toggle.classList.toggle('active');
                 PrefsManager.updatePref('particles', isNowEnabled);
-                Store.updatePref('particles', isNowEnabled);
                 ThemeManager.applySeasonalEffects(ThemeManager.getCurrent());
             }
             else if (wrapperId === 'toggle-notif-wrapper') {
@@ -5144,7 +5159,6 @@ export class SettingsView {
                 }
                 const isNowEnabled = toggle.classList.toggle('active');
                 PrefsManager.updatePref('notifications', isNowEnabled);
-                Store.updatePref('notifications', isNowEnabled);
             }
             return;
         }
