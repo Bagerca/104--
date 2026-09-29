@@ -1,15 +1,8 @@
-/* =====================================================================
-   FILE: js/components/Lightbox.js
-   Просмотр фотографий на весь экран с поддержкой кнопки "Назад"
-===================================================================== */
 import { getIcon } from '../utils/icons.js';
 
 export const Lightbox = {
-    isOpen: false,
-
     init() {
         if (document.getElementById('global-lightbox')) return;
-
         const dialog = document.createElement('dialog');
         dialog.id = 'global-lightbox';
         dialog.className = 'hw-lightbox'; 
@@ -30,52 +23,31 @@ export const Lightbox = {
         document.body.appendChild(dialog);
 
         dialog.querySelector('#global-lightbox-body').addEventListener('click', (e) => {
-            if (e.target.id === 'global-lightbox-body') this.close(true);
+            if (e.target.id === 'global-lightbox-body') window.history.back();
         });
 
-        dialog.querySelector('#global-lightbox-close').addEventListener('click', () => {
-            this.close(true);
-        });
-
-        window.addEventListener('popstate', (e) => {
-            if (this.isOpen) {
-                // Если стейт не наш - значит нажали кнопку назад. Закрываем.
-                if (!e.state || e.state.modal !== 'lightbox') {
-                    this.close(false); 
-                }
-            }
-        });
+        dialog.querySelector('#global-lightbox-close').addEventListener('click', () => window.history.back());
     },
 
     open(imageSrc, fileName = 'photo.jpg') {
-        this.init();
-        const dialog = document.getElementById('global-lightbox');
-        
-        if (dialog.open) return;
-
-        const img = document.getElementById('global-lightbox-img');
-        const downloadBtn = document.getElementById('global-lightbox-download');
-
-        img.src = imageSrc;
-        downloadBtn.href = imageSrc;
-        downloadBtn.setAttribute('download', fileName);
-        
-        this.isOpen = true;
-        // Пушим стейт, сохраняя текущий URL (Hash), чтобы не триггерить роутер
-        history.pushState({ modal: 'lightbox' }, '', window.location.hash);
-        
-        dialog.showModal();
+        const url = new URL(window.location);
+        url.hash = url.hash.split('?')[0] + `?lightbox=${encodeURIComponent(imageSrc)}`;
+        window.location.hash = url.hash; // Роутер подхватит и вызовет render()
     },
 
-    close(isProgrammatic = true) {
+    render(imageSrc) {
+        this.init();
         const dialog = document.getElementById('global-lightbox');
-        if (!dialog || !dialog.open) return;
+        const img = document.getElementById('global-lightbox-img');
+        const dlBtn = document.getElementById('global-lightbox-download');
 
-        this.isOpen = false;
-        dialog.close();
+        img.src = imageSrc;
+        dlBtn.href = imageSrc;
+        if (!dialog.open) dialog.showModal();
+    },
 
-        if (isProgrammatic) {
-            history.back();
-        }
+    hide() {
+        const dialog = document.getElementById('global-lightbox');
+        if (dialog && dialog.open) dialog.close();
     }
 };

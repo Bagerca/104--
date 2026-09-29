@@ -1,11 +1,8 @@
 /* =====================================================================
    FILE: js/utils/theme.js
-   ОПТИМИЗАЦИЯ: SVG перенесены в глобальный реестр (icons.js)
 ===================================================================== */
 import { Store } from '../store.js';
-import { getIcon } from './icons.js';
 
-// --- ДВИЖОК ЧАСТИЦ CANVAS ---
 class ParticleEngine {
     constructor() {
         this.canvas = null;
@@ -159,10 +156,11 @@ class ParticleEngine {
 }
 
 const pEngine = new ParticleEngine();
-// ------------------------------
 
 export const ThemeManager = {
-    storageKey: 'sh_theme', customStorageKey: 'sh_custom_theme',
+    storageKey: 'sh_theme', 
+    customStorageKey: 'sh_custom_theme',
+    
     baseThemes: [
         { id: 'burgundy', name: 'Бордовая (Dark)', color: '#93002E', bg: '#151515' },
         { id: 'monochrome', name: 'Black & White', color: '#ffffff', bg: '#0a0a0a' },
@@ -173,6 +171,7 @@ export const ThemeManager = {
         { id: 'factory-orange', name: 'Factory Orange', color: '#FF5E00', bg: '#1E2032' },
         { id: 'deep-blue', name: 'Deep Blue', color: '#2374E1', bg: '#02203c' }
     ],
+    
     seasonalThemes: {
         'halloween': { id: 'halloween', name: 'Halloween', color: '#F86903', bg: '#110300', start: {m: 10, d: 24}, end: {m: 11, d: 7} },
         'new-year': { id: 'new-year', name: 'Новый Год', color: '#00E5FF', bg: '#070B19', start: {m: 12, d: 1}, end: {m: 1, d: 31} }
@@ -219,18 +218,26 @@ export const ThemeManager = {
     init() {
         const currentSeason = this.getCurrentSeason();
         const savedThemeId = localStorage.getItem(this.storageKey);
+        let activeTheme = savedThemeId || 'burgundy';
+
         if (currentSeason) {
             const appliedKey = `sh_season_applied_${currentSeason}_${new Date().getFullYear()}`;
             if (!localStorage.getItem(appliedKey)) {
                 localStorage.setItem(appliedKey, 'true');
-                this.setTheme(currentSeason);
-                return;
+                activeTheme = currentSeason;
             }
-        } 
-        this.setTheme(savedThemeId || 'burgundy');
+        }
+        
+        Store.setState({ currentTheme: activeTheme });
+        this.applyDOMTheme(activeTheme);
     },
 
     setTheme(themeId) {
+        Store.setState({ currentTheme: themeId });
+        this.applyDOMTheme(themeId);
+    },
+
+    applyDOMTheme(themeId) {
         const root = document.documentElement;
         if (themeId === 'custom') {
             const customData = this.getCustomTheme();
@@ -249,6 +256,7 @@ export const ThemeManager = {
             themeId = tObj.id; 
         }
         localStorage.setItem(this.storageKey, themeId);
+        
         requestAnimationFrame(() => {
             const computedStyle = getComputedStyle(root);
             const actualBg = computedStyle.getPropertyValue('--theme-bg-main').trim();
@@ -256,33 +264,20 @@ export const ThemeManager = {
             this.updateMetaColor(actualBg);
             this.generateFavicon(actualAccent, actualBg);
         });
+        
         this.applySeasonalEffects(themeId);
     },
 
     applySeasonalEffects(themeId) {
-        // Забираем настройку частиц из Store, если он готов
-        const prefs = Store.state?.prefs || JSON.parse(localStorage.getItem('sh_preferences') || '{}');
-        const particlesEnabled = prefs.particles !== false; // По дефолту включены
+        const prefs = Store.getState().prefs || {};
+        const particlesEnabled = prefs.particles !== false; 
         
         if (particlesEnabled && (themeId === 'halloween' || themeId === 'new-year')) {
             pEngine.init(themeId);
         } else {
             pEngine.stop();
         }
-
-        const isSpecial = themeId === 'halloween' || themeId === 'new-year';
-        
-        // Подмена иконок в нижней панели (обращение к icons.js)
-        document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-            const href = item.getAttribute('href').slice(2); 
-            const iconKey = isSpecial ? `nav-${href}-${themeId}` : `nav-${href}`;
-            const svgHtml = getIcon(iconKey, { size: 24 });
-            
-            const existingSvg = item.querySelector('svg');
-            if (existingSvg && svgHtml) {
-                existingSvg.outerHTML = svgHtml;
-            }
-        });
+        // Замена иконок в навигации управляется подпиской Store в app.js
     },
 
     updateMetaColor(colorHex) {
@@ -295,12 +290,16 @@ export const ThemeManager = {
         this.setTheme('custom');
     },
     
-    getCustomTheme() { return JSON.parse(localStorage.getItem(this.customStorageKey) || '{"bg":"#151515", "accent":"#ffffff"}'); },
-    getCurrent() { return localStorage.getItem(this.storageKey) || 'burgundy'; },
+    getCustomTheme() { 
+        return JSON.parse(localStorage.getItem(this.customStorageKey) || '{"bg":"#151515", "accent":"#ffffff"}'); 
+    },
+    
+    getCurrent() { 
+        return Store.getState().currentTheme; 
+    },
     
     getThemes() {
         let available = [...this.baseThemes];
-        // Проверка режима разработчика
         const isAdm = localStorage.getItem('sh_admin_mode') === 'true' || sessionStorage.getItem('sh_temp_admin') === 'true';
         for (const key in this.seasonalThemes) {
             if (isAdm || this.getCurrentSeason() === key) available.push(this.seasonalThemes[key]);

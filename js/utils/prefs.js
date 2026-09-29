@@ -40,14 +40,23 @@ export const PrefsManager = {
         haptic: true,
         particles: true,
         subgroup: 'all',
-        navOrder: ['schedule', 'homework', 'group', 'events'],
+        navOrder: ['schedule', 'homework', 'group', 'events', 'games'], // 5 разделов
         powerSave: false,
         notifications: false
     },
 
     getPrefs() {
         const saved = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
-        return { ...this.defaults, ...saved };
+        const merged = { ...this.defaults, ...saved };
+        
+        // ФИКС ВОЗВРАТА КНОПОК: Если в старом кэше меньше кнопок, чем в defaults (например, нет Игр)
+        if (saved.navOrder && saved.navOrder.length < this.defaults.navOrder.length) {
+            const missingItems = this.defaults.navOrder.filter(id => !saved.navOrder.includes(id));
+            merged.navOrder = [...saved.navOrder, ...missingItems];
+            this.savePrefs(merged); // Перезаписываем кэш с добавленными играми
+        }
+        
+        return merged;
     },
 
     savePrefs(newPrefs) {
@@ -153,13 +162,6 @@ export const PrefsManager = {
     async applySettingsToDOM() {
         const prefs = this.getPrefs();
         const body = document.body;
-        
-        const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-        navItems.forEach(item => {
-            const href = item.getAttribute('href').replace('#/', '');
-            const index = prefs.navOrder.indexOf(href);
-            if(index !== -1) item.style.order = index;
-        });
 
         if (prefs.powerSave) body.classList.add('power-save-mode');
         else body.classList.remove('power-save-mode');

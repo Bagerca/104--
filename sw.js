@@ -1,8 +1,7 @@
 /* =====================================================================
    FILE: sw.js
-   ОПТИМИЗАЦИЯ: Добавлены все недостающие модули для 100% Offline режима
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v19'; // Версия поднята для обновы кэша
+const CACHE_NAME = 'student-hub-v20';
 
 const ASSETS = [
     './',
@@ -15,6 +14,10 @@ const ASSETS = [
     './css/views/homework.css',
     './css/views/events.css',
     './css/views/settings.css',
+    './css/views/games.css',
+    './css/views/snake.css',
+    './css/views/2048.css',
+    './css/views/flappy.css',
     
     // Core JS
     './js/app.js',
@@ -24,6 +27,7 @@ const ASSETS = [
     './js/utils/prefs.js',
     './js/utils/time.js',
     './js/utils/ui.js',
+    './js/utils/icons.js',
     
     // Components
     './js/components/Lightbox.js',
@@ -35,6 +39,10 @@ const ASSETS = [
     './js/templates/GroupTemplate.js',
     './js/templates/HomeworkTemplate.js',
     './js/templates/SettingsTemplate.js',
+    './js/templates/GamesTemplate.js',
+    './js/templates/SnakeTemplate.js',
+    './js/templates/2048Template.js',
+    './js/templates/FlappyTemplate.js',
     
     // Views
     './js/views/EventsView.js',
@@ -42,6 +50,10 @@ const ASSETS = [
     './js/views/HomeworkView.js',
     './js/views/ScheduleView.js',
     './js/views/SettingsView.js',
+    './js/views/GamesView.js',
+    './js/views/SnakeView.js',
+    './js/views/2048View.js',
+    './js/views/FlappyView.js',
     
     // Assets
     './icons/icon.svg',
@@ -49,37 +61,26 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-    );
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
 });
 
 self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
+    if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
+            return Promise.all(cacheNames.map((cacheName) => {
+                if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
+            }));
         })
     );
 });
 
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
-
-    if (!url.origin.startsWith(self.location.origin) || url.protocol === 'chrome-extension:') {
-        return;
-    }
+    if (!url.origin.startsWith(self.location.origin) || url.protocol === 'chrome-extension:') return;
 
     if (url.pathname.endsWith('.json')) {
         event.respondWith(
@@ -97,11 +98,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
             if (cachedResponse) return cachedResponse;
-
             return fetch(event.request).then(response => {
-                if (!response || response.status !== 200 || response.type !== 'basic') {
-                    return response;
-                }
+                if (!response || response.status !== 200 || response.type !== 'basic') return response;
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
                 return response;

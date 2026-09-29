@@ -1,27 +1,32 @@
-/* =====================================================================
-   FILE: js/router.js
-   Умный роутер с поддержкой Deep Linking и принудительного рефреша (PTR)
-===================================================================== */
 import { ScheduleView } from './views/ScheduleView.js';
 import { GroupView } from './views/GroupView.js';
 import { HomeworkView } from './views/HomeworkView.js';
 import { EventsView } from './views/EventsView.js';
 import { SettingsView } from './views/SettingsView.js';
+import { GamesView } from './views/GamesView.js';
+import { SnakeView } from './views/SnakeView.js';
+import { Game2048View } from './views/2048View.js';
+import { FlappyView } from './views/FlappyView.js';
 import { PrefsManager } from './utils/prefs.js';
 import { Store } from './store.js';
+import { Lightbox } from './components/Lightbox.js';
+import { Modal } from './components/Modal.js';
 
 export class Router {
     constructor() {
         this.contentContainer = document.getElementById('app-content');
         this.pageTitle = document.getElementById('page-title');
-        this.navItems = document.querySelectorAll('.nav-item');
         
         this.views = {
             '/schedule': new ScheduleView(this.contentContainer),
             '/group': new GroupView(this.contentContainer),
             '/homework': new HomeworkView(this.contentContainer),
             '/events': new EventsView(this.contentContainer),
-            '/settings': new SettingsView(this.contentContainer)
+            '/settings': new SettingsView(this.contentContainer),
+            '/games': new GamesView(this.contentContainer),
+            '/games/snake': new SnakeView(this.contentContainer),
+            '/games/2048': new Game2048View(this.contentContainer),
+            '/games/flappy': new FlappyView(this.contentContainer)
         };
         
         this.currentViewName = null;
@@ -30,9 +35,7 @@ export class Router {
 
         document.addEventListener('click', (e) => {
             const navLink = e.target.closest('a[href^="#/"]');
-            if (navLink) {
-                PrefsManager.vibrate(15);
-            }
+            if (navLink) PrefsManager.vibrate(15);
         });
 
         window.addEventListener('hashchange', () => this.handleRoute());
@@ -51,25 +54,27 @@ export class Router {
         const rawHash = window.location.hash.slice(1) || '/';
         const [path, queryString] = rawHash.split('?');
         const params = {};
-
         if (queryString) {
             const urlParams = new URLSearchParams(queryString);
-            for (const [key, value] of urlParams.entries()) {
-                params[key] = value;
-            }
+            for (const [key, value] of urlParams.entries()) params[key] = value;
         }
         return { path, params };
     }
 
-    // Добавлен флаг forceReload для Pull-to-Refresh
     async handleRoute(forceReload = false) {
         const { path, params } = this.parseHash();
         const view = this.views[path];
-
         const currentRenderId = ++this.renderId;
 
+        // --- Глобальные модалки (Deep Linking) ---
+        if (params.lightbox) Lightbox.render(decodeURIComponent(params.lightbox));
+        else Lightbox.hide();
+
+        if (params.alert) Modal.render();
+        else Modal.hide();
+        // ------------------------------------------
+
         try {
-            // Если это не принудительный рефреш, пытаемся обновить мягко
             if (!forceReload && this.currentViewName === path && this.currentView) {
                 if (typeof this.currentView.update === 'function') {
                     await this.currentView.update(params);
@@ -83,7 +88,6 @@ export class Router {
             this.contentContainer.style.transform = 'translateY(10px)';
 
             await new Promise(res => setTimeout(res, 150));
-
             if (this.renderId !== currentRenderId) return;
 
             if (this.currentView && typeof this.currentView.unmount === 'function') {
@@ -94,9 +98,7 @@ export class Router {
                 this.currentViewName = path;
                 this.currentView = view;
                 this.updateNavUI(path);
-                
                 await view.mount(params);
-
                 if (this.renderId !== currentRenderId) return;
             } else {
                 const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
@@ -107,33 +109,26 @@ export class Router {
             this.contentContainer.style.transition = '';
             this.contentContainer.style.opacity = '';
             this.contentContainer.style.transform = '';
-            
             void this.contentContainer.offsetWidth;
-            
             this.contentContainer.classList.add('fade-in');
 
         } catch (error) {
             console.error(`[Router Error] Ошибка перехода на ${path}:`, error);
-            this.contentContainer.style.transition = '';
-            this.contentContainer.style.opacity = '';
-            this.contentContainer.style.transform = '';
         }
     }
 
     updateNavUI(currentPath) {
-        this.navItems.forEach(item => {
-            const itemPath = item.getAttribute('href').slice(1).split('?')[0]; 
-            
-            if (itemPath === currentPath) {
+        const baseRoute = currentPath.split('/')[1];
+        const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+        navItems.forEach(item => {
+            const itemPath = item.getAttribute('href').slice(2).split('?')[0]; 
+            if (itemPath === baseRoute) {
                 item.classList.add('active');
-                this.pageTitle.textContent = item.getAttribute('data-title');
+                if (currentPath === '/settings') this.pageTitle.textContent = 'Настройки';
+                else if (!currentPath.startsWith('/games/')) this.pageTitle.textContent = item.getAttribute('data-title');
             } else {
                 item.classList.remove('active');
             }
         });
-
-        if (currentPath === '/settings') {
-            this.pageTitle.textContent = 'Настройки';
-        }
     }
 }

@@ -10,14 +10,12 @@
     
     <title>Student Hub</title>
     
-    <!-- Open Graph (Telegram, VK, Discord, WhatsApp) -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Student Hub">
     <meta property="og:site_name" content="Student Hub">
     <meta property="og:description" content="Удобная платформа для отслеживания расписания, домашних заданий и событий группы.">
     <meta property="og:image" content="icons/icon-512.png">
 
-    <!-- Twitter Card (Twitter, iMessage) -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Student Hub">
     <meta name="twitter:description" content="Удобная платформа для отслеживания расписания, домашних заданий и событий группы.">
@@ -40,6 +38,10 @@
     <link rel="stylesheet" href="css/views/homework.css">
     <link rel="stylesheet" href="css/views/events.css">
     <link rel="stylesheet" href="css/views/settings.css">
+    <link rel="stylesheet" href="css/views/games.css">
+    <link rel="stylesheet" href="css/views/snake.css">
+    <link rel="stylesheet" href="css/views/2048.css">
+    <link rel="stylesheet" href="css/views/flappy.css">
 </head>
 <body>
     <div class="ambient-glow"></div>
@@ -48,7 +50,7 @@
         <header class="app-header">
             <h1 id="page-title">Расписание</h1>
             <a href="#/settings" class="icon-btn" aria-label="Настройки" id="header-settings-btn">
-                <!-- SVG генерируется через js/app.js -->
+                <!-- SVG settings -->
             </a>
         </header>
 
@@ -56,24 +58,8 @@
             <!-- Контент -->
         </main>
 
-        <nav class="bottom-nav glass">
-            <!-- Иконки сюда подтянет ThemeManager.js -> getIcon() -->
-            <a href="#/schedule" class="nav-item active" data-title="Расписание">
-                <svg width="24" height="24" viewBox="0 0 24 24"></svg>
-                <span>Уроки</span>
-            </a>
-            <a href="#/homework" class="nav-item" data-title="Домашка">
-                <svg width="24" height="24" viewBox="0 0 24 24"></svg>
-                <span>ДЗ</span>
-            </a>
-            <a href="#/group" class="nav-item" data-title="Группа">
-                <svg width="24" height="24" viewBox="0 0 24 24"></svg>
-                <span>Группа</span>
-            </a>
-            <a href="#/events" class="nav-item" data-title="События">
-                <svg width="24" height="24" viewBox="0 0 24 24"></svg>
-                <span>Ивенты</span>
-            </a>
+        <nav class="bottom-nav glass" id="bottom-nav">
+            <!-- Генерируется динамически через app.js -->
         </nav>
     </div>
 

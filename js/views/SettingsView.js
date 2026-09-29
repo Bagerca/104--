@@ -106,7 +106,6 @@ export class SettingsView {
             subgroupWrapper.classList.remove('open');
         }
 
-        // ФИКС: Теперь кнопка честно откатывает историю назад, не создавая циклов
         if (e.target.closest('#settings-back-btn')) {
             PrefsManager.vibrate();
             window.history.back();
@@ -144,7 +143,7 @@ export class SettingsView {
 
         if (e.target.closest('#btn-open-nav-order')) {
             PrefsManager.vibrate(10);
-            const validNavs = ['schedule', 'homework', 'group', 'events'];
+            const validNavs = ['schedule', 'homework', 'group', 'events', 'games'];
             this.tempNavOrder = Store.getState().prefs.navOrder.filter(id => validNavs.includes(id));
             if (this.tempNavOrder.length === 0) this.tempNavOrder = [...validNavs];
             
@@ -263,7 +262,7 @@ export class SettingsView {
     refreshNavModal() {
         const list = document.getElementById('nav-order-list');
         if (!list) return;
-        const navNames = { 'schedule': 'Расписание', 'homework': 'Домашка', 'group': 'Группа', 'events': 'Ивенты' };
+        const navNames = { 'schedule': 'Расписание', 'homework': 'Домашка', 'group': 'Группа', 'events': 'Ивенты', 'games': 'Игры' };
         list.innerHTML = SettingsTemplate.renderNavList(this.tempNavOrder, navNames);
         this.initDragDrop(list); 
     }

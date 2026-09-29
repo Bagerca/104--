@@ -1,44 +1,26 @@
-/* =====================================================================
-   FILE: js/store.js
-   Единое реактивное хранилище состояния приложения (Pub/Sub)
-===================================================================== */
-
 export const Store = {
     state: {
         isOffline: !navigator.onLine,
         prefs: {}, 
         currentTheme: 'burgundy',
-        homeworkCache: {}
+        homeworkTasks: JSON.parse(localStorage.getItem('sh_homework_state') || '{}'),
+        modalState: null
     },
     
     listeners: [],
 
-    /**
-     * Инициализация стартового состояния
-     */
     init(initialState = {}) {
         this.state = { ...this.state, ...initialState };
-        console.log('[Store] Инициализирован с состоянием:', this.state);
+        console.log('[Store] Инициализирован:', this.state);
     },
 
-    /**
-     * Получить текущее состояние целиком
-     */
-    getState() {
-        return this.state;
-    },
+    getState() { return this.state; },
 
-    /**
-     * Обновить состояние (полностью или частично) и уведомить подписчиков
-     */
     setState(updates) {
         this.state = { ...this.state, ...updates };
         this.notify('all');
     },
 
-    /**
-     * Обновить конкретную настройку (preference)
-     */
     updatePref(key, value) {
         if (this.state.prefs[key] !== value) {
             this.state.prefs = { ...this.state.prefs, [key]: value };
@@ -46,20 +28,17 @@ export const Store = {
         }
     },
 
-    /**
-     * Подписаться на изменения Store.
-     * Возвращает функцию для отписки (unsubscribe).
-     */
-    subscribe(listener) {
-        this.listeners.push(listener);
-        return () => {
-            this.listeners = this.listeners.filter(l => l !== listener);
-        };
+    setHomeworkTask(id, isDone) {
+        this.state.homeworkTasks[id] = isDone;
+        localStorage.setItem('sh_homework_state', JSON.stringify(this.state.homeworkTasks));
+        this.notify('homework');
     },
 
-    /**
-     * Уведомить всех подписчиков об изменении
-     */
+    subscribe(listener) {
+        this.listeners.push(listener);
+        return () => { this.listeners = this.listeners.filter(l => l !== listener); };
+    },
+
     notify(changedKey = 'all') {
         this.listeners.forEach(listener => listener(this.state, changedKey));
     }
