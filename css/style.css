@@ -175,6 +175,40 @@ main { padding: var(--spacing-main); }
 .nav-item.active { color: var(--theme-accent); }
 .nav-item.active svg { transform: translateY(-2px); stroke: var(--theme-accent); }
 
+/* Заблокированная кнопка навигации */
+.nav-item.nav-item-disabled {
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+    opacity: 0.35;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+}
+
+.nav-item.nav-item-disabled span {
+    text-decoration: line-through;
+    text-decoration-color: var(--theme-accent-text);
+    text-decoration-thickness: 2px;
+}
+
+.nav-item.nav-item-disabled svg {
+    filter: grayscale(1);
+    opacity: 0.7;
+}
+
+.nav-item.nav-item-disabled::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    width: 28px;
+    height: 2px;
+    background-color: var(--theme-accent-text);
+    transform: translateX(-50%) rotate(-45deg);
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
 .placeholder-card { background: var(--theme-bg-secondary); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; border: var(--glass-border); }
 
 #app-wallpaper {

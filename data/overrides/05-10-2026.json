@@ -1,0 +1,13 @@
+{
+  "id": "05-10-2026",
+  "lessons": [
+    {
+      "pair": 1,
+      "lesson1": null,
+      "lesson2": { "subject": "Разговоры о важном", "room": "2/22" }
+    },
+    { "pair": 2, "subject": "Математика", "room": "1/27" },
+    { "pair": 3, "subject": "Биология", "room": "1/22" },
+    { "pair": 4, "subject": "История", "room": "2/18" }
+  ]
+}

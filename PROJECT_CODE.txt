@@ -1,12 +1,12 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 29.09.2026 21:26:03
+  Дата сборки: 03.10.2026 19:23:32
 ================================================================================
 
 
 /* =====================================================================
    FILE: index.html
-   LINES: 68
+   LINES: 66
 ===================================================================== */
 
 <!DOCTYPE html>
@@ -50,9 +50,7 @@
     <link rel="stylesheet" href="css/views/events.css">
     <link rel="stylesheet" href="css/views/settings.css">
     <link rel="stylesheet" href="css/views/games.css">
-    <link rel="stylesheet" href="css/views/snake.css">
-    <link rel="stylesheet" href="css/views/2048.css">
-    <link rel="stylesheet" href="css/views/flappy.css">
+    <link rel="stylesheet" href="css/views/game-shell.css">
 </head>
 <body>
     <div class="ambient-glow"></div>
@@ -124,13 +122,13 @@
 
 /* =====================================================================
    FILE: sw.js
-   LINES: 109
+   LINES: 111
 ===================================================================== */
 
 /* =====================================================================
    FILE: sw.js
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v21';
+const CACHE_NAME = 'student-hub-v24';
 
 const ASSETS = [
     './',
@@ -144,14 +142,14 @@ const ASSETS = [
     './css/views/events.css',
     './css/views/settings.css',
     './css/views/games.css',
-    './css/views/snake.css',
-    './css/views/2048.css',
-    './css/views/flappy.css',
+    './css/views/game-shell.css',
     
     // Core JS
     './js/app.js',
     './js/router.js',
+    './js/store.js',
     './js/services/api.js',
+    './js/services/NotificationService.js',
     './js/utils/theme.js',
     './js/utils/prefs.js',
     './js/utils/time.js',
@@ -169,9 +167,8 @@ const ASSETS = [
     './js/templates/HomeworkTemplate.js',
     './js/templates/SettingsTemplate.js',
     './js/templates/GamesTemplate.js',
-    './js/templates/SnakeTemplate.js',
-    './js/templates/2048Template.js',
-    './js/templates/FlappyTemplate.js',
+    './js/templates/ScheduleTemplate.js',
+    './js/templates/GameShellTemplate.js',
     
     // Views
     './js/views/EventsView.js',
@@ -180,9 +177,12 @@ const ASSETS = [
     './js/views/ScheduleView.js',
     './js/views/SettingsView.js',
     './js/views/GamesView.js',
+    './js/views/BaseGameView.js',
     './js/views/SnakeView.js',
     './js/views/2048View.js',
     './js/views/FlappyView.js',
+    './js/views/MinesweeperView.js',
+    './js/views/TicTacToeView.js', // ДОБАВЛЕНО
     
     // Assets
     './icons/icon.svg',
@@ -417,7 +417,7 @@ self.addEventListener('fetch', (event) => {
 
 /* =====================================================================
    FILE: css/style.css
-   LINES: 210
+   LINES: 227
 ===================================================================== */
 
 /* =====================================================================
@@ -435,7 +435,6 @@ html { scrollbar-width: none; }
 
 body {
     -ms-overflow-style: none;
-    /* ФИКС: Жестко отключаем системную перезагрузку страницы при свайпе вниз */
     overscroll-behavior-y: none; 
     font-family: var(--font-main);
     background-color: var(--theme-bg-main);
@@ -443,6 +442,24 @@ body {
     line-height: 1.5;
     overflow-x: hidden;
     transition: background-color var(--transition-smooth);
+}
+
+/* Игровой режим на весь экран (Fullscreen Immersive) */
+body.game-mode-active {
+    overflow: hidden !important;
+    touch-action: none !important;
+    overscroll-behavior: none !important;
+}
+body.game-mode-active .app-header,
+body.game-mode-active .bottom-nav {
+    display: none !important;
+}
+body.game-mode-active .app-container {
+    padding: 0 !important;
+    max-width: none !important;
+}
+body.game-mode-active main {
+    padding: 0 !important;
 }
 
 .ambient-glow {
@@ -771,127 +788,6 @@ body.power-save-mode {
 }
 
 /* =====================================================================
-   FILE: css/views/2048.css
-   LINES: 115
-===================================================================== */
-
-/* =====================================================================
-   FILE: css/views/2048.css
-===================================================================== */
-.g2048-container {
-    animation: fadeIn 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.g2048-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--glass-bg);
-    border: var(--glass-border);
-    padding: 16px;
-    border-radius: var(--radius-lg);
-    margin-bottom: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-}
-
-.g2048-scores {
-    display: flex;
-    gap: 16px;
-}
-
-.g2048-game-area {
-    position: relative;
-    width: 100%;
-    max-width: 400px;
-    aspect-ratio: 1;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: var(--radius-md);
-    border: var(--glass-border);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    padding: 10px;
-    overflow: hidden; /* ФИКС: Прячем квадратные углы меню */
-    touch-action: none;
-}
-
-.g2048-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 10px;
-    width: 100%;
-    height: 100%;
-}
-
-.g2048-cell {
-    background: var(--overlay-bg);
-    border-radius: 8px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.g2048-tile {
-    width: 100%;
-    height: 100%;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 1.8rem;
-    color: #fff;
-    animation: popIn 0.15s ease-out;
-}
-
-@keyframes popIn {
-    0% { transform: scale(0.5); opacity: 0; }
-    80% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-/* Единые стили оверлея и кнопок как у Змейки */
-.g2048-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-    text-align: center; padding: 20px; z-index: 10;
-}
-.g2048-overlay.active { opacity: 1; pointer-events: auto; }
-.g2048-overlay h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: #fff; }
-.g2048-overlay p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; }
-
-.g2048-btn {
-    padding: 12px 24px; background: var(--theme-accent); color: var(--text-on-accent);
-    border: none; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer;
-    box-shadow: 0 4px 15px var(--theme-accent-glow); transition: transform 0.2s;
-}
-.g2048-btn:active { transform: scale(0.95); }
-.g2048-controls-hint { margin-top: 16px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
-
-/* Цвета плиток */
-.tile-2 { background: #3d3b3b; color: #fff; }
-.tile-4 { background: #4f4a45; color: #fff; }
-.tile-8 { background: #b87c53; color: #fff; font-size: 1.6rem;}
-.tile-16 { background: #cf6f42; color: #fff; font-size: 1.5rem;}
-.tile-32 { background: #e05c36; color: #fff; font-size: 1.5rem;}
-.tile-64 { background: #eb4217; color: #fff; font-size: 1.5rem;}
-.tile-128 { background: #eac04d; color: #fff; font-size: 1.3rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
-.tile-256 { background: #f0c953; color: #fff; font-size: 1.3rem; box-shadow: 0 0 10px rgba(240, 201, 83, 0.4);}
-.tile-512 { background: #f2cb4e; color: #fff; font-size: 1.3rem; box-shadow: 0 0 12px rgba(242, 203, 78, 0.6);}
-.tile-1024 { background: #f5cf47; color: #fff; font-size: 1.1rem; box-shadow: 0 0 15px rgba(245, 207, 71, 0.8);}
-.tile-2048 { background: #f7d13e; color: #fff; font-size: 1.1rem; box-shadow: 0 0 20px rgba(247, 209, 62, 1);}
-.tile-super { background: #ff3366; color: #fff; font-size: 1.1rem; box-shadow: 0 0 20px rgba(255, 51, 102, 0.8);}
-
-/* =====================================================================
    FILE: css/views/events.css
    LINES: 122
 ===================================================================== */
@@ -1020,81 +916,424 @@ body.power-save-mode {
 }
 
 /* =====================================================================
-   FILE: css/views/flappy.css
-   LINES: 71
+   FILE: css/views/game-shell.css
+   LINES: 414
 ===================================================================== */
 
 /* =====================================================================
-   FILE: css/views/flappy.css
+   FILE: css/views/game-shell.css
+   Единая оболочка для всех мини-игр и их специфичные стили
 ===================================================================== */
-.flappy-container {
+
+/* =====================================================================
+   БАЗОВЫЙ ИГРОВОЙ ИНТЕРФЕЙС
+===================================================================== */
+.game-container {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh;
+    background: var(--theme-bg-main); 
+    z-index: 90;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    box-sizing: border-box; 
     animation: fadeIn 0.3s ease;
+}
+
+.game-header {
+    width: 100%; 
+    max-width: 500px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    background: var(--glass-bg); 
+    border: var(--glass-border); 
+    padding: 16px;
+    border-radius: var(--radius-lg); 
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15); 
+    flex-shrink: 0; 
+    margin-bottom: auto;
+}
+
+.game-scores { 
+    display: flex; 
+    gap: 16px; 
+}
+
+.score-box { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+}
+
+.score-label { 
+    font-size: 0.7rem; 
+    color: var(--text-muted); 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+}
+
+.score-value { 
+    font-size: 1.2rem; 
+    font-weight: 700; 
+    color: var(--text-primary); 
+    font-variant-numeric: tabular-nums; 
+}
+
+.score-value.best { 
+    color: var(--theme-accent-text); 
+}
+
+.game-area {
+    position: relative; 
+    width: 100%; 
+    max-width: 450px; 
+    flex-grow: 1; 
+    max-height: 70vh;
+    background: rgba(0, 0, 0, 0.4); 
+    border-radius: var(--radius-md); 
+    border: var(--glass-border);
+    overflow: hidden; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    margin-top: auto; 
+    margin-bottom: auto;
+}
+
+.game-area.square { 
+    aspect-ratio: 1; 
+    max-height: none; 
+    flex-grow: 0; 
+    padding: 10px; 
+}
+
+.game-area.no-padding { 
+    padding: 0; 
+}
+
+.game-canvas { 
+    width: 100%; 
+    height: 100%; 
+    display: block; 
+}
+
+.game-overlay {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.6); 
+    backdrop-filter: blur(4px); 
+    -webkit-backdrop-filter: blur(4px);
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
+    opacity: 0; 
+    pointer-events: none; 
+    transition: opacity 0.3s ease;
+    text-align: center; 
+    padding: 20px; 
+    z-index: 10;
+}
+
+.game-overlay.active { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+.game-overlay h2 { 
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    margin-bottom: 8px; 
+    color: #fff; 
+}
+
+.game-overlay p { 
+    font-size: 0.9rem; 
+    color: rgba(255, 255, 255, 0.7); 
+    margin-bottom: 20px; 
+}
+
+.game-btn {
+    padding: 12px 24px; 
+    background: var(--theme-accent); 
+    color: var(--text-on-accent);
+    border: none; 
+    border-radius: 20px; 
+    font-size: 1rem; 
+    font-weight: 600; 
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--theme-accent-glow); 
+    transition: transform 0.2s;
+}
+
+.game-btn:active { 
+    transform: scale(0.95); 
+}
+
+.game-controls-hint { 
+    margin-top: auto; 
+    font-size: 0.8rem; 
+    color: var(--text-muted); 
+    text-align: center; 
+    flex-shrink: 0; 
+}
+
+/* =====================================================================
+   === 2048 Специфика ===
+===================================================================== */
+.g2048-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    grid-template-rows: repeat(4, 1fr); 
+    gap: 10px; 
+    width: 100%; 
+    height: 100%; 
+}
+
+.g2048-cell { 
+    background: var(--overlay-bg); 
+    border-radius: 8px; 
+    position: relative; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.g2048-tile { 
+    width: 100%; 
+    height: 100%; 
+    border-radius: 8px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-weight: 800; 
+    font-size: 1.8rem; 
+    color: #fff; 
+    animation: popIn 0.15s ease-out; 
+}
+
+@keyframes popIn { 
+    0% { transform: scale(0.5); opacity: 0; } 
+    80% { transform: scale(1.1); } 
+    100% { transform: scale(1); opacity: 1; } 
+}
+
+.tile-2 { background: #3d3b3b; color: #fff; }
+.tile-4 { background: #4f4a45; color: #fff; }
+.tile-8 { background: #b87c53; color: #fff; font-size: 1.6rem;}
+.tile-16 { background: #cf6f42; color: #fff; font-size: 1.5rem;}
+.tile-32 { background: #e05c36; color: #fff; font-size: 1.5rem;}
+.tile-64 { background: #eb4217; color: #fff; font-size: 1.5rem;}
+.tile-128 { background: #eac04d; color: #fff; font-size: 1.3rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
+.tile-256 { background: #f0c953; color: #fff; font-size: 1.3rem; box-shadow: 0 0 10px rgba(240, 201, 83, 0.4);}
+.tile-512 { background: #f2cb4e; color: #fff; font-size: 1.3rem; box-shadow: 0 0 12px rgba(242, 203, 78, 0.6);}
+.tile-1024 { background: #f5cf47; color: #fff; font-size: 1.1rem; box-shadow: 0 0 15px rgba(245, 207, 71, 0.8);}
+.tile-2048 { background: #f7d13e; color: #fff; font-size: 1.1rem; box-shadow: 0 0 20px rgba(247, 209, 62, 1);}
+.tile-super { background: #ff3366; color: #fff; font-size: 1.1rem; box-shadow: 0 0 20px rgba(255, 51, 102, 0.8);}
+
+/* =====================================================================
+   === MINESWEEPER (САПЁР) ===
+===================================================================== */
+.ms-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.flappy-header {
     width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--glass-bg);
-    border: var(--glass-border);
-    padding: 16px;
-    border-radius: var(--radius-lg);
-    margin-bottom: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-}
-
-.flappy-scores {
-    display: flex;
+    height: 100%;
+    justify-content: center;
     gap: 16px;
 }
 
-.flappy-game-area {
-    position: relative;
+.ms-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    gap: 2px;
     width: 100%;
-    max-width: 450px;
-    height: 60vh;
-    max-height: 700px;
-    min-height: 400px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: var(--radius-md);
-    border: var(--glass-border);
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    touch-action: none;
+    aspect-ratio: 1;
+    background: var(--glass-border);
+    padding: 2px;
+    border-radius: 8px;
 }
 
-.flappy-canvas {
+.ms-cell {
+    background: var(--overlay-bg-active);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+}
+
+.ms-cell:active {
+    background: var(--overlay-bg);
+}
+
+.ms-cell.revealed {
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    cursor: default;
+}
+
+.ms-cell.mine {
+    background: rgba(255, 50, 50, 0.2);
+}
+
+.ms-num-1 { color: #4facfe; }
+.ms-num-2 { color: #4caf50; }
+.ms-num-3 { color: #f44336; }
+.ms-num-4 { color: #9c27b0; }
+.ms-num-5 { color: #ff9800; }
+.ms-num-6 { color: #00bcd4; }
+.ms-num-7 { color: #3f51b5; }
+.ms-num-8 { color: #795548; }
+
+.ms-mode-toggle {
+    display: flex;
+    background: var(--overlay-bg);
+    border-radius: 24px;
+    padding: 4px;
+    width: 200px;
+    border: var(--glass-border);
+}
+
+.ms-mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 0;
+    border-radius: 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.ms-mode-btn.active {
+    background: var(--theme-accent);
+    color: var(--text-on-accent);
+    box-shadow: 0 4px 12px var(--theme-accent-glow);
+}
+
+/* =====================================================================
+   === TIC-TAC-TOE (КРЕСТИКИ-НОЛИКИ) ===
+===================================================================== */
+.ttt-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
     height: 100%;
-    display: block;
+    justify-content: center;
 }
 
-/* Единые стили оверлея и кнопок как у Змейки и 2048 */
-.flappy-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); /* ФИКС: выровняли прозрачность */
-    backdrop-filter: blur(4px);   /* ФИКС: выровняли блюр */
-    -webkit-backdrop-filter: blur(4px);
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-    text-align: center; padding: 20px; z-index: 10;
+.ttt-mode-toggle {
+    display: flex;
+    background: var(--overlay-bg);
+    border-radius: 24px;
+    padding: 4px;
+    width: 240px;
+    border: var(--glass-border);
+    margin-bottom: 16px;
 }
-.flappy-overlay.active { opacity: 1; pointer-events: auto; }
-.flappy-overlay h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: #fff; }
-.flappy-overlay p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; }
 
-.flappy-btn {
-    padding: 12px 24px; background: var(--theme-accent); color: var(--text-on-accent);
-    border: none; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer;
-    box-shadow: 0 4px 15px var(--theme-accent-glow); transition: transform 0.2s;
+.ttt-mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 0;
+    border-radius: 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
 }
-.flappy-btn:active { transform: scale(0.95); }
-.flappy-controls-hint { margin-top: 16px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+
+.ttt-mode-btn.active {
+    background: var(--theme-accent);
+    color: var(--text-on-accent);
+    box-shadow: 0 4px 12px var(--theme-accent-glow);
+}
+
+.ttt-turn-indicator {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+}
+
+.ttt-turn-indicator span {
+    font-size: 1.4rem;
+}
+
+.ttt-turn-indicator span.x-turn { color: var(--theme-accent-text); }
+.ttt-turn-indicator span.o-turn { color: #4facfe; }
+
+.ttt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+    padding: 8px;
+    background: var(--glass-border);
+    border-radius: 16px;
+    box-sizing: border-box;
+}
+
+.ttt-cell {
+    background: var(--overlay-bg-active);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    font-weight: 900;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s, transform 0.1s;
+    line-height: 1;
+}
+
+.ttt-cell:active {
+    transform: scale(0.95);
+    background: var(--overlay-bg);
+}
+
+.ttt-cell.x { color: var(--theme-accent-text); }
+.ttt-cell.o { color: #4facfe; }
+
+.ttt-cell.win {
+    background: rgba(76, 175, 80, 0.25);
+    animation: popIn 0.3s ease-out;
+}
 
 /* =====================================================================
    FILE: css/views/games.css
@@ -1765,101 +2004,6 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 @keyframes pulseBeta { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0.6); } 70% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(255, 171, 0, 0); } 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 171, 0, 0); } }
 
 /* =====================================================================
-   FILE: css/views/snake.css
-   LINES: 89
-===================================================================== */
-
-/* =====================================================================
-   FILE: css/views/snake.css
-===================================================================== */
-.snake-container {
-    animation: fadeIn 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.snake-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--glass-bg);
-    border: var(--glass-border);
-    padding: 16px;
-    border-radius: var(--radius-lg);
-    margin-bottom: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-}
-
-.snake-scores {
-    display: flex;
-    gap: 16px;
-}
-
-.score-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.score-label {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.score-value {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    font-variant-numeric: tabular-nums;
-}
-
-.snake-game-area {
-    position: relative;
-    width: 100%;
-    max-width: 400px;
-    aspect-ratio: 1;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: var(--radius-md);
-    border: var(--glass-border);
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    touch-action: none; 
-}
-
-.snake-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-/* Единые стили оверлея и кнопок */
-.snake-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-    text-align: center; padding: 20px; z-index: 10;
-}
-.snake-overlay.active { opacity: 1; pointer-events: auto; }
-.snake-overlay h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: #fff; }
-.snake-overlay p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; }
-
-.snake-btn {
-    padding: 12px 24px; background: var(--theme-accent); color: var(--text-on-accent);
-    border: none; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer;
-    box-shadow: 0 4px 15px var(--theme-accent-glow); transition: transform 0.2s;
-}
-.snake-btn:active { transform: scale(0.95); }
-.snake-controls-hint { margin-top: 16px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
-
-/* =====================================================================
    FILE: data/bells.json
    LINES: 38
 ===================================================================== */
@@ -2405,7 +2549,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 142
+   LINES: 144
 ===================================================================== */
 
 /* =====================================================================
@@ -2507,9 +2651,11 @@ function initPullToRefresh() {
     let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null;
     
     document.addEventListener('touchstart', (e) => {
-        // ФИКС: Если мы тапаем внутри игровых зон, модалок или горизонтальных скроллов - игнорируем кастомный PTR
+        // Блокируем PTR если мы в игре
+        if (document.body.classList.contains('game-mode-active')) return;
+        
         if (document.querySelector('dialog[open]') || 
-            e.target.closest('.theme-scroll-wrapper, .days-wrapper, .snake-game-area, .g2048-game-area, .flappy-game-area')) {
+            e.target.closest('.theme-scroll-wrapper, .days-wrapper')) {
             return;
         }
         
@@ -2553,9 +2699,12 @@ function initPullToRefresh() {
 
 /* =====================================================================
    FILE: js/router.js
-   LINES: 134
+   LINES: 149
 ===================================================================== */
 
+/* =====================================================================
+   FILE: js/router.js
+===================================================================== */
 import { ScheduleView } from './views/ScheduleView.js';
 import { GroupView } from './views/GroupView.js';
 import { HomeworkView } from './views/HomeworkView.js';
@@ -2565,6 +2714,8 @@ import { GamesView } from './views/GamesView.js';
 import { SnakeView } from './views/SnakeView.js';
 import { Game2048View } from './views/2048View.js';
 import { FlappyView } from './views/FlappyView.js';
+import { MinesweeperView } from './views/MinesweeperView.js';
+import { TicTacToeView } from './views/TicTacToeView.js'; // ИМПОРТ НОВОЙ ИГРЫ
 import { PrefsManager } from './utils/prefs.js';
 import { Store } from './store.js';
 import { Lightbox } from './components/Lightbox.js';
@@ -2584,7 +2735,9 @@ export class Router {
             '/games': new GamesView(this.contentContainer),
             '/games/snake': new SnakeView(this.contentContainer),
             '/games/2048': new Game2048View(this.contentContainer),
-            '/games/flappy': new FlappyView(this.contentContainer)
+            '/games/flappy': new FlappyView(this.contentContainer),
+            '/games/minesweeper': new MinesweeperView(this.contentContainer),
+            '/games/tictactoe': new TicTacToeView(this.contentContainer) // РЕГИСТРАЦИЯ РОУТА
         };
         
         this.currentViewName = null;
@@ -2624,13 +2777,17 @@ export class Router {
         const view = this.views[path];
         const currentRenderId = ++this.renderId;
 
-        // --- Глобальные модалки (Deep Linking) ---
+        if (path.startsWith('/games/') && path !== '/games') {
+            document.body.classList.add('game-mode-active');
+        } else {
+            document.body.classList.remove('game-mode-active');
+        }
+
         if (params.lightbox) Lightbox.render(decodeURIComponent(params.lightbox));
         else Lightbox.hide();
 
         if (params.alert) Modal.render();
         else Modal.hide();
-        // ------------------------------------------
 
         try {
             if (!forceReload && this.currentViewName === path && this.currentView) {
@@ -2672,6 +2829,10 @@ export class Router {
 
         } catch (error) {
             console.error(`[Router Error] Ошибка перехода на ${path}:`, error);
+            this.contentContainer.style.transition = '';
+            this.contentContainer.style.opacity = '1';
+            this.contentContainer.style.transform = 'none';
+            this.contentContainer.innerHTML = `<div class="placeholder-card" style="text-align:center; color:#ff4d4d; margin-top: 20px;">Критическая ошибка экрана.<br>Проверьте консоль.</div>`;
         }
     }
 
@@ -3320,6 +3481,58 @@ export const FlappyTemplate = {
                 </div>
 
                 <div class="flappy-controls-hint">Тапай по экрану или жми Пробел на ПК</div>
+            </div>
+        `;
+    }
+};
+
+/* =====================================================================
+   FILE: js/templates/GameShellTemplate.js
+   LINES: 46
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/templates/GameShellTemplate.js
+===================================================================== */
+import { getIcon } from '../utils/icons.js';
+
+export const GameShellTemplate = {
+    renderUI({ title, bestScore, hint, innerHTML, isSquare = false, noPadding = false }) {
+        return `
+            <div class="game-container slide-left">
+                <div class="game-header">
+                    <button class="icon-btn" id="game-back-btn" aria-label="Назад к играм" style="background: var(--overlay-bg-active); border-radius: 50%;">
+                        ${getIcon('back', { size: 20 })}
+                    </button>
+                    <div class="game-scores">
+                        <div class="score-box">
+                            <span class="score-label">Счет</span>
+                            <span class="score-value" id="game-current-score">0</span>
+                        </div>
+                        <div class="score-box">
+                            <span class="score-label">Рекорд</span>
+                            <span class="score-value best" id="game-best-score">${bestScore}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-area ${isSquare ? 'square' : ''} ${noPadding ? 'no-padding' : ''}" id="game-area">
+                    ${innerHTML}
+                    
+                    <div class="game-overlay active" id="game-start-overlay">
+                        <h2>${title}</h2>
+                        <p>${hint}</p>
+                        <button class="game-btn" id="game-start-btn">Играть</button>
+                    </div>
+
+                    <div class="game-overlay" id="game-gameover-overlay">
+                        <h2 id="game-over-title">Игра окончена!</h2>
+                        <p id="game-final-score-text">Твой счет: 0</p>
+                        <button class="game-btn" id="game-restart-btn">Еще раз</button>
+                    </div>
+                </div>
+
+                <div class="game-controls-hint">${hint} на экране (или стрелочки/пробел на ПК)</div>
             </div>
         `;
     }
@@ -4629,150 +4842,95 @@ export const UIUtils = {
 
 /* =====================================================================
    FILE: js/views/2048View.js
-   LINES: 202
+   LINES: 119
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/2048View.js
 ===================================================================== */
-import { Game2048Template } from '../templates/2048Template.js';
+import { BaseGameView } from './BaseGameView.js';
 import { PrefsManager } from '../utils/prefs.js';
 
-export class Game2048View {
+export class Game2048View extends BaseGameView {
     constructor(container) {
-        this.container = container;
-        this.isMounted = false;
-        
+        super('2048', '2048', 'Свайпай цифры', container, { isSquare: true, noPadding: false, useGameLoop: false });
         this.board = [];
-        this.score = 0;
-        this.bestScore = parseInt(localStorage.getItem('sh_2048_best')) || 0;
-        this.isPlaying = false;
-
-        this.handleGlobalClick = this.handleGlobalClick.bind(this);
-        this.handleKeydown = this.handleKeydown.bind(this);
     }
 
-    async mount() {
-        this.isMounted = true;
-        document.getElementById('page-title').textContent = '2048';
-        
-        this.container.innerHTML = Game2048Template.renderUI(this.bestScore);
-        
+    getInnerHtml() {
+        return `<div class="g2048-grid" id="g2048-grid"></div>`;
+    }
+
+    onGameInit() {
         this.gridEl = document.getElementById('g2048-grid');
-        this.area = document.getElementById('g2048-game-area');
-        
-        this.container.addEventListener('click', this.handleGlobalClick);
-        document.addEventListener('keydown', this.handleKeydown);
-        this.initTouchControls();
     }
 
-    unmount() {
-        this.isMounted = false;
-        this.container.removeEventListener('click', this.handleGlobalClick);
-        document.removeEventListener('keydown', this.handleKeydown);
-    }
-
-    handleGlobalClick(e) {
-        if (e.target.closest('#game-back-btn')) {
-            PrefsManager.vibrate(10);
-            window.history.back();
-            return;
-        }
-        if (e.target.id === 'g2048-start-btn' || e.target.id === 'g2048-restart-btn') {
-            PrefsManager.vibrate(15);
-            this.startGame();
-        }
-    }
-
-    startGame() {
-        document.getElementById('g2048-start-overlay').classList.remove('active');
-        document.getElementById('g2048-gameover-overlay').classList.remove('active');
-        
-        this.board = [
-            [0,0,0,0],
-            [0,0,0,0],
-            [0,0,0,0],
-            [0,0,0,0]
-        ];
-        this.score = 0;
-        this.isPlaying = true;
-        
+    onGameStart() {
+        this.board = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]];
         this.spawnTile();
         this.spawnTile();
-        this.updateUI();
+        this.onGameDraw();
     }
 
     spawnTile() {
-        let emptyCells = [];
+        let empty = [];
         for (let r = 0; r < 4; r++) {
             for (let c = 0; c < 4; c++) {
-                if (this.board[r][c] === 0) emptyCells.push({r, c});
+                if (this.board[r][c] === 0) empty.push({r, c});
             }
         }
-        if (emptyCells.length > 0) {
-            let rand = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        if (empty.length > 0) {
+            let rand = empty[Math.floor(Math.random() * empty.length)];
             this.board[rand.r][rand.c] = Math.random() < 0.9 ? 2 : 4;
         }
     }
 
-    updateUI() {
-        if (!this.isMounted) return;
-        this.gridEl.innerHTML = Game2048Template.renderGrid(this.board);
-        document.getElementById('g2048-current-score').textContent = this.score;
-        
-        if (this.score > this.bestScore) {
-            this.bestScore = this.score;
-            localStorage.setItem('sh_2048_best', this.bestScore);
-            document.getElementById('g2048-best-score').textContent = this.bestScore;
+    onGameDraw() {
+        // ЗАЩИТА: Если доска ещё не создана, не пытаемся её рисовать!
+        if (!this.board || this.board.length === 0) return;
+
+        let html = '';
+        for(let r = 0; r < 4; r++) {
+            for(let c = 0; c < 4; c++) {
+                const val = this.board[r][c];
+                html += val === 0 ? `<div class="g2048-cell"></div>` : 
+                    `<div class="g2048-cell"><div class="g2048-tile ${val >= 4096 ? 'tile-super' : `tile-${val}`}">${val}</div></div>`;
+            }
         }
+        this.gridEl.innerHTML = html;
     }
-
-    gameOver() {
-        this.isPlaying = false;
-        PrefsManager.vibrate([30, 50, 50]);
-        document.getElementById('g2048-final-score-text').textContent = `Твой счет: ${this.score}`;
-        document.getElementById('g2048-gameover-overlay').classList.add('active');
-    }
-
-    // --- Математика логики 2048 ---
 
     operate(row) {
-        // Сдвиг влево (удаляем нули)
         let arr = row.filter(val => val);
-        // Слияние одинаковых
         for (let i = 0; i < arr.length - 1; i++) {
             if (arr[i] !== 0 && arr[i] === arr[i + 1]) {
                 arr[i] *= 2;
-                this.score += arr[i];
+                this.addScore(arr[i]);
                 arr[i + 1] = 0;
             }
         }
-        // Снова сдвиг влево
         arr = arr.filter(val => val);
-        // Добиваем нулями до длины 4
         while (arr.length < 4) arr.push(0);
         return arr;
     }
 
     move(direction) {
-        // direction: 0 = up, 1 = right, 2 = down, 3 = left
-        if (!this.isPlaying) return;
         let oldBoard = JSON.stringify(this.board);
 
-        if (direction === 3 || direction === 1) { // Left or Right
+        if (direction === 'left' || direction === 'right') { 
             for (let r = 0; r < 4; r++) {
                 let row = this.board[r];
-                if (direction === 1) row.reverse();
+                if (direction === 'right') row.reverse();
                 row = this.operate(row);
-                if (direction === 1) row.reverse();
+                if (direction === 'right') row.reverse();
                 this.board[r] = row;
             }
-        } else { // Up or Down
+        } else { 
             for (let c = 0; c < 4; c++) {
                 let col = [this.board[0][c], this.board[1][c], this.board[2][c], this.board[3][c]];
-                if (direction === 2) col.reverse();
+                if (direction === 'down') col.reverse();
                 col = this.operate(col);
-                if (direction === 2) col.reverse();
+                if (direction === 'down') col.reverse();
                 for (let r = 0; r < 4; r++) this.board[r][c] = col[r];
             }
         }
@@ -4780,8 +4938,8 @@ export class Game2048View {
         if (oldBoard !== JSON.stringify(this.board)) {
             PrefsManager.vibrate(10);
             this.spawnTile();
-            this.updateUI();
-            if (this.checkGameOver()) this.gameOver();
+            this.onGameDraw();
+            if (this.checkGameOver()) this.gameOver("Ходов нет");
         }
     }
 
@@ -4796,41 +4954,241 @@ export class Game2048View {
         return true;
     }
 
-    // --- УПРАВЛЕНИЕ ---
+    onSwipe(dir) { this.move(dir); }
+    onKeyPress(key) {
+        switch(key) {
+            case 'ArrowUp': case 'w': case 'W': this.move('up'); break;
+            case 'ArrowDown': case 's': case 'S': this.move('down'); break;
+            case 'ArrowLeft': case 'a': case 'A': this.move('left'); break;
+            case 'ArrowRight': case 'd': case 'D': this.move('right'); break;
+        }
+    }
+}
+
+/* =====================================================================
+   FILE: js/views/BaseGameView.js
+   LINES: 222
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/views/BaseGameView.js
+===================================================================== */
+import { GameShellTemplate } from '../templates/GameShellTemplate.js';
+import { PrefsManager } from '../utils/prefs.js';
+
+export class BaseGameView {
+    constructor(id, title, hint, container, options = {}) {
+        this.id = id;
+        this.title = title;
+        this.hint = hint;
+        this.container = container;
+        
+        this.options = {
+            isSquare: false,
+            noPadding: true,
+            useGameLoop: true, 
+            ...options
+        };
+
+        this.isMounted = false;
+        this.isPlaying = false;
+        
+        this.score = 0;
+        this.bestScore = parseInt(localStorage.getItem(`sh_${this.id}_best`)) || 0;
+        
+        this.animationId = null;
+        this.lastTime = 0;
+        this.colors = {}; 
+
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
+        this.preventScroll = (e) => e.preventDefault();
+        this.coreLoop = this.coreLoop.bind(this);
+        this.handleResize = this.handleResize.bind(this);
+    }
+
+    getInnerHtml() { return ''; }
+    onGameInit() {}
+    onGameStart() {}
+    onGameUpdate(deltaTime) {}
+    onGameDraw() {}
+    onSwipe(direction) {} 
+    onTap() {}
+    onKeyPress(key) {}
+
+    async mount() {
+        this.isMounted = true;
+        document.getElementById('page-title').textContent = this.title;
+        
+        this.container.innerHTML = GameShellTemplate.renderUI({
+            title: this.title,
+            bestScore: this.bestScore,
+            hint: this.hint,
+            innerHTML: this.getInnerHtml(),
+            isSquare: this.options.isSquare,
+            noPadding: this.options.noPadding
+        });
+        
+        this.area = document.getElementById('game-area');
+        
+        this.cacheColors();
+        this.onGameInit();
+        this.initTouchControls();
+
+        this.container.addEventListener('click', this.handleGlobalClick);
+        document.addEventListener('keydown', this.handleKeydown);
+        window.addEventListener('resize', this.handleResize);
+        
+        this.container.addEventListener('touchmove', this.preventScroll, { passive: false });
+    }
+
+    unmount() {
+        this.isMounted = false;
+        this.stopGame();
+        this.container.removeEventListener('click', this.handleGlobalClick);
+        document.removeEventListener('keydown', this.handleKeydown);
+        window.removeEventListener('resize', this.handleResize);
+        this.container.removeEventListener('touchmove', this.preventScroll);
+    }
+
+    cacheColors() {
+        const root = getComputedStyle(document.documentElement);
+        this.colors = {
+            accent: root.getPropertyValue('--theme-accent').trim() || '#FF0055',
+            accentSoft: root.getPropertyValue('--theme-accent-soft').trim() || 'rgba(255,255,255,0.3)',
+            text: root.getPropertyValue('--text-primary').trim() || '#fff'
+        };
+    }
+
+    handleResize() {
+        if (!this.isMounted) return;
+        try {
+            this.onGameDraw(); 
+        } catch (e) {
+            // Тихо гасим ошибку, чтобы она не роняла роутер
+            console.warn(`[GameEngine] Пропуск перерисовки при ресайзе (${this.id}):`, e.message);
+        }
+    }
+
+    handleGlobalClick(e) {
+        if (e.target.closest('#game-back-btn')) {
+            PrefsManager.vibrate(10);
+            window.history.back();
+            return;
+        }
+
+        if (e.target.id === 'game-start-btn' || e.target.id === 'game-restart-btn') {
+            PrefsManager.vibrate(15);
+            this.startGame();
+        }
+    }
 
     handleKeydown(e) {
         if (!this.isPlaying) return;
-        switch(e.key) {
-            case 'ArrowUp': case 'w': case 'W': this.move(0); break;
-            case 'ArrowRight': case 'd': case 'D': this.move(1); break;
-            case 'ArrowDown': case 's': case 'S': this.move(2); break;
-            case 'ArrowLeft': case 'a': case 'A': this.move(3); break;
+        this.onKeyPress(e.key);
+    }
+
+    startGame() {
+        document.getElementById('game-start-overlay').classList.remove('active');
+        document.getElementById('game-gameover-overlay').classList.remove('active');
+        
+        this.score = 0;
+        this.updateScoreUI();
+        this.isPlaying = true;
+        
+        this.onGameStart();
+        
+        if (this.options.useGameLoop) {
+            this.lastTime = performance.now();
+            if (this.animationId) cancelAnimationFrame(this.animationId);
+            this.animationId = requestAnimationFrame(this.coreLoop);
+        }
+    }
+
+    stopGame() {
+        this.isPlaying = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+
+    gameOver(title = "Игра окончена!") {
+        this.stopGame();
+        PrefsManager.vibrate([30, 50, 50]);
+        
+        if (this.score > this.bestScore) {
+            this.bestScore = this.score;
+            localStorage.setItem(`sh_${this.id}_best`, this.bestScore);
+            document.getElementById('game-best-score').textContent = this.bestScore;
+        }
+
+        document.getElementById('game-over-title').textContent = title;
+        document.getElementById('game-final-score-text').textContent = `Твой счет: ${this.score}`;
+        document.getElementById('game-gameover-overlay').classList.add('active');
+    }
+
+    addScore(points) {
+        this.score += points;
+        this.updateScoreUI();
+    }
+
+    updateScoreUI() {
+        document.getElementById('game-current-score').textContent = this.score;
+    }
+
+    coreLoop(timestamp) {
+        if (!this.isPlaying || !this.isMounted) return;
+        
+        const deltaTime = timestamp - this.lastTime;
+        
+        this.onGameUpdate(deltaTime, timestamp);
+        this.onGameDraw();
+        
+        if (this.isPlaying) {
+            this.animationId = requestAnimationFrame(this.coreLoop);
         }
     }
 
     initTouchControls() {
         if (!this.area) return;
         let startX = 0, startY = 0;
+        let isTap = true;
         
         this.area.addEventListener('touchstart', e => {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
+            isTap = true;
         }, { passive: false });
 
-        this.area.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+        this.area.addEventListener('touchmove', e => {
+            if (Math.abs(e.touches[0].clientX - startX) > 10 || Math.abs(e.touches[0].clientY - startY) > 10) {
+                isTap = false;
+            }
+        }, { passive: false });
 
         this.area.addEventListener('touchend', e => {
             if (!this.isPlaying) return;
-            const dx = e.changedTouches[0].clientX - startX;
-            const dy = e.changedTouches[0].clientY - startY;
             
-            if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
-
-            if (Math.abs(dx) > Math.abs(dy)) {
-                this.move(dx > 0 ? 1 : 3);
-            } else {
-                this.move(dy > 0 ? 2 : 0);
+            if (isTap) {
+                this.onTap();
+                return;
             }
+
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const dx = endX - startX;
+            const dy = endY - startY;
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                this.onSwipe(dx > 0 ? 'right' : 'left');
+            } else {
+                this.onSwipe(dy > 0 ? 'down' : 'up');
+            }
+        });
+
+        this.area.addEventListener('mousedown', () => {
+            if (this.isPlaying) this.onTap();
         });
     }
 }
@@ -4882,269 +5240,125 @@ export class EventsView {
 
 /* =====================================================================
    FILE: js/views/FlappyView.js
-   LINES: 256
+   LINES: 112
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/FlappyView.js
 ===================================================================== */
-import { FlappyTemplate } from '../templates/FlappyTemplate.js';
+import { BaseGameView } from './BaseGameView.js';
 import { PrefsManager } from '../utils/prefs.js';
 
-export class FlappyView {
+export class FlappyView extends BaseGameView {
     constructor(container) {
-        this.container = container;
-        this.isMounted = false;
+        super('flappy', 'Flappy Bird', 'Тапай по экрану', container, { isSquare: false, noPadding: true });
         
-        // Настройки физики (адаптивные к размеру экрана)
         this.gravity = 0.25;
         this.jumpForce = -6;
         this.pipeSpeed = 3;
         this.pipeWidth = 60;
         this.pipeGap = 160;
         
-        // Игровое состояние
         this.bird = { x: 50, y: 150, velocity: 0, radius: 12 };
         this.pipes = [];
-        this.score = 0;
-        this.bestScore = parseInt(localStorage.getItem('sh_flappy_best')) || 0;
         this.frameCount = 0;
-        
-        this.isPlaying = false;
-        this.animationId = null;
-
-        // Привязки контекста
-        this.handleGlobalClick = this.handleGlobalClick.bind(this);
-        this.handleKeydown = this.handleKeydown.bind(this);
-        this.jump = this.jump.bind(this);
-        this.gameLoop = this.gameLoop.bind(this);
     }
 
-    async mount() {
-        this.isMounted = true;
-        document.getElementById('page-title').textContent = 'Flappy Bird';
-        
-        this.container.innerHTML = FlappyTemplate.renderUI(this.bestScore);
-        
-        this.canvas = document.getElementById('flappy-canvas');
+    getInnerHtml() {
+        return `<canvas id="game-canvas" class="game-canvas"></canvas>`;
+    }
+
+    onGameInit() {
+        this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
-        this.area = document.getElementById('flappy-game-area');
-        
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-        
-        this.container.addEventListener('click', this.handleGlobalClick);
-        document.addEventListener('keydown', this.handleKeydown);
-        this.initTouchControls();
     }
 
-    unmount() {
-        this.isMounted = false;
-        this.stopGame();
-        this.container.removeEventListener('click', this.handleGlobalClick);
-        document.removeEventListener('keydown', this.handleKeydown);
+    onGameStart() {
+        this.resizeCanvas();
+        this.bird = { x: this.canvas.width * 0.3, y: this.canvas.height / 2, velocity: 0, radius: 12 };
+        this.pipes = [];
+        this.frameCount = 0;
     }
 
     resizeCanvas() {
-        if (!this.canvas) return;
         const rect = this.area.getBoundingClientRect();
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
-        this.draw(); 
     }
 
-    handleGlobalClick(e) {
-        if (e.target.closest('#game-back-btn')) {
-            PrefsManager.vibrate(10);
-            window.history.back();
-            return;
-        }
-
-        if (e.target.id === 'flappy-start-btn' || e.target.id === 'flappy-restart-btn') {
-            PrefsManager.vibrate(15);
-            this.startGame();
-        }
-    }
-
-    startGame() {
-        document.getElementById('flappy-start-overlay').classList.remove('active');
-        document.getElementById('flappy-gameover-overlay').classList.remove('active');
-        
-        // Сброс состояния
-        this.bird = { x: this.canvas.width * 0.3, y: this.canvas.height / 2, velocity: 0, radius: 12 };
-        this.pipes = [];
-        this.score = 0;
-        this.frameCount = 0;
-        this.updateScoreUI();
-        
-        this.isPlaying = true;
-        
-        if (this.animationId) cancelAnimationFrame(this.animationId);
-        this.animationId = requestAnimationFrame(this.gameLoop);
-    }
-
-    stopGame() {
-        this.isPlaying = false;
-        if (this.animationId) cancelAnimationFrame(this.animationId);
-    }
-
-    gameOver() {
-        this.stopGame();
-        PrefsManager.vibrate([30, 50, 50]); 
-        
-        if (this.score > this.bestScore) {
-            this.bestScore = this.score;
-            localStorage.setItem('sh_flappy_best', this.bestScore);
-            document.getElementById('flappy-best-score').textContent = this.bestScore;
-        }
-
-        document.getElementById('flappy-final-score-text').textContent = `Твой счет: ${this.score}`;
-        document.getElementById('flappy-gameover-overlay').classList.add('active');
-    }
-
-    jump(e) {
-        if (!this.isPlaying) return;
-        if (e) e.preventDefault();
-        
-        this.bird.velocity = this.jumpForce;
-        // Легкий тактильный отклик при прыжке
-        PrefsManager.vibrate(5);
-    }
-
-    gameLoop() {
-        if (!this.isPlaying || !this.isMounted) return;
-        
-        this.updatePhysics();
-        this.draw();
-        
-        this.animationId = requestAnimationFrame(this.gameLoop);
-    }
-
-    updatePhysics() {
+    onGameUpdate(deltaTime) {
         this.frameCount++;
-
-        // Гравитация птички
         this.bird.velocity += this.gravity;
         this.bird.y += this.bird.velocity;
 
-        // Пол и потолок
         if (this.bird.y + this.bird.radius >= this.canvas.height || this.bird.y - this.bird.radius <= 0) {
-            this.gameOver();
-            return;
+            return this.gameOver("Упс, врезался!");
         }
 
-        // Спавн труб
         if (this.frameCount % 90 === 0) {
-            const minPipeHeight = 50;
-            const maxPipeHeight = this.canvas.height - this.pipeGap - minPipeHeight;
-            const topHeight = Math.floor(Math.random() * (maxPipeHeight - minPipeHeight + 1) + minPipeHeight);
-            
-            this.pipes.push({
-                x: this.canvas.width,
-                top: topHeight,
-                bottom: topHeight + this.pipeGap,
-                passed: false
-            });
+            const minH = 50;
+            const maxH = this.canvas.height - this.pipeGap - minH;
+            const topHeight = Math.floor(Math.random() * (maxH - minH + 1) + minH);
+            this.pipes.push({ x: this.canvas.width, top: topHeight, bottom: topHeight + this.pipeGap, passed: false });
         }
 
-        // Движение труб и коллизии
         for (let i = 0; i < this.pipes.length; i++) {
             let p = this.pipes[i];
             p.x -= this.pipeSpeed;
 
-            // Коллизия (простая AABB для круга и прямоугольников)
             let hitX = this.bird.x + this.bird.radius > p.x && this.bird.x - this.bird.radius < p.x + this.pipeWidth;
             let hitYTop = this.bird.y - this.bird.radius < p.top;
             let hitYBottom = this.bird.y + this.bird.radius > p.bottom;
 
-            if (hitX && (hitYTop || hitYBottom)) {
-                this.gameOver();
-                return;
-            }
+            if (hitX && (hitYTop || hitYBottom)) return this.gameOver("Упс, врезался!");
 
-            // Подсчет очков
             if (p.x + this.pipeWidth < this.bird.x && !p.passed) {
-                this.score++;
+                this.addScore(1);
                 p.passed = true;
-                this.updateScoreUI();
                 PrefsManager.vibrate(10);
             }
         }
-
-        // Удаление старых труб
         this.pipes = this.pipes.filter(p => p.x + this.pipeWidth > 0);
     }
 
-    updateScoreUI() {
-        document.getElementById('flappy-current-score').textContent = this.score;
-    }
-
-    draw() {
+    onGameDraw() {
         if (!this.ctx) return;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-
+        const w = this.canvas.width, h = this.canvas.height;
         this.ctx.clearRect(0, 0, w, h);
 
-        const rootStyles = getComputedStyle(document.documentElement);
-        const accentColor = rootStyles.getPropertyValue('--theme-accent').trim() || '#FF0055';
-        const pipeColor = 'rgba(255, 255, 255, 0.15)'; // Полупрозрачные трубы
-        const pipeBorder = 'rgba(255, 255, 255, 0.3)';
+        const pipeColor = 'rgba(255, 255, 255, 0.15)', pipeBorder = 'rgba(255, 255, 255, 0.3)';
 
-        // Рисуем трубы
         this.pipes.forEach(p => {
-            this.ctx.fillStyle = pipeColor;
-            this.ctx.strokeStyle = pipeBorder;
-            this.ctx.lineWidth = 2;
-
-            // Верхняя
+            this.ctx.fillStyle = pipeColor; this.ctx.strokeStyle = pipeBorder; this.ctx.lineWidth = 2;
             this.ctx.fillRect(p.x, 0, this.pipeWidth, p.top);
             this.ctx.strokeRect(p.x, 0, this.pipeWidth, p.top);
-            // Нижняя
             this.ctx.fillRect(p.x, p.bottom, this.pipeWidth, h - p.bottom);
             this.ctx.strokeRect(p.x, p.bottom, this.pipeWidth, h - p.bottom);
         });
 
-        // Рисуем птичку (круг с эффектом полета)
         this.ctx.save();
         this.ctx.translate(this.bird.x, this.bird.y);
-        
-        // Наклон зависит от скорости
-        let rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.bird.velocity * 0.1)));
-        this.ctx.rotate(rotation);
-
-        this.ctx.fillStyle = accentColor;
-        this.ctx.beginPath();
-        this.ctx.arc(0, 0, this.bird.radius, 0, Math.PI * 2);
-        this.ctx.fill();
-        
-        // Глазик
+        this.ctx.rotate(Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.bird.velocity * 0.1))));
+        this.ctx.fillStyle = this.colors.accent;
+        this.ctx.beginPath(); this.ctx.arc(0, 0, this.bird.radius, 0, Math.PI * 2); this.ctx.fill();
         this.ctx.fillStyle = '#fff';
-        this.ctx.beginPath();
-        this.ctx.arc(4, -4, 3, 0, Math.PI * 2);
-        this.ctx.fill();
-
+        this.ctx.beginPath(); this.ctx.arc(4, -4, 3, 0, Math.PI * 2); this.ctx.fill();
         this.ctx.restore();
     }
 
-    // --- УПРАВЛЕНИЕ ---
-    handleKeydown(e) {
-        if (e.code === 'Space' || e.code === 'ArrowUp') {
-            this.jump(e);
-        }
+    onTap() {
+        this.bird.velocity = this.jumpForce;
+        PrefsManager.vibrate(5);
     }
 
-    initTouchControls() {
-        if (!this.area) return;
-        // Ловим тапы по всей игровой зоне
-        this.area.addEventListener('touchstart', this.jump, { passive: false });
-        this.area.addEventListener('mousedown', this.jump, { passive: false });
+    onKeyPress(key) {
+        if (key === ' ' || key === 'ArrowUp') this.onTap();
     }
 }
 
 /* =====================================================================
    FILE: js/views/GamesView.js
-   LINES: 62
+   LINES: 75
 ===================================================================== */
 
 /* =====================================================================
@@ -5160,12 +5374,27 @@ export class GamesView {
         
         this.gamesList = [
             {
+                id: 'minesweeper',
+                title: 'Сапёр',
+                genre: 'Логика',
+                description: 'Классическая головоломка. Найди все мины на поле, используя цифры-подсказки. Удобный мобильный режим с переключателем лопаты и флага!',
+                cover: 'img/games/minesweeper.webp', 
+                status: 'ready'
+            },
+            {
+                id: 'tictactoe',
+                title: 'Крестики-нолики',
+                genre: 'Настольная',
+                description: 'Классическая игра против умного бота. Сможешь ли ты перехитрить его и собрать линию из трёх крестиков?',
+                cover: 'img/games/tictactoe.webp', // Закинь картинку в папку
+                status: 'ready'
+            },
+            {
                 id: 'snake',
                 title: 'Змейка',
                 genre: 'Аркада',
                 description: 'Классическая ретро-игра. Управление свайпами, сбор яблок и растущий хвост. Попробуй побить рекорд группы!',
                 cover: 'img/games/snake.webp', 
-                iconId: 'snake',
                 status: 'ready'
             },
             {
@@ -5174,7 +5403,6 @@ export class GamesView {
                 genre: 'Головоломка',
                 description: 'Сдвигай плитки, чтобы объединить одинаковые цифры. Собери заветную 2048!',
                 cover: 'img/games/2048.webp', 
-                iconId: 'game-2048',
                 status: 'ready'
             },
             {
@@ -5183,7 +5411,6 @@ export class GamesView {
                 genre: 'Хардкор',
                 description: 'Лети сквозь трубы, не касаясь их. Кажется простым? Попробуй набрать хотя бы 10 очков!',
                 cover: 'img/games/flappy.webp', 
-                iconId: 'flappy',
                 status: 'ready'
             }
         ];
@@ -5479,6 +5706,249 @@ export class HomeworkView {
         this.isMounted = false;
         if (this.unsubscribe) this.unsubscribe();
         this.container.removeEventListener('click', this.handleGlobalClick);
+    }
+}
+
+/* =====================================================================
+   FILE: js/views/MinesweeperView.js
+   LINES: 237
+===================================================================== */
+
+/* =====================================================================
+   FILE: js/views/MinesweeperView.js
+===================================================================== */
+import { BaseGameView } from './BaseGameView.js';
+import { PrefsManager } from '../utils/prefs.js';
+import { getIcon } from '../utils/icons.js';
+
+export class MinesweeperView extends BaseGameView {
+    constructor(container) {
+        super('minesweeper', 'Сапёр', 'Раскопай поле, не задень мины', container, { 
+            isSquare: false, 
+            noPadding: false, 
+            useGameLoop: false 
+        });
+        
+        this.rows = 9;
+        this.cols = 9;
+        this.minesCount = 10;
+        
+        this.board = [];
+        this.isFirstClick = true;
+        this.mode = 'dig'; // 'dig' или 'flag'
+        this.revealedCount = 0;
+        
+        this.handleCellClick = this.handleCellClick.bind(this);
+        this.handleModeToggle = this.handleModeToggle.bind(this);
+    }
+
+    getInnerHtml() {
+        return `
+            <div class="ms-container">
+                <div class="ms-grid" id="ms-grid"></div>
+                
+                <div class="ms-mode-toggle" id="ms-mode-toggle">
+                    <button class="ms-mode-btn active" data-mode="dig">
+                        ${getIcon('shovel', { size: 18 })} Копать
+                    </button>
+                    <button class="ms-mode-btn" data-mode="flag">
+                        ${getIcon('flag', { size: 18 })} Флажок
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    onGameInit() {
+        this.gridEl = document.getElementById('ms-grid');
+        this.modeToggleEl = document.getElementById('ms-mode-toggle');
+        
+        this.gridEl.addEventListener('click', this.handleCellClick);
+        this.modeToggleEl.addEventListener('click', this.handleModeToggle);
+    }
+
+    unmount() {
+        super.unmount();
+        this.gridEl.removeEventListener('click', this.handleCellClick);
+        this.modeToggleEl.removeEventListener('click', this.handleModeToggle);
+    }
+
+    onGameStart() {
+        this.isFirstClick = true;
+        this.revealedCount = 0;
+        this.board = [];
+        this.mode = 'dig';
+        
+        this.modeToggleEl.querySelectorAll('.ms-mode-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.mode === 'dig');
+        });
+
+        for (let r = 0; r < this.rows; r++) {
+            let row = [];
+            for (let c = 0; c < this.cols; c++) {
+                row.push({
+                    r: r, c: c,
+                    isMine: false,
+                    isRevealed: false,
+                    isFlagged: false,
+                    neighborMines: 0
+                });
+            }
+            this.board.push(row);
+        }
+        
+        this.onGameDraw();
+    }
+
+    handleModeToggle(e) {
+        const btn = e.target.closest('.ms-mode-btn');
+        if (!btn || !this.isPlaying) return;
+        
+        PrefsManager.vibrate(10);
+        this.mode = btn.dataset.mode;
+        
+        this.modeToggleEl.querySelectorAll('.ms-mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    handleCellClick(e) {
+        if (!this.isPlaying) return;
+        const cellEl = e.target.closest('.ms-cell');
+        if (!cellEl) return;
+
+        const r = parseInt(cellEl.dataset.r);
+        const c = parseInt(cellEl.dataset.c);
+        const cell = this.board[r][c];
+
+        if (cell.isRevealed) return;
+
+        if (this.mode === 'flag') {
+            PrefsManager.vibrate(5);
+            cell.isFlagged = !cell.isFlagged;
+            this.onGameDraw();
+            return;
+        }
+
+        if (cell.isFlagged) return; 
+
+        if (this.isFirstClick) {
+            this.generateMines(r, c);
+            this.isFirstClick = false;
+        }
+
+        if (cell.isMine) {
+            this.revealAllMines();
+            this.onGameDraw();
+            this.gameOver("Ты подорвался!");
+            return;
+        }
+
+        this.floodFillReveal(r, c);
+        this.onGameDraw();
+        this.checkWin();
+    }
+
+    generateMines(safeR, safeC) {
+        let minesPlaced = 0;
+        while (minesPlaced < this.minesCount) {
+            const r = Math.floor(Math.random() * this.rows);
+            const c = Math.floor(Math.random() * this.cols);
+            
+            if (!this.board[r][c].isMine && (r !== safeR || c !== safeC)) {
+                this.board[r][c].isMine = true;
+                minesPlaced++;
+            }
+        }
+        
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                if (!this.board[r][c].isMine) {
+                    this.board[r][c].neighborMines = this.countNeighbors(r, c);
+                }
+            }
+        }
+    }
+
+    countNeighbors(r, c) {
+        let count = 0;
+        for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols) {
+                    if (this.board[nr][nc].isMine) count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    floodFillReveal(r, c) {
+        if (r < 0 || r >= this.rows || c < 0 || c >= this.cols) return;
+        const cell = this.board[r][c];
+        
+        if (cell.isRevealed || cell.isFlagged || cell.isMine) return;
+
+        cell.isRevealed = true;
+        this.revealedCount++;
+        this.addScore(10);
+        PrefsManager.vibrate(3); 
+
+        if (cell.neighborMines === 0) {
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    this.floodFillReveal(r + dr, c + dc);
+                }
+            }
+        }
+    }
+
+    revealAllMines() {
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                if (this.board[r][c].isMine) {
+                    this.board[r][c].isRevealed = true;
+                }
+            }
+        }
+    }
+
+    checkWin() {
+        const totalSafeCells = (this.rows * this.cols) - this.minesCount;
+        if (this.revealedCount === totalSafeCells) {
+            this.addScore(500);
+            this.revealAllMines();
+            this.onGameDraw();
+            this.gameOver("Победа! Все мины найдены!");
+        }
+    }
+
+    onGameDraw() {
+        // ЗАЩИТА ОТ ПЕРЕРИСОВКИ ПУСТОЙ ДОСКИ (Решает твою ошибку)
+        if (!this.board || this.board.length === 0) return;
+
+        let html = '';
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                const cell = this.board[r][c];
+                let content = '';
+                let extraClass = '';
+                
+                if (cell.isRevealed) {
+                    extraClass = 'revealed';
+                    if (cell.isMine) {
+                        content = getIcon('bomb', { size: 20, color: '#ff4d4d' });
+                        extraClass += ' mine';
+                    } else if (cell.neighborMines > 0) {
+                        content = `<span class="ms-num-${cell.neighborMines}">${cell.neighborMines}</span>`;
+                    }
+                } else if (cell.isFlagged) {
+                    content = getIcon('flag', { size: 20, color: '#FF9800' });
+                }
+
+                html += `<div class="ms-cell ${extraClass}" data-r="${r}" data-c="${c}">${content}</div>`;
+            }
+        }
+        this.gridEl.innerHTML = html;
     }
 }
 
@@ -6261,178 +6731,80 @@ export class SettingsView {
 
 /* =====================================================================
    FILE: js/views/SnakeView.js
-   LINES: 290
+   LINES: 121
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/SnakeView.js
 ===================================================================== */
-import { SnakeTemplate } from '../templates/SnakeTemplate.js';
+import { BaseGameView } from './BaseGameView.js';
 import { PrefsManager } from '../utils/prefs.js';
 
-export class SnakeView {
+export class SnakeView extends BaseGameView {
     constructor(container) {
-        this.container = container;
-        this.isMounted = false;
+        super('snake', 'Змейка', 'Свайпай для управления', container, { isSquare: true, noPadding: true });
         
-        // Настройки игры
-        this.gridSize = 20; // 20x20 клеток
-        this.tileCount = 20;
-        this.speed = 130; // миллисекунды на 1 кадр (чем меньше, тем быстрее)
-        
-        // Игровое состояние
+        this.gridSize = 20;
+        this.speed = 130;
         this.snake = [];
         this.velocity = { x: 0, y: 0 };
-        this.nextVelocity = { x: 0, y: 0 }; // Для защиты от быстрого двойного свайпа
-        this.food = { x: 15, y: 15 };
-        this.score = 0;
-        this.bestScore = parseInt(localStorage.getItem('sh_snake_best')) || 0;
-        
-        this.isPlaying = false;
-        this.lastTime = 0;
-        this.animationId = null;
-
-        // Привязка методов (важно для снятия слушателей)
-        this.handleGlobalClick = this.handleGlobalClick.bind(this);
-        this.handleKeydown = this.handleKeydown.bind(this);
-        this.gameLoop = this.gameLoop.bind(this);
+        this.nextVelocity = { x: 0, y: 0 };
+        this.food = { x: 0, y: 0 };
+        this.accumulatedTime = 0;
     }
 
-    async mount() {
-        this.isMounted = true;
-        document.getElementById('page-title').textContent = 'Змейка';
-        
-        this.container.innerHTML = SnakeTemplate.renderUI(this.bestScore);
-        
-        this.canvas = document.getElementById('snake-canvas');
+    getInnerHtml() {
+        return `<canvas id="game-canvas" class="game-canvas"></canvas>`;
+    }
+
+    onGameInit() {
+        this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
-        this.area = document.getElementById('snake-game-area');
-        
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-        
-        this.container.addEventListener('click', this.handleGlobalClick);
-        document.addEventListener('keydown', this.handleKeydown);
-        this.initTouchControls();
     }
 
-    unmount() {
-        this.isMounted = false;
-        this.stopGame();
-        this.container.removeEventListener('click', this.handleGlobalClick);
-        document.removeEventListener('keydown', this.handleKeydown);
-        // Ресайз можно оставить, он не критичен, либо тоже отвязать, но мы не сохраняли ссылку на bind
+    onGameStart() {
+        this.snake = [{ x: 10, y: 10 }, { x: 10, y: 11 }, { x: 10, y: 12 }];
+        this.velocity = { x: 0, y: -1 };
+        this.nextVelocity = { x: 0, y: -1 };
+        this.speed = 130;
+        this.accumulatedTime = 0;
+        this.placeFood();
+        this.resizeCanvas();
     }
 
     resizeCanvas() {
-        if (!this.canvas) return;
-        // Делаем разрешение канваса физическим, чтобы не было мыла
         const rect = this.area.getBoundingClientRect();
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
-        this.draw(); // перерисовываем статику
     }
 
-    handleGlobalClick(e) {
-        if (e.target.closest('#game-back-btn')) {
-            PrefsManager.vibrate(10);
-            window.history.back();
-            return;
-        }
-
-        if (e.target.id === 'snake-start-btn' || e.target.id === 'snake-restart-btn') {
-            PrefsManager.vibrate(15);
-            this.startGame();
-        }
-    }
-
-    startGame() {
-        document.getElementById('snake-start-overlay').classList.remove('active');
-        document.getElementById('snake-gameover-overlay').classList.remove('active');
+    onGameUpdate(deltaTime, timestamp) {
+        this.accumulatedTime += deltaTime;
+        if (this.accumulatedTime < this.speed) return;
         
-        this.snake = [
-            { x: 10, y: 10 },
-            { x: 10, y: 11 },
-            { x: 10, y: 12 }
-        ];
-        this.velocity = { x: 0, y: -1 }; // Движемся вверх
-        this.nextVelocity = { x: 0, y: -1 };
-        this.score = 0;
-        this.updateScoreUI();
-        this.placeFood();
-        
-        this.isPlaying = true;
-        this.lastTime = performance.now();
-        
-        if (this.animationId) cancelAnimationFrame(this.animationId);
-        this.animationId = requestAnimationFrame(this.gameLoop);
-    }
-
-    stopGame() {
-        this.isPlaying = false;
-        if (this.animationId) cancelAnimationFrame(this.animationId);
-    }
-
-    gameOver() {
-        this.stopGame();
-        PrefsManager.vibrate([30, 50, 50]); // Двойная вибрация при проигрыше
-        
-        if (this.score > this.bestScore) {
-            this.bestScore = this.score;
-            localStorage.setItem('sh_snake_best', this.bestScore);
-            document.getElementById('snake-best-score').textContent = this.bestScore;
-        }
-
-        document.getElementById('snake-final-score-text').textContent = `Твой счет: ${this.score}`;
-        document.getElementById('snake-gameover-overlay').classList.add('active');
-    }
-
-    gameLoop(timestamp) {
-        if (!this.isPlaying || !this.isMounted) return;
-        
-        this.animationId = requestAnimationFrame(this.gameLoop);
-        
-        if (timestamp - this.lastTime < this.speed) return; // Контроль скорости (FPS)
+        this.accumulatedTime = 0;
         this.lastTime = timestamp;
-        
-        this.updatePhysics();
-        this.draw();
-    }
 
-    updatePhysics() {
-        this.velocity = { ...this.nextVelocity }; // Применяем буферизированный ввод
-        
-        let head = { 
-            x: this.snake[0].x + this.velocity.x, 
-            y: this.snake[0].y + this.velocity.y 
-        };
+        this.velocity = { ...this.nextVelocity };
+        let head = { x: this.snake[0].x + this.velocity.x, y: this.snake[0].y + this.velocity.y };
 
-        // Столкновение со стенами (прохождение насквозь отключено, врезаемся = смерть)
-        if (head.x < 0 || head.x >= this.tileCount || head.y < 0 || head.y >= this.tileCount) {
-            this.gameOver();
-            return;
+        if (head.x < 0 || head.x >= this.gridSize || head.y < 0 || head.y >= this.gridSize) {
+            return this.gameOver();
         }
 
-        // Столкновение с собой
         for (let i = 0; i < this.snake.length; i++) {
-            if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
-                this.gameOver();
-                return;
-            }
+            if (head.x === this.snake[i].x && head.y === this.snake[i].y) return this.gameOver();
         }
 
-        this.snake.unshift(head); // Добавляем новую голову
+        this.snake.unshift(head);
 
-        // Проверка еды
         if (head.x === this.food.x && head.y === this.food.y) {
-            this.score += 10;
-            this.updateScoreUI();
+            this.addScore(10);
             this.placeFood();
-            PrefsManager.vibrate(10); // Легкий тактильный отклик при съедании
-            // Слегка ускоряем игру со временем
-            if (this.speed > 60) this.speed -= 2; 
+            PrefsManager.vibrate(10);
+            if (this.speed > 60) this.speed -= 2;
         } else {
-            this.snake.pop(); // Удаляем хвост (движение)
+            this.snake.pop();
         }
     }
 
@@ -6440,118 +6812,293 @@ export class SnakeView {
         let newX, newY, isOnSnake;
         do {
             isOnSnake = false;
-            newX = Math.floor(Math.random() * this.tileCount);
-            newY = Math.floor(Math.random() * this.tileCount);
+            newX = Math.floor(Math.random() * this.gridSize);
+            newY = Math.floor(Math.random() * this.gridSize);
             for (let part of this.snake) {
                 if (part.x === newX && part.y === newY) isOnSnake = true;
             }
         } while (isOnSnake);
-        
         this.food = { x: newX, y: newY };
     }
 
-    updateScoreUI() {
-        document.getElementById('snake-current-score').textContent = this.score;
-    }
-
-    draw() {
+    onGameDraw() {
         if (!this.ctx) return;
-        
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-        const tileW = w / this.tileCount;
-        const tileH = h / this.tileCount;
+        const w = this.canvas.width, h = this.canvas.height;
+        const tileW = w / this.gridSize, tileH = h / this.gridSize;
 
-        // Очистка
         this.ctx.clearRect(0, 0, w, h);
 
-        // Получаем цвета из CSS переменных темы
-        const rootStyles = getComputedStyle(document.documentElement);
-        const accentColor = rootStyles.getPropertyValue('--theme-accent').trim() || '#4CAF50';
-        const foodColor = '#FF4D4D'; // Красное яблоко
-
-        // Рисуем еду
-        this.ctx.fillStyle = foodColor;
+        this.ctx.fillStyle = '#FF4D4D';
         this.ctx.beginPath();
-        this.ctx.arc(
-            this.food.x * tileW + tileW / 2, 
-            this.food.y * tileH + tileH / 2, 
-            (tileW / 2) - 2, 
-            0, Math.PI * 2
-        );
+        this.ctx.arc(this.food.x * tileW + tileW / 2, this.food.y * tileH + tileH / 2, (tileW / 2) - 2, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Рисуем змею
         for (let i = 0; i < this.snake.length; i++) {
-            this.ctx.fillStyle = i === 0 ? accentColor : rootStyles.getPropertyValue('--theme-accent-soft').trim() || 'rgba(255,255,255,0.5)';
-            
-            // Если это не голова и нет цвета (soft accent) - даем дефолтный белый прозрачный
-            if (i !== 0 && (!this.ctx.fillStyle || this.ctx.fillStyle === '')) {
-                this.ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            }
-            
-            this.ctx.fillRect(
-                this.snake[i].x * tileW + 1, 
-                this.snake[i].y * tileH + 1, 
-                tileW - 2, 
-                tileH - 2
-            );
+            this.ctx.fillStyle = i === 0 ? this.colors.accent : (this.colors.accentSoft || 'rgba(255,255,255,0.4)');
+            this.ctx.fillRect(this.snake[i].x * tileW + 1, this.snake[i].y * tileH + 1, tileW - 2, tileH - 2);
         }
     }
 
-    // --- УПРАВЛЕНИЕ ---
-
-    handleKeydown(e) {
-        if (!this.isPlaying) return;
-        // Исключаем разворот на 180 градусов
-        switch(e.key) {
-            case 'ArrowUp': case 'w': case 'W':
-                if (this.velocity.y !== 1) this.nextVelocity = { x: 0, y: -1 }; break;
-            case 'ArrowDown': case 's': case 'S':
-                if (this.velocity.y !== -1) this.nextVelocity = { x: 0, y: 1 }; break;
-            case 'ArrowLeft': case 'a': case 'A':
-                if (this.velocity.x !== 1) this.nextVelocity = { x: -1, y: 0 }; break;
-            case 'ArrowRight': case 'd': case 'D':
-                if (this.velocity.x !== -1) this.nextVelocity = { x: 1, y: 0 }; break;
-        }
+    onSwipe(dir) {
+        if (dir === 'right' && this.velocity.x !== -1) this.nextVelocity = { x: 1, y: 0 };
+        if (dir === 'left' && this.velocity.x !== 1) this.nextVelocity = { x: -1, y: 0 };
+        if (dir === 'down' && this.velocity.y !== -1) this.nextVelocity = { x: 0, y: 1 };
+        if (dir === 'up' && this.velocity.y !== 1) this.nextVelocity = { x: 0, y: -1 };
     }
 
-    initTouchControls() {
-        if (!this.area) return;
-        
-        let startX = 0, startY = 0;
-        
-        // touch-action: none в CSS блокирует скролл, но e.preventDefault() страхует
-        this.area.addEventListener('touchstart', e => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-        }, { passive: false });
+    onKeyPress(key) {
+        switch(key) {
+            case 'ArrowUp': case 'w': case 'W': this.onSwipe('up'); break;
+            case 'ArrowDown': case 's': case 'S': this.onSwipe('down'); break;
+            case 'ArrowLeft': case 'a': case 'A': this.onSwipe('left'); break;
+            case 'ArrowRight': case 'd': case 'D': this.onSwipe('right'); break;
+        }
+    }
+}
 
-        this.area.addEventListener('touchmove', e => {
-            e.preventDefault(); // Запрет скролла страницы при возне по канвасу
-        }, { passive: false });
+/* =====================================================================
+   FILE: js/views/TicTacToeView.js
+   LINES: 240
+===================================================================== */
 
-        this.area.addEventListener('touchend', e => {
-            if (!this.isPlaying) return;
-            const endX = e.changedTouches[0].clientX;
-            const endY = e.changedTouches[0].clientY;
-            
-            const dx = endX - startX;
-            const dy = endY - startY;
-            
-            // Защита от случайных микро-тапов
-            if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+/* =====================================================================
+   FILE: js/views/TicTacToeView.js
+===================================================================== */
+import { BaseGameView } from './BaseGameView.js';
+import { PrefsManager } from '../utils/prefs.js';
+import { getIcon } from '../utils/icons.js';
 
-            if (Math.abs(dx) > Math.abs(dy)) {
-                // Горизонтальный свайп
-                if (dx > 0 && this.velocity.x !== -1) this.nextVelocity = { x: 1, y: 0 }; // Право
-                else if (dx < 0 && this.velocity.x !== 1) this.nextVelocity = { x: -1, y: 0 }; // Лево
-            } else {
-                // Вертикальный свайп
-                if (dy > 0 && this.velocity.y !== -1) this.nextVelocity = { x: 0, y: 1 }; // Вниз
-                else if (dy < 0 && this.velocity.y !== 1) this.nextVelocity = { x: 0, y: -1 }; // Вверх
-            }
+export class TicTacToeView extends BaseGameView {
+    constructor(container) {
+        super('tictactoe', 'Крестики-нолики', 'Собери 3 в ряд', container, { 
+            isSquare: false, // Изменили на false, так как у нас есть переключатель
+            noPadding: false, 
+            useGameLoop: false 
         });
+        
+        this.board = Array(9).fill(null);
+        this.gameMode = 'bot'; // 'bot' или 'pvp'
+        this.currentPlayer = 'X'; // Текущий ход (для PvP)
+        this.isBotThinking = false;
+        
+        this.winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        this.handleCellClick = this.handleCellClick.bind(this);
+        this.handleModeToggle = this.handleModeToggle.bind(this);
+    }
+
+    getInnerHtml() {
+        return `
+            <div class="ttt-container">
+                <div class="ttt-mode-toggle" id="ttt-mode-toggle">
+                    <button class="ttt-mode-btn active" data-mode="bot">
+                        ${getIcon('user', { size: 18 })} 1 Игрок
+                    </button>
+                    <button class="ttt-mode-btn" data-mode="pvp">
+                        ${getIcon('users', { size: 18 })} 2 Игрока
+                    </button>
+                </div>
+                
+                <div class="ttt-turn-indicator" id="ttt-turn-indicator" style="opacity: 0;">
+                    Ход: <span id="ttt-turn-symbol" class="x-turn">X</span>
+                </div>
+
+                <div class="ttt-grid" id="ttt-grid"></div>
+            </div>
+        `;
+    }
+
+    onGameInit() {
+        this.gridEl = document.getElementById('ttt-grid');
+        this.modeToggleEl = document.getElementById('ttt-mode-toggle');
+        this.turnIndicatorEl = document.getElementById('ttt-turn-indicator');
+        this.turnSymbolEl = document.getElementById('ttt-turn-symbol');
+        
+        this.gridEl.addEventListener('click', this.handleCellClick);
+        this.modeToggleEl.addEventListener('click', this.handleModeToggle);
+    }
+
+    unmount() {
+        super.unmount();
+        this.gridEl.removeEventListener('click', this.handleCellClick);
+        this.modeToggleEl.removeEventListener('click', this.handleModeToggle);
+    }
+
+    handleModeToggle(e) {
+        const btn = e.target.closest('.ttt-mode-btn');
+        if (!btn) return;
+        
+        const newMode = btn.dataset.mode;
+        if (this.gameMode === newMode) return;
+
+        PrefsManager.vibrate(10);
+        this.gameMode = newMode;
+        
+        this.modeToggleEl.querySelectorAll('.ttt-mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Принудительный рестарт игры при смене режима
+        if (this.isPlaying) this.startGame();
+    }
+
+    onGameStart() {
+        this.board = Array(9).fill(null);
+        this.isBotThinking = false;
+        this.currentPlayer = 'X'; // Всегда начинают крестики
+        
+        this.updateTurnUI();
+        this.onGameDraw();
+    }
+
+    updateTurnUI() {
+        if (this.gameMode === 'bot') {
+            this.turnIndicatorEl.style.opacity = '0'; // Прячем в игре с ботом
+        } else {
+            this.turnIndicatorEl.style.opacity = '1';
+            this.turnSymbolEl.textContent = this.currentPlayer;
+            this.turnSymbolEl.className = this.currentPlayer === 'X' ? 'x-turn' : 'o-turn';
+        }
+    }
+
+    handleCellClick(e) {
+        if (!this.isPlaying || this.isBotThinking) return;
+        
+        const cellEl = e.target.closest('.ttt-cell');
+        if (!cellEl) return;
+
+        const index = parseInt(cellEl.dataset.index);
+        if (this.board[index] !== null) return;
+
+        PrefsManager.vibrate(5);
+
+        if (this.gameMode === 'pvp') {
+            // ЛОГИКА ИГРЫ С ДРУГОМ (PvP)
+            this.board[index] = this.currentPlayer;
+            this.onGameDraw();
+
+            if (this.checkGameState(this.currentPlayer)) return;
+
+            // Смена хода
+            this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+            this.updateTurnUI();
+
+        } else {
+            // ЛОГИКА ИГРЫ С БОТОМ
+            this.board[index] = 'X'; // Игрок всегда X
+            this.onGameDraw();
+
+            if (this.checkGameState('X')) return;
+
+            this.isBotThinking = true;
+            setTimeout(() => this.makeBotMove(), 400);
+        }
+    }
+
+    makeBotMove() {
+        if (!this.isPlaying) return;
+
+        let moveIndex = -1;
+        const bot = 'O';
+        const player = 'X';
+
+        // 1. Попытка победить
+        moveIndex = this.findBestMove(bot);
+        
+        // 2. Блокировка победы игрока
+        if (moveIndex === -1) moveIndex = this.findBestMove(player);
+        
+        // 3. Захват центра
+        if (moveIndex === -1 && this.board[4] === null) moveIndex = 4;
+
+        // 4. Случайная свободная клетка
+        if (moveIndex === -1) {
+            const emptyCells = this.board.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
+            if (emptyCells.length > 0) {
+                moveIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+        }
+
+        if (moveIndex !== -1) {
+            this.board[moveIndex] = bot;
+            PrefsManager.vibrate(10);
+            this.onGameDraw();
+            this.checkGameState(bot);
+        }
+        
+        this.isBotThinking = false;
+    }
+
+    findBestMove(targetSymbol) {
+        for (let pattern of this.winPatterns) {
+            const [a, b, c] = pattern;
+            const cells = [this.board[a], this.board[b], this.board[c]];
+            const targetCount = cells.filter(val => val === targetSymbol).length;
+            const emptyCount = cells.filter(val => val === null).length;
+
+            if (targetCount === 2 && emptyCount === 1) {
+                if (this.board[a] === null) return a;
+                if (this.board[b] === null) return b;
+                if (this.board[c] === null) return c;
+            }
+        }
+        return -1;
+    }
+
+    checkGameState(lastPlayer) {
+        // Проверка победы
+        for (let pattern of this.winPatterns) {
+            const [a, b, c] = pattern;
+            if (this.board[a] && this.board[a] === this.board[b] && this.board[a] === this.board[c]) {
+                this.highlightWin(pattern);
+                
+                let winMessage = "";
+                if (this.gameMode === 'bot') {
+                    winMessage = lastPlayer === 'X' ? "Победа! 🎉" : "Бот победил! 🤖";
+                    if (lastPlayer === 'X') this.addScore(100);
+                } else {
+                    winMessage = lastPlayer === 'X' ? "Крестики победили! ❌" : "Нолики победили! ⭕";
+                    this.addScore(100); // Очки просто за завершение матча
+                }
+
+                setTimeout(() => this.gameOver(winMessage), 500);
+                return true;
+            }
+        }
+
+        // Проверка ничьей
+        if (!this.board.includes(null)) {
+            if (this.gameMode === 'bot') this.addScore(10); 
+            setTimeout(() => this.gameOver("Ничья! 🤝"), 500);
+            return true;
+        }
+
+        return false;
+    }
+
+    highlightWin(pattern) {
+        pattern.forEach(index => {
+            const cell = this.gridEl.querySelector(`[data-index="${index}"]`);
+            if (cell) cell.classList.add('win');
+        });
+    }
+
+    onGameDraw() {
+        if (!this.board || this.board.length === 0) return;
+
+        let html = '';
+        for (let i = 0; i < 9; i++) {
+            const val = this.board[i];
+            const cls = val === 'X' ? 'x' : (val === 'O' ? 'o' : '');
+            html += `<div class="ttt-cell ${cls}" data-index="${i}">${val || ''}</div>`;
+        }
+        
+        if (this.gridEl.innerHTML !== html) {
+            this.gridEl.innerHTML = html;
+        }
     }
 }
 
@@ -6571,6 +7118,15 @@ export class SnakeView {
 
 <svg viewBox="0 0 24 24">
     <polyline points="15 18 9 12 15 6"></polyline>
+</svg>
+
+/* =====================================================================
+   FILE: src_icons/bomb.svg
+   LINES: 3
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <circle cx="11.5" cy="12.5" r="5.5"></circle><path d="M11.5 7v-2M15.5 8.5l1.5-1.5M7.5 8.5L6 7"></path><path d="M16 5c-.5-1-2-1-2-1"></path>
 </svg>
 
 /* =====================================================================
@@ -6646,6 +7202,15 @@ export class SnakeView {
 </svg>
 
 /* =====================================================================
+   FILE: src_icons/flag.svg
+   LINES: 3
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line>
+</svg>
+
+/* =====================================================================
    FILE: src_icons/flappy.svg
    LINES: 3
 ===================================================================== */
@@ -6661,6 +7226,27 @@ export class SnakeView {
 
 <svg viewBox="0 0 24 24">
     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line>
+</svg>
+
+/* =====================================================================
+   FILE: src_icons/game-minesweeper.svg
+   LINES: 3
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="12" cy="12" r="3"></circle><line x1="12" y1="6" x2="12" y2="8"></line><line x1="12" y1="16" x2="12" y2="18"></line><line x1="6" y1="12" x2="8" y2="12"></line><line x1="16" y1="12" x2="18" y2="12"></line>
+</svg>
+
+/* =====================================================================
+   FILE: src_icons/game-tictactoe.svg
+   LINES: 6
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <line x1="8" y1="3" x2="8" y2="21" stroke-width="2"/>
+    <line x1="16" y1="3" x2="16" y2="21" stroke-width="2"/>
+    <line x1="3" y1="8" x2="21" y2="8" stroke-width="2"/>
+    <line x1="3" y1="16" x2="21" y2="16" stroke-width="2"/>
 </svg>
 
 /* =====================================================================
@@ -6885,6 +7471,15 @@ export class SnakeView {
 </svg>
 
 /* =====================================================================
+   FILE: src_icons/shovel.svg
+   LINES: 3
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <path d="M2 22l6-6"></path><path d="M17 2l5 5-3 3-5-5 3-3z"></path><path d="M11 8l5 5"></path><path d="M12 12l2 2"></path>
+</svg>
+
+/* =====================================================================
    FILE: src_icons/snake.svg
    LINES: 3
 ===================================================================== */
@@ -6909,6 +7504,28 @@ export class SnakeView {
 
 <svg viewBox="0 0 24 24">
     <path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+</svg>
+
+/* =====================================================================
+   FILE: src_icons/user.svg
+   LINES: 4
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+</svg>
+
+/* =====================================================================
+   FILE: src_icons/users.svg
+   LINES: 6
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
 </svg>
 
 /* =====================================================================

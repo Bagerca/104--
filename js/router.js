@@ -11,7 +11,7 @@ import { SnakeView } from './views/SnakeView.js';
 import { Game2048View } from './views/2048View.js';
 import { FlappyView } from './views/FlappyView.js';
 import { MinesweeperView } from './views/MinesweeperView.js';
-import { TicTacToeView } from './views/TicTacToeView.js'; // ИМПОРТ НОВОЙ ИГРЫ
+import { TicTacToeView } from './views/TicTacToeView.js';
 import { PrefsManager } from './utils/prefs.js';
 import { Store } from './store.js';
 import { Lightbox } from './components/Lightbox.js';
@@ -33,7 +33,7 @@ export class Router {
             '/games/2048': new Game2048View(this.contentContainer),
             '/games/flappy': new FlappyView(this.contentContainer),
             '/games/minesweeper': new MinesweeperView(this.contentContainer),
-            '/games/tictactoe': new TicTacToeView(this.contentContainer) // РЕГИСТРАЦИЯ РОУТА
+            '/games/tictactoe': new TicTacToeView(this.contentContainer)
         };
         
         this.currentViewName = null;
@@ -48,10 +48,15 @@ export class Router {
         window.addEventListener('hashchange', () => this.handleRoute());
     }
 
+    getDefaultRoute() {
+        const navOrder = Store.getState().prefs.navOrder || ['schedule', 'homework', 'group', 'events', 'games'];
+        const allowedNav = navOrder.filter(id => id !== 'homework');
+        return allowedNav[0] || 'schedule';
+    }
+
     init() {
         if (!window.location.hash || window.location.hash === '#/') {
-            const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
-            window.location.replace('#/' + firstPage);
+            window.location.replace('#/' + this.getDefaultRoute());
         } else {
             this.handleRoute();
         }
@@ -70,6 +75,14 @@ export class Router {
 
     async handleRoute(forceReload = false) {
         const { path, params } = this.parseHash();
+
+        // Защита от прямого перехода в заблокированный раздел ДЗ
+        if (path === '/homework') {
+            console.warn('[Router] Доступ к разделу ДЗ временно заблокирован.');
+            window.location.replace('#/' + this.getDefaultRoute());
+            return;
+        }
+
         const view = this.views[path];
         const currentRenderId = ++this.renderId;
 
@@ -112,8 +125,7 @@ export class Router {
                 await view.mount(params);
                 if (this.renderId !== currentRenderId) return;
             } else {
-                const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
-                window.location.replace('#/' + firstPage);
+                window.location.replace('#/' + this.getDefaultRoute());
                 return;
             }
             
@@ -136,7 +148,9 @@ export class Router {
         const baseRoute = currentPath.split('/')[1];
         const navItems = document.querySelectorAll('.bottom-nav .nav-item');
         navItems.forEach(item => {
-            const itemPath = item.getAttribute('href').slice(2).split('?')[0]; 
+            const href = item.getAttribute('href');
+            if (!href) return;
+            const itemPath = href.slice(2).split('?')[0]; 
             if (itemPath === baseRoute) {
                 item.classList.add('active');
                 if (currentPath === '/settings') this.pageTitle.textContent = 'Настройки';

@@ -29,6 +29,17 @@ function renderBottomNav() {
 
     navEl.innerHTML = navOrder.filter(id => navMap[id]).map(id => {
         const iconKey = isSeasonal ? `nav-${id}-${themeId}` : `nav-${id}`;
+        const isDisabled = id === 'homework';
+
+        if (isDisabled) {
+            return `
+                <div class="nav-item nav-item-disabled" data-icon="${id}" data-title="${navMap[id].title}" aria-disabled="true" tabindex="-1">
+                    ${getIcon(iconKey, { size: 24 })}
+                    <span>${navMap[id].title}</span>
+                </div>
+            `;
+        }
+
         return `
             <a href="#/${id}" class="nav-item" data-icon="${id}" data-title="${navMap[id].title}">
                 ${getIcon(iconKey, { size: 24 })}
