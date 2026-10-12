@@ -1,6 +1,6 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 03.10.2026 19:23:32
+  Дата сборки: 12.10.2026 20:01:28
 ================================================================================
 
 
@@ -128,7 +128,7 @@
 /* =====================================================================
    FILE: sw.js
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v24';
+const CACHE_NAME = 'student-hub-v26';
 
 const ASSETS = [
     './',
@@ -417,7 +417,7 @@ self.addEventListener('fetch', (event) => {
 
 /* =====================================================================
    FILE: css/style.css
-   LINES: 227
+   LINES: 261
 ===================================================================== */
 
 /* =====================================================================
@@ -596,6 +596,40 @@ main { padding: var(--spacing-main); }
 .nav-item svg { margin-bottom: 4px; transition: transform var(--transition-fast), stroke var(--transition-fast); }
 .nav-item.active { color: var(--theme-accent); }
 .nav-item.active svg { transform: translateY(-2px); stroke: var(--theme-accent); }
+
+/* Заблокированная кнопка навигации */
+.nav-item.nav-item-disabled {
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+    opacity: 0.35;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+}
+
+.nav-item.nav-item-disabled span {
+    text-decoration: line-through;
+    text-decoration-color: var(--theme-accent-text);
+    text-decoration-thickness: 2px;
+}
+
+.nav-item.nav-item-disabled svg {
+    filter: grayscale(1);
+    opacity: 0.7;
+}
+
+.nav-item.nav-item-disabled::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    width: 28px;
+    height: 2px;
+    background-color: var(--theme-accent-text);
+    transform: translateX(-50%) rotate(-45deg);
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
 
 .placeholder-card { background: var(--theme-bg-secondary); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; border: var(--glass-border); }
 
@@ -2427,6 +2461,40 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 ]
 
 /* =====================================================================
+   FILE: data/overrides/05-10-2026.json
+   LINES: 13
+===================================================================== */
+
+{
+  "id": "05-10-2026",
+  "lessons": [
+    {
+      "pair": 1,
+      "lesson1": null,
+      "lesson2": { "subject": "Разговоры о важном", "room": "2/22" }
+    },
+    { "pair": 2, "subject": "Математика", "room": "1/27" },
+    { "pair": 3, "subject": "Биология", "room": "1/22" },
+    { "pair": 4, "subject": "История", "room": "2/18" }
+  ]
+}
+
+/* =====================================================================
+   FILE: data/overrides/06-10-2026.json
+   LINES: 9
+===================================================================== */
+
+{
+  "id": "06-10-2026",
+  "lessons": [
+    { "pair": 1, "subject": "Иностр. язык", "room": "2/16, 23" },
+    { "pair": 2, "subject": "ОБЗР", "room": "1/19" },
+    { "pair": 3, "subject": "Русский язык", "room": "1/17" },
+    { "pair": 4, "subject": "Математика", "room": "1/27" }
+  ]
+}
+
+/* =====================================================================
    FILE: data/overrides/23-09-2026.json
    LINES: 8
 ===================================================================== */
@@ -2549,7 +2617,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 144
+   LINES: 155
 ===================================================================== */
 
 /* =====================================================================
@@ -2583,6 +2651,17 @@ function renderBottomNav() {
 
     navEl.innerHTML = navOrder.filter(id => navMap[id]).map(id => {
         const iconKey = isSeasonal ? `nav-${id}-${themeId}` : `nav-${id}`;
+        const isDisabled = id === 'homework';
+
+        if (isDisabled) {
+            return `
+                <div class="nav-item nav-item-disabled" data-icon="${id}" data-title="${navMap[id].title}" aria-disabled="true" tabindex="-1">
+                    ${getIcon(iconKey, { size: 24 })}
+                    <span>${navMap[id].title}</span>
+                </div>
+            `;
+        }
+
         return `
             <a href="#/${id}" class="nav-item" data-icon="${id}" data-title="${navMap[id].title}">
                 ${getIcon(iconKey, { size: 24 })}
@@ -2699,7 +2778,7 @@ function initPullToRefresh() {
 
 /* =====================================================================
    FILE: js/router.js
-   LINES: 149
+   LINES: 163
 ===================================================================== */
 
 /* =====================================================================
@@ -2715,7 +2794,7 @@ import { SnakeView } from './views/SnakeView.js';
 import { Game2048View } from './views/2048View.js';
 import { FlappyView } from './views/FlappyView.js';
 import { MinesweeperView } from './views/MinesweeperView.js';
-import { TicTacToeView } from './views/TicTacToeView.js'; // ИМПОРТ НОВОЙ ИГРЫ
+import { TicTacToeView } from './views/TicTacToeView.js';
 import { PrefsManager } from './utils/prefs.js';
 import { Store } from './store.js';
 import { Lightbox } from './components/Lightbox.js';
@@ -2737,7 +2816,7 @@ export class Router {
             '/games/2048': new Game2048View(this.contentContainer),
             '/games/flappy': new FlappyView(this.contentContainer),
             '/games/minesweeper': new MinesweeperView(this.contentContainer),
-            '/games/tictactoe': new TicTacToeView(this.contentContainer) // РЕГИСТРАЦИЯ РОУТА
+            '/games/tictactoe': new TicTacToeView(this.contentContainer)
         };
         
         this.currentViewName = null;
@@ -2752,10 +2831,15 @@ export class Router {
         window.addEventListener('hashchange', () => this.handleRoute());
     }
 
+    getDefaultRoute() {
+        const navOrder = Store.getState().prefs.navOrder || ['schedule', 'homework', 'group', 'events', 'games'];
+        const allowedNav = navOrder.filter(id => id !== 'homework');
+        return allowedNav[0] || 'schedule';
+    }
+
     init() {
         if (!window.location.hash || window.location.hash === '#/') {
-            const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
-            window.location.replace('#/' + firstPage);
+            window.location.replace('#/' + this.getDefaultRoute());
         } else {
             this.handleRoute();
         }
@@ -2774,6 +2858,14 @@ export class Router {
 
     async handleRoute(forceReload = false) {
         const { path, params } = this.parseHash();
+
+        // Защита от прямого перехода в заблокированный раздел ДЗ
+        if (path === '/homework') {
+            console.warn('[Router] Доступ к разделу ДЗ временно заблокирован.');
+            window.location.replace('#/' + this.getDefaultRoute());
+            return;
+        }
+
         const view = this.views[path];
         const currentRenderId = ++this.renderId;
 
@@ -2816,8 +2908,7 @@ export class Router {
                 await view.mount(params);
                 if (this.renderId !== currentRenderId) return;
             } else {
-                const firstPage = Store.getState().prefs.navOrder?.[0] || 'schedule';
-                window.location.replace('#/' + firstPage);
+                window.location.replace('#/' + this.getDefaultRoute());
                 return;
             }
             
@@ -2840,7 +2931,9 @@ export class Router {
         const baseRoute = currentPath.split('/')[1];
         const navItems = document.querySelectorAll('.bottom-nav .nav-item');
         navItems.forEach(item => {
-            const itemPath = item.getAttribute('href').slice(2).split('?')[0]; 
+            const href = item.getAttribute('href');
+            if (!href) return;
+            const itemPath = href.slice(2).split('?')[0]; 
             if (itemPath === baseRoute) {
                 item.classList.add('active');
                 if (currentPath === '/settings') this.pageTitle.textContent = 'Настройки';
