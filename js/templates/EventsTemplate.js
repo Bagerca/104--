@@ -1,6 +1,3 @@
-/* =====================================================================
-   FILE: js/templates/EventsTemplate.js
-===================================================================== */
 import { getIcon } from '../utils/icons.js';
 
 export const EventsTemplate = {
@@ -49,10 +46,12 @@ export const EventsTemplate = {
         
         let tagsHtml = '';
         if (ev.date && ev.date.toLowerCase() !== 'актуально') {
-            tagsHtml += `<span class="ev-tag">${getIcon('clock', { size: 14 })} ${ev.date}</span>`;
+            // ТУТ ЗАМЕНИЛИ ИКОНКУ
+            tagsHtml += `<span class="ev-tag">${getIcon('event-time', { size: 14 })} ${ev.date}</span>`;
         }
         if (ev.time && ev.time !== '24/7') {
-            tagsHtml += `<span class="ev-tag">${getIcon('clock', { size: 14 })} ${ev.time}</span>`;
+            // И ТУТ ТОЖЕ
+            tagsHtml += `<span class="ev-tag">${getIcon('event-time', { size: 14 })} ${ev.time}</span>`;
         }
         if (ev.location) {
             tagsHtml += `<span class="ev-tag location">${getIcon('location', { size: 14 })} ${ev.location}</span>`;
@@ -102,7 +101,6 @@ export const EventsTemplate = {
     },
 
     renderHolidayCard(h) {
-        // Динамический класс состояния (Сегодня / Близко / Обычное)
         let stateClass = '';
         if (h.diffDays === 0) stateClass = 'today';
         else if (h.isNear) stateClass = 'near';

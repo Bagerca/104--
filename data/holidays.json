@@ -3,35 +3,35 @@
     "id": "halloween",
     "title": "До Хэллоуина 🎃",
     "date": "31.10",
-    "icon": "bomb",
+    "icon": "pumpkin",
     "showBeforeDays": 14
   },
   {
     "id": "new_year",
     "title": "До Нового года 🎄",
     "date": "01.01",
-    "icon": "star",
+    "icon": "tree",
     "showBeforeDays": 30
   },
   {
     "id": "bday_kazakov",
     "title": "День рождения Казакова 🎈",
     "date": "15.01",
-    "icon": "user",
+    "icon": "gift",
     "showBeforeDays": 7
   },
   {
     "id": "bday_bagrat",
     "title": "День рождения Баграта 🎂",
     "date": "31.07",
-    "icon": "user",
+    "icon": "gift",
     "showBeforeDays": 7
   },
   {
     "id": "bday_ivanov",
     "title": "День рождения Иванова 🎁",
     "date": "06.08",
-    "icon": "user",
+    "icon": "gift",
     "showBeforeDays": 7
   }
 ]

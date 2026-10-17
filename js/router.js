@@ -50,7 +50,8 @@ export class Router {
 
     getDefaultRoute() {
         const navOrder = Store.getState().prefs.navOrder || ['schedule', 'homework', 'group', 'events', 'games'];
-        const allowedNav = navOrder.filter(id => id !== 'homework');
+        // РАЗБЛОКИРОВКА ДЛЯ АДМИНА: разрешаем стартовать с ДЗ, если мы админы
+        const allowedNav = navOrder.filter(id => id !== 'homework' || PrefsManager.isAdmin());
         return allowedNav[0] || 'schedule';
     }
 
@@ -76,8 +77,8 @@ export class Router {
     async handleRoute(forceReload = false) {
         const { path, params } = this.parseHash();
 
-        // Защита от прямого перехода в заблокированный раздел ДЗ
-        if (path === '/homework') {
+        // РАЗБЛОКИРОВКА ДЛЯ АДМИНА: пускаем в роут, если админ
+        if (path === '/homework' && !PrefsManager.isAdmin()) {
             console.warn('[Router] Доступ к разделу ДЗ временно заблокирован.');
             window.location.replace('#/' + this.getDefaultRoute());
             return;

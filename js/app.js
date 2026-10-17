@@ -16,7 +16,7 @@ function renderBottomNav() {
     
     const prefs = Store.getState().prefs;
     const navOrder = prefs.navOrder || ['schedule', 'homework', 'group', 'events', 'games'];
-    const eventsCount = Store.getState().eventsCount || 0; // Получаем кол-во ивентов
+    const eventsCount = Store.getState().eventsCount || 0; 
 
     const navMap = {
         'schedule': { title: 'Уроки', icon: 'schedule' },
@@ -28,9 +28,10 @@ function renderBottomNav() {
 
     navEl.innerHTML = navOrder.filter(id => navMap[id]).map(id => {
         const iconKey = `nav-${id}`;
-        const isDisabled = id === 'homework';
         
-        // Рисуем бейдж только если это вкладка ивентов и ивенты существуют
+        // РАЗБЛОКИРОВКА ДЛЯ АДМИНА: Если это ДЗ и пользователь НЕ админ - блокируем
+        const isDisabled = id === 'homework' && !PrefsManager.isAdmin();
+        
         let badgeHtml = '';
         if (id === 'events' && eventsCount > 0) {
             badgeHtml = `<span class="nav-badge">${eventsCount}</span>`;
@@ -74,10 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ThemeManager.init();
         PrefsManager.applySettingsToDOM(); 
         
-        // Асинхронно запрашиваем ивенты в фоне при запуске
         ApiService.getEvents().then(events => {
             if (events && events.length > 0) {
-                Store.setState({ eventsCount: events.length }); // Триггерит перерисовку панели
+                Store.setState({ eventsCount: events.length }); 
             }
         }).catch(() => {});
 
@@ -163,7 +163,6 @@ function initPullToRefresh() {
             ptrEl.classList.add('refreshing'); ptrEl.style.transform = `translateY(50px) rotate(360deg)`;
             ApiService.clearCache();
             
-            // Также обновляем кол-во ивентов при свайпе вниз
             ApiService.getEvents().then(ev => { if(ev) Store.setState({ eventsCount: ev.length }) });
 
             if (window.appRouter) await window.appRouter.handleRoute(true);

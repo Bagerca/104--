@@ -58,7 +58,13 @@ export const ApiService = {
             return `${dd}-${mm}-${yyyy}`;
         };
 
-        const today = new Date();
+        // =========================================================
+        // МАШИНА ВРЕМЕНИ ДЛЯ ТЕСТИРОВАНИЯ
+        // Заменяем реальную дату на дату из твоих JSON файлов.
+        // Когда проект пойдет в релиз, верни сюда: const today = new Date();
+        // =========================================================
+        const today = new Date('2026-09-25T00:00:00'); 
+        
         const currentMonday = getMonday(today);
         
         const prevMonday1 = new Date(currentMonday);
@@ -67,6 +73,7 @@ export const ApiService = {
         const prevMonday2 = new Date(currentMonday);
         prevMonday2.setDate(prevMonday2.getDate() - 14);
 
+        // Ищем файлы 21-09-2026.json, 14-09-2026.json и 07-09-2026.json
         const [dataWeek0, dataWeek1, dataWeek2] = await Promise.all([
             fetchJson(`data/homework/${formatDate(currentMonday)}.json`, true, { cache: 'no-cache' }),
             fetchJson(`data/homework/${formatDate(prevMonday1)}.json`, true, { cache: 'no-cache' }),
