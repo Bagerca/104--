@@ -11,10 +11,30 @@ export class GroupView {
         this.container = container;
         this.currentTab = 'students'; 
         this.studentsData = [];
+        this.adminData = [];
         this.teachersData = [];
         this.isMounted = false;
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
+    }
+
+    _processPersons(sourceObject) {
+        const grouped = {};
+        Object.entries(sourceObject).forEach(([role, data]) => {
+            const rawName = data.name;
+            if (!grouped[rawName]) {
+                grouped[rawName] = {
+                    name: rawName,
+                    rawName: rawName, 
+                    avatar: data.avatar || '',
+                    roles: []
+                };
+            }
+            grouped[rawName].roles.push(role);
+        });
+        const finalArray = Object.values(grouped);
+        finalArray.sort((a, b) => a.name.localeCompare(b.name));
+        return finalArray;
     }
 
     async mount(params = {}) {
@@ -24,7 +44,7 @@ export class GroupView {
         this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
-            const [students, teachers] = await Promise.all([
+            const [students, staff] = await Promise.all([
                 ApiService.getStudents(),
                 ApiService.getTeachers()
             ]);
@@ -33,24 +53,11 @@ export class GroupView {
 
             this.studentsData = students || [];
             
-            if (teachers) {
-                const groupedTeachers = {};
-                Object.entries(teachers).forEach(([subject, data]) => {
-                    const rawName = data.name;
-
-                    if (!groupedTeachers[rawName]) {
-                        groupedTeachers[rawName] = {
-                            name: rawName,
-                            rawName: rawName, 
-                            avatar: data.avatar || '',
-                            subjects: []
-                        };
-                    }
-                    groupedTeachers[rawName].subjects.push(subject);
-                });
-
-                this.teachersData = Object.values(groupedTeachers);
-                this.teachersData.sort((a, b) => a.name.localeCompare(b.name));
+            if (staff && staff.administration) {
+                this.adminData = this._processPersons(staff.administration);
+            }
+            if (staff && staff.teachers) {
+                this.teachersData = this._processPersons(staff.teachers);
             }
 
             this.container.innerHTML = GroupTemplate.renderBaseUI(this.currentTab);
@@ -81,23 +88,34 @@ export class GroupView {
                     `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${st.name}" loading="lazy" decoding="async"></div>`;
                 
                 const role = st.role ? `<span class="person-badge">${st.role}</span>` : '';
+                const subText = st.nickname ? st.nickname : '';
+                const tgLink = st.tg ? `@${st.tg}` : ''; 
                 
-                // Передаем маркер TG_BTN, шаблон сам подставит иконку из icons.js
-                return GroupTemplate.renderPerson(st.name, `@${st.nickname}`, avatar, role, st.tg ? 'TG_BTN' : '');
+                // Передаем st.id первым аргументом
+                return GroupTemplate.renderPerson(st.id, st.name, subText, avatar, role, tgLink ? 'TG_BTN' : '');
             }).join('');
         } 
         else if (this.currentTab === 'teachers') {
-            statsContainer.innerHTML = GroupTemplate.renderStats('teachers', this.teachersData.length);
+            const totalTeachers = this.adminData.length + this.teachersData.length;
+            statsContainer.innerHTML = GroupTemplate.renderStats('teachers', totalTeachers);
 
-            html = this.teachersData.map(tch => {
-                const initial = tch.name.charAt(0).toUpperCase();
-                const avatar = !tch.avatar ? 
-                    `<div class="person-avatar" style="background: ${UIUtils.getAvatarGradient(tch.rawName)}">${initial}</div>` : 
-                    `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${tch.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${tch.name}" loading="lazy" decoding="async"></div>`;
-                
-                const subjectsHtml = tch.subjects.map(subj => `<span class="person-badge teacher-subject">${subj}</span>`).join('');
-                return GroupTemplate.renderPerson(tch.name, subjectsHtml, avatar);
-            }).join('');
+            const renderSection = (title, data) => {
+                let sectionHtml = `<h3 class="group-list-header">${title}</h3>`;
+                sectionHtml += data.map(person => {
+                    const initial = person.name.charAt(0).toUpperCase();
+                    const avatar = !person.avatar ? 
+                        `<div class="person-avatar" style="background: ${UIUtils.getAvatarGradient(person.rawName)}">${initial}</div>` : 
+                        `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${person.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${person.name}" loading="lazy" decoding="async"></div>`;
+                    
+                    const rolesHtml = person.roles.map(role => `<span class="person-badge teacher-subject">${role}</span>`).join('');
+                    // Передаем rawName в качестве ID, чтобы можно было стилизовать и преподов
+                    return GroupTemplate.renderPerson(person.rawName, person.name, rolesHtml, avatar);
+                }).join('');
+                return sectionHtml;
+            };
+            
+            if (this.adminData.length > 0) html += renderSection('Администрация', this.adminData);
+            if (this.teachersData.length > 0) html += renderSection('Преподавательский состав', this.teachersData);
         }
 
         listContainer.innerHTML = html || `<li class="placeholder-card" style="text-align:center;">Список пуст</li>`;

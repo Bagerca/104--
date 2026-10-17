@@ -1,0 +1,104 @@
+/* =====================================================================
+   FILE: css/custom/id-14.css
+===================================================================== */
+
+/* =====================================================================
+   ID 14: Котовский Даниил (Valorant Tactical UI Style)
+===================================================================== */
+.person-card[data-id="14"] {
+    /* Фирменный темный фон Valorant с легкой тактической сеткой */
+    background-color: #0F1923 !important; 
+    background-image: 
+        linear-gradient(rgba(236, 232, 225, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(236, 232, 225, 0.03) 1px, transparent 1px) !important;
+    background-size: 16px 16px !important;
+    background-position: center center !important;
+
+    border: 1px solid rgba(236, 232, 225, 0.1) !important;
+    border-left: 4px solid #FF4655 !important; /* Яркий красный маркер слева */
+    border-radius: 0 !important; /* Никаких скруглений! */
+    
+    /* Знаменитый срезанный правый нижний угол */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+    position: relative;
+    box-shadow: none !important; 
+    transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+/* Эффект нажатия (микро-сжатие и затемнение) */
+.person-card[data-id="14"]:active {
+    transform: scale(0.98);
+    background-color: #162533 !important;
+}
+
+/* Декоративный UI-элемент (красный квадратик в правом верхнем углу) */
+.person-card[data-id="14"]::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 4px;
+    height: 4px;
+    background: #FF4655;
+    box-shadow: 0 0 6px rgba(255, 70, 85, 0.6);
+}
+
+/* ИМЯ: Строгое, белое, жирное */
+.person-card[data-id="14"] .person-name-text {
+    color: #ECE8E1 !important; 
+    font-family: 'Arial Black', Impact, sans-serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    font-size: 1.1rem !important;
+    text-shadow: none !important;
+}
+
+/* ПОДПИСЬ: Роль/Класс (Красный акцент, межбуквенный интервал) */
+.person-card[data-id="14"] .person-sub {
+    color: #FF4655 !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    font-size: 0.65rem !important;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+/* АВАТАРКА: Экран выбора агента (Острая рамка, красное основание) */
+.person-card[data-id="14"] .person-avatar {
+    border-radius: 0 !important; 
+    border: 1px solid rgba(236, 232, 225, 0.2) !important;
+    border-bottom: 3px solid #FF4655 !important; /* Имитация "выбранного агента" */
+    background: #1F2E3D !important;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5) !important;
+    position: relative;
+    /* Легкий геометрический срез для аватара */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+
+/* КНОПКА ТГ (В стиле кнопки "LOCK IN") */
+.person-card[data-id="14"] .person-action-btn {
+    background: #FF4655 !important;
+    color: #ECE8E1 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    width: 42px !important; /* Чуть шире стандартной, чтобы форма читалась */
+    height: 36px !important;
+    
+    /* Тоже срезанный уголок, чтобы поддерживать общую геометрию */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+    transition: background 0.1s ease, color 0.1s ease;
+}
+
+/* При нажатии кнопка инвертируется (Светлый фон, темная иконка) */
+.person-card[data-id="14"] .person-action-btn:active {
+    background: #ECE8E1 !important;
+    color: #0F1923 !important;
+    transform: none !important; /* Убираем стандартное смещение */
+}
+
+/* Сглаживаем иконку внутри жесткой кнопки */
+.person-card[data-id="14"] .person-action-btn svg {
+    transform: scale(0.9);
+} 

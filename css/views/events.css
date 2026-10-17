@@ -1,122 +1,291 @@
 /* =====================================================================
    FILE: css/views/events.css
-   ИСПРАВЛЕНИЕ: Идеальный mask-image без наползания текста
 ===================================================================== */
-.events-list { display: grid; gap: 16px; }
+.events-container { animation: fadeIn 0.3s ease; }
+
+.events-segmented-control { 
+    display: flex; position: relative; background: rgba(255, 255, 255, 0.05); 
+    border: var(--glass-border); border-radius: var(--radius-md); 
+    padding: 4px; width: 100%; height: 46px; margin-bottom: 20px; 
+}
+.events-segment-slider { 
+    position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); 
+    background: var(--theme-accent); border-radius: calc(var(--radius-md) - 2px); 
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background var(--transition-smooth); 
+    box-shadow: 0 4px 12px var(--theme-accent-glow); 
+}
+.events-segmented-control[data-active="holidays"] .events-segment-slider { transform: translateX(100%); }
+.events-segment-btn { 
+    flex: 1; border: none; background: transparent; color: var(--text-secondary); 
+    font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; 
+    transition: color 0.3s ease; font-family: inherit; 
+}
+.events-segment-btn.active { color: var(--text-on-accent); }
+
+.events-list-wrapper { transition: opacity 0.2s ease; }
+.events-list-wrapper.fading { opacity: 0; pointer-events: none; }
+
+.events-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+}
 
 .event-card { 
     background: var(--glass-bg); 
     border: var(--glass-border); 
-    border-radius: var(--radius-md); 
+    border-radius: var(--radius-lg); 
     overflow: hidden; 
     position: relative; 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    -webkit-font-smoothing: antialiased;
 }
 
-.event-image { 
-    height: 220px; 
-    background: transparent; /* Обязательно прозрачный, чтобы просвечивал фон карточки */
+.event-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.ev-image-wrapper { 
+    height: 180px; 
     position: relative; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
+    width: 100%;
+    background: var(--theme-bg-secondary);
 }
 
-.event-image img { 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
+.ev-image-wrapper img { 
     width: 100%; 
     height: 100%; 
     object-fit: cover; 
-    z-index: 1; 
-    
-    /* 
-       Градиент маски: начинается плотным до 40% высоты, 
-       и полностью растворяется на 95%. Низ картинки становится прозрачным. 
-    */
-    -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 95%);
-    mask-image: linear-gradient(to bottom, black 40%, transparent 95%);
-    
-    animation: imgFadeIn 0.4s ease forwards;
+    display: block;
+    animation: fadeIn 0.4s ease forwards;
 }
 
-@keyframes imgFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.ev-gradient-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(to top, var(--glass-bg) 0%, transparent 100%);
+    pointer-events: none;
 }
 
-.event-date-badge { 
+.ev-status-badge { 
     position: absolute; 
     top: 12px; 
     right: 12px; 
-    background: rgba(0,0,0,0.75); 
-    backdrop-filter: blur(10px); 
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(8px); 
+    -webkit-backdrop-filter: blur(8px);
     padding: 6px 12px; 
-    border-radius: 12px; 
-    text-align: center; 
-    border: 1px solid rgba(255,255,255,0.1); 
-    z-index: 3; 
-}
-
-.event-date-badge .day { 
-    font-size: 0.85rem; 
-    font-weight: 600; 
+    border-radius: 8px; 
+    font-size: 0.7rem; 
+    font-weight: 800; 
     color: #fff; 
-    line-height: 1; 
     text-transform: uppercase; 
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.event-body { 
-    padding: 0 16px 16px 16px; /* Убрал верхний паддинг, так как картинка и так прозрачная снизу */
-    position: relative; 
-    z-index: 3; 
-    margin-top: -15px; /* Аккуратный сдвиг, чтобы текст не висел в пустоте, но и не залезал на фото */
+.ev-content { 
+    padding: 16px 20px 20px 20px; 
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 14px; 
+    position: relative;
+    z-index: 2;
 }
 
-.event-title { 
-    font-size: 1.15rem; 
-    font-weight: 600; 
-    margin-bottom: 6px; 
+.ev-title { 
+    font-size: 1.2rem; 
+    font-weight: 700; 
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin: 0;
+    letter-spacing: -0.2px;
 }
 
-.event-desc { 
-    font-size: 0.85rem; 
-    color: var(--text-secondary); 
-    margin-bottom: 16px; 
-    line-height: 1.4; 
+.ev-tags-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
 }
 
-.event-footer { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    font-size: 0.85rem; 
-    color: var(--text-muted); 
-    margin-bottom: 16px; 
+.ev-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--overlay-bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
-.event-footer span { 
-    display: flex; 
-    align-items: center; 
-    gap: 6px; 
-}
-
-.event-btn {
-    display: block; 
-    width: 100%; 
-    padding: 10px;
-    background: var(--theme-accent-soft);
+.ev-tag.location {
     color: var(--theme-accent-text);
-    text-align: center; 
+    background: var(--theme-accent-soft);
+}
+
+.ev-tag.copyable {
+    cursor: pointer;
+    background: rgba(33, 150, 243, 0.15);
+    color: #64B5F6;
+    border: 1px dashed rgba(33, 150, 243, 0.4);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.ev-tag.copyable:active {
+    transform: scale(0.95);
+    background: rgba(33, 150, 243, 0.3);
+}
+
+.ev-desc { 
+    font-size: 0.9rem; 
+    color: var(--text-secondary); 
+    line-height: 1.5; 
+    margin: 0; 
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ev-action-btn {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    width: 100%; 
+    padding: 14px;
+    margin-top: auto; 
+    background: var(--overlay-bg); 
+    border: 1px solid var(--theme-accent-glow); 
+    color: var(--theme-accent-text); 
     border-radius: var(--radius-md);
     text-decoration: none; 
     font-weight: 600;
-    border: 1px solid var(--theme-accent-glow);
-    transition: all var(--transition-fast);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
 }
 
-.event-btn:active {
+.ev-action-btn:active {
+    background: var(--theme-accent-soft);
+    transform: scale(0.98);
+}
+
+/* ================= СПИСОК ПРАЗДНИКОВ (ДР, НГ) ================= */
+.holidays-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.holiday-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--overlay-bg); /* Тонкий темный фон по дефолту */
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Нейтральная рамка */
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, border-color 0.3s ease, background 0.3s ease;
+}
+
+.holiday-card:active {
+    transform: scale(0.98);
+}
+
+/* Если событие "Горит" (сегодня или меньше недели) */
+.holiday-card.near, .holiday-card.today {
+    background: linear-gradient(135deg, var(--theme-accent-soft) 0%, rgba(0,0,0,0.1) 100%);
+    border-color: var(--theme-accent-glow);
+    box-shadow: 0 8px 32px var(--theme-accent-soft);
+}
+
+.holiday-icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Свечение иконки для горящих событий */
+.holiday-card.near .holiday-icon, 
+.holiday-card.today .holiday-icon {
     background: var(--theme-accent);
     color: var(--text-on-accent);
-    transform: scale(0.98);
+    border-color: transparent;
+    box-shadow: 0 4px 15px var(--theme-accent-glow);
+}
+
+.holiday-card.today .holiday-icon {
+    animation: pulseHoliday 2s infinite;
+}
+
+@keyframes pulseHoliday {
+    0% { box-shadow: 0 0 0 0 var(--theme-accent-soft); }
+    70% { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+}
+
+.holiday-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.holiday-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.holiday-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Обычный бейдж (далеко) */
+.holiday-badge {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+/* Текст отсчета для горящих событий (как на главной) */
+.holiday-card.near .holiday-badge,
+.holiday-card.today .holiday-badge {
+    background: transparent;
+    color: var(--text-primary);
+    border: none;
+    padding: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
 }

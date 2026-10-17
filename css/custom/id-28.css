@@ -1,0 +1,71 @@
+/* =====================================================================
+   ID 28: Щепелин Сергей (Minecraft Style 3.0 - True Pixel Art)
+===================================================================== */
+
+.person-card[data-id="28"] {
+    /* Накладываем два фона: сверху пиксельная трава, снизу пиксельная земля */
+    background-image: 
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="4" fill="%2371C24A"/><path d="M0,4h4v4H0 M8,4h4v2H8 M12,4h4v6H12" fill="%2371C24A"/><path d="M4,4h4v6H4 M10,4h2v2H10" fill="%235A9B3A"/></svg>'),
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="%23866043"/><path d="M0,0h4v4H0 M8,4h4v4H8 M4,12h4v4H4 M12,8h4v4H12" fill="%23745237"/><path d="M4,0h4v4H4 M12,12h4v4H12 M0,8h4v4H0" fill="%235A3F2A"/><path d="M12,0h4v4H12 M0,12h4v4H0 M8,8h4v4H8" fill="%239B6E4C"/><path d="M2,2h2v2H2 M10,10h2v2H10" fill="%23B3B3B3"/></svg>') !important;
+    background-repeat: repeat-x, repeat !important;
+    background-position: top left, top left !important;
+    background-size: 64px 64px, 64px 64px !important; /* Увеличиваем пиксели в 4 раза */
+    
+    border: 3px solid #1e1e1e !important; /* Темная рамка блока */
+    border-radius: 0 !important; /* Убираем закругления полностью */
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4) !important; /* Жесткая плоская тень */
+    image-rendering: pixelated !important; /* Запрещаем браузеру мылить картинку */
+}
+
+/* Имя: Белый текст, жесткая тень как в чате Майна */
+.person-card[data-id="28"] .person-name-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 900;
+    font-size: 1.15rem;
+    color: #ffffff;
+    text-shadow: 2px 2px 0px #3f3f3f;
+    letter-spacing: -0.5px;
+}
+
+/* Подпись: Желтый Сплеш-текст */
+.person-card[data-id="28"] .person-sub {
+    color: #ffff55;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 0.95rem;
+    text-shadow: 2px 2px 0px #3f3f3f;
+}
+
+/* Аватарка в стиле слота инвентаря */
+.person-card[data-id="28"] .person-avatar {
+    border-radius: 0 !important; 
+    background: #8b8b8b !important; /* Фон слота */
+    border: 3px solid;
+    border-color: #373737 #ffffff #ffffff #373737; /* Эффект вдавленности инвентаря */
+    box-shadow: none !important;
+    color: #ffffff;
+    text-shadow: 2px 2px 0px #3f3f3f;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Кнопка ТГ: Игровая UI-кнопка */
+.person-card[data-id="28"] .person-action-btn {
+    background: #c6c6c6;
+    color: #ffffff;
+    border-radius: 0;
+    border: 3px solid;
+    border-color: #ffffff #555555 #555555 #ffffff; /* Свет сверху-слева, тень снизу-справа */
+    box-shadow: none;
+    transition: none; /* Никаких плавных переходов */
+}
+
+/* Кнопка нажата (Вдавливание) */
+.person-card[data-id="28"] .person-action-btn:active {
+    border-color: #555555 #ffffff #ffffff #555555; /* Инвертируем рамки для эффекта нажатия */
+    transform: none; /* Убираем сдвиг, работает только рамка */
+}
+
+/* Иконка в кнопке тоже с тенью */
+.person-card[data-id="28"] .person-action-btn svg {
+    filter: drop-shadow(2px 2px 0px #3f3f3f);
+}

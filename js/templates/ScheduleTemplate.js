@@ -1,4 +1,8 @@
+/* =====================================================================
+   FILE: js/templates/ScheduleTemplate.js
+===================================================================== */
 import { formatMinutes } from '../utils/time.js';
+import { getIcon } from '../utils/icons.js';
 
 export const ScheduleTemplate = {
     renderList(dayScheduleArray, bellsData, userSubgroup) {
@@ -35,12 +39,41 @@ export const ScheduleTemplate = {
                     </div>
                     ${room ? `<span class="pair-room">${room}</span>` : ''}
                 </div>` : `
-                <div class="lesson-row" style="opacity: 0.4;">
+                <div class="lesson-row window">
                     <div class="lesson-details">
                         <span class="lesson-num">Урок ${num} &bull; ${time}</span>
-                        <span class="pair-subject" style="font-style: italic;">Окно (Отдых)</span>
+                        <span class="pair-subject" style="font-style: italic; display: flex; align-items: center; gap: 6px;">
+                            ${getIcon('clock', { size: 14 })} Окно (Отдых)
+                        </span>
                     </div>
                 </div>`;
+
+            // Умное слияние (Smart Merging) с отображением обоих звонков
+            const renderMergedRow = (num1, num2, time1, time2, subj, room) => {
+                const timeMerged = (time1 && time2) ? `${time1}, ${time2}` : (time1 || time2);
+
+                return `
+                <div class="lesson-row merged">
+                    <div class="lesson-details">
+                        <span class="lesson-num" style="color: var(--theme-accent-text);">Уроки ${num1} и ${num2} &bull; ${timeMerged}</span>
+                        <span class="pair-subject" style="font-size: 1.05rem;">${subj}</span>
+                    </div>
+                    ${room ? `<span class="pair-room">${room}</span>` : ''}
+                </div>`;
+            };
+
+            const shouldMerge = hasL1 && hasL2 && (l1Subj === l2Subj) && (l1Room === l2Room);
+            let lessonsHtml = '';
+
+            if (shouldMerge) {
+                // Если предметы и кабинеты совпадают — рендерим объединенную версию без разделителя
+                lessonsHtml = renderMergedRow(pairItem.pair * 2 - 1, pairItem.pair * 2, l1Time, l2Time, l1Subj, l1Room);
+            } else {
+                // Иначе классический рендер
+                const htmlL1 = renderRow(hasL1, pairItem.pair * 2 - 1, l1Time, l1Subj, l1Room);
+                const htmlL2 = renderRow(hasL2, pairItem.pair * 2, l2Time, l2Subj, l2Room);
+                lessonsHtml = `${htmlL1}<div class="lesson-divider"></div>${htmlL2}`;
+            }
 
             return `
                 <li class="pair-card" data-pair="${pairItem.pair}">
@@ -49,9 +82,7 @@ export const ScheduleTemplate = {
                         <div class="hours">${bell ? `${bell.start} - ${bell.end}` : ''}</div>
                     </div>
                     <div class="pair-info">
-                        ${renderRow(hasL1, pairItem.pair * 2 - 1, l1Time, l1Subj, l1Room)}
-                        <div class="lesson-divider"></div>
-                        ${renderRow(hasL2, pairItem.pair * 2, l2Time, l2Subj, l2Room)}
+                        ${lessonsHtml}
                     </div>
                 </li>
             `;
@@ -92,5 +123,19 @@ export const ScheduleTemplate = {
         
         const nextLsn = this.getLessonDetails(status.nextPairData, 1);
         return `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">До начала</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div>${nextLsn.subj !== 'Урок' ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px;">Первая: ${nextLsn.subj}</div>` : ''}</article>`;
+    },
+    
+    renderCountdown(holiday, timeText) {
+        return `
+            <div class="countdown-widget">
+                <div class="countdown-icon">
+                    ${getIcon(holiday.icon || 'star', { size: 24 })}
+                </div>
+                <div class="countdown-info">
+                    <span class="countdown-title">${holiday.title}</span>
+                    <span class="countdown-time" id="countdown-time-val">${timeText}</span>
+                </div>
+            </div>
+        `;
     }
 };

@@ -1,10 +1,9 @@
 import os
 import re
 
-SRC_DIR = "src_icons"
-OUT_FILE = "js/utils/icons.js"
+SRC_DIR = 'src_icons'
+OUT_FILE = 'js/utils/icons.js'
 
-# Шаблон будущего JS файла
 JS_TEMPLATE = """/* =====================================================================
    FILE: js/utils/icons.js
    АВТОГЕНЕРАЦИЯ: Файл собран скриптом build_icons.py
@@ -33,54 +32,48 @@ export const getIcon = (name, options = {}) => {
 """
 
 def main():
-    # Этап 1: Авто-распаковка (если папки нет)
     if not os.path.exists(SRC_DIR):
-        os.makedirs(SRC_DIR)
-        print(f"📁 Создана папка {SRC_DIR}/.")
-        
-        if os.path.exists(OUT_FILE):
-            print("🔄 Извлекаю иконки из старого icons.js...")
-            with open(OUT_FILE, 'r', encoding='utf-8') as f:
-                content = f.read()
-                # Ищем ключи и содержимое SVG путей
-                matches = re.findall(r"'([^']+)':\s*'(<[^>]+>.*?)',?", content)
-                for name, svg_inner in matches:
-                    with open(os.path.join(SRC_DIR, f"{name}.svg"), 'w', encoding='utf-8') as svg_file:
-                        svg_file.write(f'<svg viewBox="0 0 24 24">\n    {svg_inner}\n</svg>')
-            print("✅ Иконки успешно извлечены! Теперь вы можете редактировать их в папке src_icons/.")
-            print("Запустите скрипт еще раз, чтобы собрать новый icons.js")
+        print(f"[-] Ошибка: Папка {SRC_DIR} не найдена. Создайте её и добавьте .svg файлы.")
         return
 
-    # Этап 2: Сборка из папки в icons.js
-    icons = []
-    for filename in os.listdir(SRC_DIR):
-        if filename.endswith(".svg"):
-            name = filename[:-4]
-            with open(os.path.join(SRC_DIR, filename), 'r', encoding='utf-8') as f:
-                svg_content = f.read()
+    icons_data = []
+    
+    # Перебираем все SVG файлы в папке
+    for filename in sorted(os.listdir(SRC_DIR)):
+        if filename.endswith('.svg'):
+            name = filename[:-4] # Убираем .svg
+            filepath = os.path.join(SRC_DIR, filename)
             
-            # Вырезаем всё, что внутри <svg> ... </svg>
-            match = re.search(r'<svg[^>]*>(.*?)</svg>', svg_content, re.IGNORECASE | re.DOTALL)
+            with open(filepath, 'r', encoding='utf-8') as f:
+                raw_svg = f.read()
+                
+            # Ищем всё, что находится ВНУТРИ тега <svg> ... </svg>
+            match = re.search(r'<svg[^>]*>([\s\S]*?)</svg>', raw_svg, re.IGNORECASE)
             if match:
-                inner_content = match.group(1).strip()
+                inner_content = match.group(1)
+                # Очищаем от переносов строк и лишних пробелов, чтобы была одна строка
+                clean_content = re.sub(r'\s+', ' ', inner_content).strip()
+                # Экранируем одинарные кавычки, если они есть
+                clean_content = clean_content.replace("'", "\\'")
+                
+                icons_data.append(f"    '{name}': '{clean_content}'")
             else:
-                inner_content = svg_content.strip() # Если тега нет, берем как есть
-            
-            # Убираем лишние пробелы и переносы строк для минификации
-            inner_content = re.sub(r'\s+', ' ', inner_content)
-            icons.append(f"    '{name}': '{inner_content}'")
+                print(f"[!] Предупреждение: Не удалось распарсить {filename}")
 
-    if not icons:
-        print(f"⚠️ Папка {SRC_DIR} пуста. Добавьте туда .svg файлы.")
+    if not icons_data:
+        print("[-] Нет валидных иконок для сборки.")
         return
 
-    icons_dict_str = ",\n".join(icons)
-    final_js = JS_TEMPLATE.replace("{icons_dict}", icons_dict_str)
+    # Собираем словарь
+    icons_dict_str = ",\n".join(icons_data)
+    final_js = JS_TEMPLATE.replace('{icons_dict}', icons_dict_str)
 
+    # Записываем в файл
+    os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     with open(OUT_FILE, 'w', encoding='utf-8') as f:
         f.write(final_js)
 
-    print(f"🚀 Сборка завершена! Собрано {len(icons)} иконок в {OUT_FILE}")
+    print(f"[+] Сборка завершена! Упаковано {len(icons_data)} иконок в '{OUT_FILE}'")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

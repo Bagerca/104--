@@ -2,21 +2,23 @@
    FILE: js/views/ScheduleView.js
 ===================================================================== */
 import { ApiService } from '../services/api.js';
-import { getCurrentScheduleStatus, getDateStringForDay, formatMinutes } from '../utils/time.js';
+import { getCurrentScheduleStatus, getDateStringForDay, formatMinutes, getHolidayStatus } from '../utils/time.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Store } from '../store.js';
 import { ScheduleTemplate } from '../templates/ScheduleTemplate.js';
+import { UIUtils } from '../utils/ui.js';
 
 export class ScheduleView {
     constructor(container) {
         this.container = container;
         this.liveTimerId = null;
         this.unsubscribeStore = null;
-        this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
+        this.cached = { widgetContainer: null, countdownContainer: null, timeEl: null, progressEl: null, countdownTimeEl: null, pairCards: [] };
         this.currentWidgetState = null; 
+        this.activeHolidayId = null;
         this.isMounted = false;
         this.state = {
-            bells: [], base: {}, currentDayNum: 1, selectedDay: 1,
+            bells: [], base: {}, holidays: [], currentDayNum: 1, selectedDay: 1,
             selectedDayOverride: null, todayOverride: null, showActual: true
         };
         
@@ -42,19 +44,20 @@ export class ScheduleView {
         });
 
         try {
-            const [bells, baseSchedule] = await Promise.all([
+            const [bells, baseSchedule, holidays] = await Promise.all([
                 ApiService.getBells(),
-                ApiService.getSchedule()
+                ApiService.getSchedule(),
+                ApiService.getHolidays()
             ]);
 
             if (!this.isMounted) return;
 
             this.state.bells = bells || [];
             this.state.base = baseSchedule || {};
+            this.state.holidays = holidays || [];
             
             const currentDayReal = new Date().getDay();
             this.state.currentDayNum = (currentDayReal >= 1 && currentDayReal <= 5) ? currentDayReal : 1;
-            
             this.state.selectedDay = params.day ? Number(params.day) : this.state.currentDayNum;
 
             const todayStr = getDateStringForDay(this.state.currentDayNum);
@@ -91,8 +94,9 @@ export class ScheduleView {
         if (this.liveTimerId) clearInterval(this.liveTimerId);
         if (this.unsubscribeStore) this.unsubscribeStore();
         
-        this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
+        this.cached = { widgetContainer: null, countdownContainer: null, timeEl: null, progressEl: null, countdownTimeEl: null, pairCards: [] };
         this.currentWidgetState = null;
+        this.activeHolidayId = null;
         this.container.removeEventListener('click', this.handleGlobalClick);
     }
 
@@ -118,6 +122,7 @@ export class ScheduleView {
 
     renderLayout() {
         this.container.innerHTML = `
+            <section id="countdown-widget-container"></section>
             <section id="live-widget-container"></section>
             
             <div class="schedule-controls-container">
@@ -141,6 +146,7 @@ export class ScheduleView {
             <ul id="schedule-list" class="schedule-list"></ul>
         `;
         this.cached.widgetContainer = document.getElementById('live-widget-container');
+        this.cached.countdownContainer = document.getElementById('countdown-widget-container');
     }
 
     async changeDay(newDay, direction) {
@@ -309,15 +315,71 @@ export class ScheduleView {
 
     renderWidgetHTML(status) {
         if (!this.cached.widgetContainer) return;
-        
         this.cached.widgetContainer.innerHTML = ScheduleTemplate.renderWidget(status);
         this.cached.timeEl = document.getElementById('widget-time');
         this.cached.progressEl = document.getElementById('widget-progress');
     }
 
+    // НОВЫЙ АЛГОРИТМ ОБНОВЛЕНИЯ ВИДЖЕТА ПРАЗДНИКА
+    updateCountdownWidget() {
+        if (!this.cached.countdownContainer || !this.state.holidays.length) return;
+
+        let closestHoliday = null;
+        let minDiffMs = Infinity;
+        let isHolidayToday = false;
+
+        for (const h of this.state.holidays) {
+            const status = getHolidayStatus(h.date);
+
+            // Если праздник сегодня — он получает высший приоритет
+            if (status.isToday) {
+                closestHoliday = { ...h, status };
+                isHolidayToday = true;
+                break; 
+            }
+
+            // Иначе ищем ближайший в будущем (учитываем параметр showBeforeDays)
+            if (status.diffDays <= h.showBeforeDays && status.diffMs > 0 && status.diffMs < minDiffMs) {
+                minDiffMs = status.diffMs;
+                closestHoliday = { ...h, status };
+            }
+        }
+
+        if (!closestHoliday) {
+            if (this.activeHolidayId) {
+                this.cached.countdownContainer.innerHTML = '';
+                this.activeHolidayId = null;
+            }
+            return;
+        }
+
+        const timeText = closestHoliday.status.timeText;
+
+        if (this.activeHolidayId !== closestHoliday.id) {
+            this.cached.countdownContainer.innerHTML = ScheduleTemplate.renderCountdown(closestHoliday, timeText);
+            this.cached.countdownTimeEl = document.getElementById('countdown-time-val');
+            this.activeHolidayId = closestHoliday.id;
+
+            // Триггерим конфетти один раз за сессию в день праздника
+            if (isHolidayToday) {
+                const confKey = `sh_confetti_${closestHoliday.id}_${new Date().getFullYear()}`;
+                if (!sessionStorage.getItem(confKey)) {
+                    UIUtils.shootConfetti();
+                    sessionStorage.setItem(confKey, 'true');
+                }
+            }
+        } else {
+            if (this.cached.countdownTimeEl && this.cached.countdownTimeEl.textContent !== timeText) {
+                this.cached.countdownTimeEl.textContent = timeText;
+            }
+        }
+    }
+
     refreshLiveState() {
         if (!this.isMounted) return;
         
+        this.updateCountdownWidget();
+
         const now = new Date();
         const realDay = now.getDay();
         
@@ -341,7 +403,11 @@ export class ScheduleView {
         }
 
         if (realDay === 0 || realDay === 6) {
-            this.renderWidgetHTML({ status: 'weekend' });
+            if (this.currentWidgetState !== 'weekend') {
+                this.renderWidgetHTML({ status: 'weekend' });
+                this.currentWidgetState = 'weekend';
+                this.updatePairCardsHighlight({ status: 'weekend' });
+            }
             return;
         }
         

@@ -1,10 +1,14 @@
+/* =====================================================================
+   FILE: js/store.js
+===================================================================== */
 export const Store = {
     state: {
         isOffline: !navigator.onLine,
         prefs: {}, 
         currentTheme: 'burgundy',
         homeworkTasks: JSON.parse(localStorage.getItem('sh_homework_state') || '{}'),
-        modalState: null
+        modalState: null,
+        eventsCount: 0 // <--- Сюда будем записывать кол-во ивентов
     },
     
     listeners: [],

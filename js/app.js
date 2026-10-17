@@ -16,8 +16,7 @@ function renderBottomNav() {
     
     const prefs = Store.getState().prefs;
     const navOrder = prefs.navOrder || ['schedule', 'homework', 'group', 'events', 'games'];
-    const themeId = Store.getState().currentTheme;
-    const isSeasonal = themeId === 'halloween' || themeId === 'new-year';
+    const eventsCount = Store.getState().eventsCount || 0; // Получаем кол-во ивентов
 
     const navMap = {
         'schedule': { title: 'Уроки', icon: 'schedule' },
@@ -28,13 +27,21 @@ function renderBottomNav() {
     };
 
     navEl.innerHTML = navOrder.filter(id => navMap[id]).map(id => {
-        const iconKey = isSeasonal ? `nav-${id}-${themeId}` : `nav-${id}`;
+        const iconKey = `nav-${id}`;
         const isDisabled = id === 'homework';
+        
+        // Рисуем бейдж только если это вкладка ивентов и ивенты существуют
+        let badgeHtml = '';
+        if (id === 'events' && eventsCount > 0) {
+            badgeHtml = `<span class="nav-badge">${eventsCount}</span>`;
+        }
 
         if (isDisabled) {
             return `
                 <div class="nav-item nav-item-disabled" data-icon="${id}" data-title="${navMap[id].title}" aria-disabled="true" tabindex="-1">
-                    ${getIcon(iconKey, { size: 24 })}
+                    <div class="nav-icon-wrapper">
+                        ${getIcon(iconKey, { size: 24 })}
+                    </div>
                     <span>${navMap[id].title}</span>
                 </div>
             `;
@@ -42,7 +49,10 @@ function renderBottomNav() {
 
         return `
             <a href="#/${id}" class="nav-item" data-icon="${id}" data-title="${navMap[id].title}">
-                ${getIcon(iconKey, { size: 24 })}
+                <div class="nav-icon-wrapper">
+                    ${getIcon(iconKey, { size: 24 })}
+                    ${badgeHtml}
+                </div>
                 <span>${navMap[id].title}</span>
             </a>
         `;
@@ -64,6 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ThemeManager.init();
         PrefsManager.applySettingsToDOM(); 
         
+        // Асинхронно запрашиваем ивенты в фоне при запуске
+        ApiService.getEvents().then(events => {
+            if (events && events.length > 0) {
+                Store.setState({ eventsCount: events.length }); // Триггерит перерисовку панели
+            }
+        }).catch(() => {});
+
         renderBottomNav();
         Store.subscribe((state, key) => {
             if (key === 'currentTheme' || key === 'pref_navOrder' || key === 'all') {
@@ -108,7 +125,6 @@ function initPullToRefresh() {
     let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null;
     
     document.addEventListener('touchstart', (e) => {
-        // Блокируем PTR если мы в игре
         if (document.body.classList.contains('game-mode-active')) return;
         
         if (document.querySelector('dialog[open]') || 
@@ -146,6 +162,10 @@ function initPullToRefresh() {
             PrefsManager.vibrate(20);
             ptrEl.classList.add('refreshing'); ptrEl.style.transform = `translateY(50px) rotate(360deg)`;
             ApiService.clearCache();
+            
+            // Также обновляем кол-во ивентов при свайпе вниз
+            ApiService.getEvents().then(ev => { if(ev) Store.setState({ eventsCount: ev.length }) });
+
             if (window.appRouter) await window.appRouter.handleRoute(true);
             ptrEl.classList.remove('refreshing'); ptrEl.style.transform = `translateY(-50px)`; ptrEl.style.opacity = '0';
         } else {

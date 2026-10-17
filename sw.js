@@ -3,6 +3,9 @@
 ===================================================================== */
 const CACHE_NAME = 'student-hub-v29';
 
+/* =====================================================================
+   Фрагмент sw.js (массив ASSETS)
+===================================================================== */
 const ASSETS = [
     './',
     './index.html',
@@ -16,7 +19,8 @@ const ASSETS = [
     './css/views/settings.css',
     './css/views/games.css',
     './css/views/game-shell.css',
-    
+    './css/custom/registry.css',
+
     // Core JS
     './js/app.js',
     './js/router.js',

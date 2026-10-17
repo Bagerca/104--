@@ -36,6 +36,58 @@ export function getDateStringForDay(targetDayNum) {
     return `${dd}-${mm}-${yyyy}`;
 }
 
+export function getPlural(number, one, two, five) {
+    let n = Math.abs(number);
+    n %= 100;
+    if (n >= 5 && n <= 20) return five;
+    n %= 10;
+    if (n === 1) return one;
+    if (n >= 2 && n <= 4) return two;
+    return five;
+}
+
+// Единый вычислитель для праздников и дней рождений (Формат ДД.ММ)
+export function getHolidayStatus(dateStr) {
+    const now = new Date();
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Парсим простую строку вида "31.07"
+    const [dayStr, monthStr] = dateStr.split('.');
+    const month = parseInt(monthStr, 10) - 1; // Месяцы в JS начинаются с 0
+    const day = parseInt(dayStr, 10);
+
+    // Создаем дату (текущий год, нужный месяц и день, 00:00:00)
+    let target = new Date(now.getFullYear(), month, day, 0, 0, 0);
+
+    // Если дата в этом году УЖЕ прошла — перекидываем событие на следующий год
+    if (target.getTime() < nowDay.getTime()) {
+        target.setFullYear(now.getFullYear() + 1);
+    }
+
+    const isToday = nowDay.getTime() === new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+    const diffMs = target.getTime() - now.getTime();
+
+    const diffTotalMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffTotalMins / 60);
+    const diffMins = diffTotalMins % 60;
+    
+    // Округляем вверх, так как если осталось 25 часов, это "2 дня"
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    let timeText = '';
+    
+    if (isToday) {
+        timeText = 'Сегодня!';
+    } else if (diffHours >= 0 && diffHours < 24 && diffDays <= 1) {
+        // Осталось меньше 24 часов до полуночи — включаем точные часы и минуты
+        timeText = `${diffHours} ч ${diffMins} мин`;
+    } else {
+        timeText = `${diffDays} ${getPlural(diffDays, 'день', 'дня', 'дней')}`;
+    }
+
+    return { isToday, diffMs, diffDays, timeText, targetDate: target };
+}
+
 export function getCurrentScheduleStatus(bellsData) {
     const now = new Date();
     const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -54,7 +106,6 @@ export function getCurrentScheduleStatus(bellsData) {
             
             const prevEndSecs = parseTimeToMinutes(bellsData[i - 1].end) * 60;
             if (currentTotalSeconds >= prevEndSecs) {
-                // Вычисляем процент прохождения перемены
                 const progressPercent = ((currentTotalSeconds - prevEndSecs) / (startSecs - prevEndSecs)) * 100;
                 return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes, progressPercent };
             }

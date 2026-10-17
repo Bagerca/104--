@@ -3,6 +3,37 @@
 ===================================================================== */
 .group-container { animation: fadeIn 0.3s ease; }
 
+.group-services {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.service-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: var(--glass-bg);
+    border: var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all var(--transition-fast);
+}
+.service-btn:active {
+    transform: scale(0.95);
+    background: var(--overlay-bg-active);
+}
+.service-btn svg {
+    color: var(--theme-accent-text);
+}
+
 .group-segmented-control { 
     display: flex; position: relative; background: rgba(255, 255, 255, 0.05); 
     border: var(--glass-border); border-radius: var(--radius-md); 
@@ -31,6 +62,20 @@
 
 .list-wrapper { transition: opacity 0.2s ease; }
 .list-wrapper.fading { opacity: 0; pointer-events: none; }
+
+.group-list-header {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 16px;
+    margin-bottom: 12px;
+    padding-left: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.group-list-header:first-of-type {
+    margin-top: 0;
+}
 
 .persons-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
 .person-card { 
@@ -63,7 +108,6 @@
     width: 100%;
 }
 
-/* Имя обрезается троеточием, если не хватает места */
 .person-name-text {
     white-space: nowrap; 
     overflow: hidden; 
@@ -71,23 +115,22 @@
     flex-shrink: 1; 
 }
 
-/* Обновленный дизайн бейджей */
+/* Обновленный дизайн бейджей: идеальное центрирование */
 .person-badge { 
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    line-height: 1; 
-    padding: 4px 8px; 
-    padding-top: 5px; /* Оптическая компенсация центра */
+    padding: 3px 8px;
     font-size: 0.65rem; 
     font-weight: 700; 
+    line-height: normal; /* Авто-высота для шрифта */
     text-transform: uppercase; 
     letter-spacing: 0.5px; 
     background: var(--theme-accent); 
     color: var(--text-on-accent); 
-    border-radius: 12px; 
+    border-radius: 10px; /* Более мягкие края плашки */
     box-shadow: 0 2px 8px var(--theme-accent-soft); 
-    flex-shrink: 0; /* Защита от сжатия */
+    flex-shrink: 0;
 }
 
 .person-badge.teacher-subject { 

@@ -5,8 +5,10 @@
 ===================================================================== */
 
 const ICONS = {
+    'academic-cap': '<path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"></path><path d="M6 12v5c0 1.66 4 3 10 0v-5"></path>',
     'admin': '<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>',
     'back': '<polyline points="15 18 9 12 15 6"></polyline>',
+    'book-open': '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>',
     'check': '<polyline points="20 6 9 17 4 12"></polyline>',
     'chevron-down': '<polyline points="6 9 12 15 18 9"></polyline>',
     'chevron-right': '<polyline points="9 18 15 12 9 6"></polyline>',

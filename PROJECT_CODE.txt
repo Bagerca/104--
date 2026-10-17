@@ -1,12 +1,12 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 12.10.2026 20:01:28
+  Дата сборки: 17.10.2026 20:07:26
 ================================================================================
 
 
 /* =====================================================================
    FILE: index.html
-   LINES: 66
+   LINES: 70
 ===================================================================== */
 
 <!DOCTYPE html>
@@ -41,6 +41,7 @@
     <link rel="modulepreload" href="js/app.js">
     <link rel="modulepreload" href="js/router.js">
 
+    <!-- Фрагмент index.html (внутри <head>) -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/style.css">
@@ -51,6 +52,9 @@
     <link rel="stylesheet" href="css/views/settings.css">
     <link rel="stylesheet" href="css/views/games.css">
     <link rel="stylesheet" href="css/views/game-shell.css">
+    
+    <!-- Единый загрузчик кастомных карточек -->
+    <link rel="stylesheet" href="css/custom/registry.css">
 </head>
 <body>
     <div class="ambient-glow"></div>
@@ -122,14 +126,17 @@
 
 /* =====================================================================
    FILE: sw.js
-   LINES: 111
+   LINES: 115
 ===================================================================== */
 
 /* =====================================================================
    FILE: sw.js
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v26';
+const CACHE_NAME = 'student-hub-v29';
 
+/* =====================================================================
+   Фрагмент sw.js (массив ASSETS)
+===================================================================== */
 const ASSETS = [
     './',
     './index.html',
@@ -143,7 +150,8 @@ const ASSETS = [
     './css/views/settings.css',
     './css/views/games.css',
     './css/views/game-shell.css',
-    
+    './css/custom/registry.css',
+
     // Core JS
     './js/app.js',
     './js/router.js',
@@ -417,7 +425,7 @@ self.addEventListener('fetch', (event) => {
 
 /* =====================================================================
    FILE: css/style.css
-   LINES: 261
+   LINES: 290
 ===================================================================== */
 
 /* =====================================================================
@@ -444,7 +452,6 @@ body {
     transition: background-color var(--transition-smooth);
 }
 
-/* Игровой режим на весь экран (Fullscreen Immersive) */
 body.game-mode-active {
     overflow: hidden !important;
     touch-action: none !important;
@@ -576,6 +583,7 @@ main { padding: var(--spacing-main); }
     border-radius: var(--radius-md);
 }
 
+/* ================= NAV BAR ================= */
 .bottom-nav {
     position: fixed;
     bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
@@ -593,7 +601,36 @@ main { padding: var(--spacing-main); }
     transition: color var(--transition-fast); width: 25%;
 }
 
-.nav-item svg { margin-bottom: 4px; transition: transform var(--transition-fast), stroke var(--transition-fast); }
+.nav-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    background: #FF3B30; /* Красный цвет iOS */
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    height: 16px;
+    min-width: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    pointer-events: none;
+    z-index: 2;
+    animation: popIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.nav-item svg { transition: transform var(--transition-fast), stroke var(--transition-fast); }
 .nav-item.active { color: var(--theme-accent); }
 .nav-item.active svg { transform: translateY(-2px); stroke: var(--theme-accent); }
 
@@ -822,131 +859,991 @@ body.power-save-mode {
 }
 
 /* =====================================================================
+   FILE: css/custom/id-11.css
+   LINES: 128
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/custom/id-11.css
+===================================================================== */
+
+/* =====================================================================
+   ID 11: Казаков Максим (The Binding of Isaac - HUD Style V2)
+===================================================================== */
+.person-card[data-id="11"] {
+    /* Цвет пола + Создаем сетку из пиксельных квадратных плит подвала */
+    background-color: #3b2723 !important; 
+    background-image: 
+        linear-gradient(#1a110f 2px, transparent 2px),
+        linear-gradient(90deg, #1a110f 2px, transparent 2px) !important;
+    background-size: 32px 32px !important;
+    background-position: center center !important;
+    
+    border: 3px solid #000000 !important;
+    border-radius: 0 !important; /* Строгий прямоугольник */
+    position: relative;
+    overflow: hidden;
+    
+    /* Густая виньетка (мрак подвала) внутри + Жесткая тень снаружи */
+    box-shadow: 
+        inset 0 0 50px rgba(0, 0, 0, 1), 
+        4px 4px 0px rgba(0, 0, 0, 0.8) !important;
+        
+    transition: transform 0.1s ease;
+    z-index: 1;
+    image-rendering: pixelated !important;
+}
+
+/* Эффект получения урона (Нажатие) */
+.person-card[data-id="11"]:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* ИМЯ: Острая пиксельная обводка (Без мыла!) */
+.person-card[data-id="11"] .person-name-text {
+    color: #F4F0E6 !important; /* Костяной белый */
+    font-family: 'Courier New', monospace, sans-serif !important;
+    font-size: 1.15rem !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    
+    /* Идеально ровный 1px черный контур + тень вниз */
+    text-shadow: 
+        -1px -1px 0 #000, 1px -1px 0 #000,
+        -1px 1px 0 #000, 1px 1px 0 #000,
+        2px 2px 0 #000 !important;
+        
+    position: relative;
+    z-index: 2;
+}
+
+/* ПОДПИСЬ И РОЛЬ (Стиль статов: DMG, SPEED) */
+.person-card[data-id="11"] .person-sub,
+.person-card[data-id="11"] .person-badge {
+    color: #A3A3A3 !important; /* Серый цвет статов */
+    font-family: 'Courier New', monospace !important;
+    font-weight: 900 !important;
+    font-size: 0.85rem !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    
+    /* Пиксельная тень */
+    text-shadow: 
+        -1px -1px 0 #000, 1px -1px 0 #000,
+        -1px 1px 0 #000, 1px 1px 0 #000,
+        1.5px 1.5px 0 #000 !important;
+        
+    position: relative;
+    z-index: 2;
+}
+
+/* Роль выделяем красным (Как ХП / Health Bar) */
+.person-card[data-id="11"] .person-badge {
+    color: #E53935 !important;
+    margin-left: 6px !important;
+}
+
+/* АВАТАРКА: Идеальный слот активного предмета */
+.person-card[data-id="11"] .person-avatar {
+    border-radius: 0 !important; 
+    background: #000000 !important; /* Черная пустота внутри */
+    
+    /* Внутренняя (темная) и внешняя (светлая) рамка слота */
+    border: 3px solid #1a1a1a !important;
+    box-shadow: 
+        0 0 0 3px #4a4a4a, 
+        inset 0 0 10px rgba(0,0,0,1) !important;
+    
+    position: relative;
+    z-index: 2;
+    margin: 3px 10px 3px 3px !important; /* Отступы, чтобы рамка не резалась */
+    color: #FFF !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: 900 !important;
+}
+
+/* КНОПКА ТГ: Слот пилюли/карты (Q) */
+.person-card[data-id="11"] .person-action-btn {
+    background: #000000 !important;
+    color: #F4F0E6 !important;
+    border-radius: 0 !important;
+    
+    /* Двойная рамка слота */
+    border: 3px solid #1a1a1a !important;
+    box-shadow: 0 0 0 3px #4a4a4a !important;
+    
+    position: relative;
+    z-index: 2;
+    margin: 3px !important;
+    transition: transform 0.1s;
+}
+
+/* Нажатие кнопки ТГ (Использование предмета) */
+.person-card[data-id="11"] .person-action-btn:active {
+    transform: scale(0.85);
+    background: #111111 !important;
+}
+
+/* Жесткая тень на иконке для эффекта пиксельного спрайта */
+.person-card[data-id="11"] .person-action-btn svg {
+    filter: drop-shadow(2px 2px 0px #000);
+}
+
+/* =====================================================================
+   FILE: css/custom/id-14.css
+   LINES: 102
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/custom/id-14.css
+===================================================================== */
+
+/* =====================================================================
+   ID 14: Котовский Даниил (Counter-Strike 2 - True Tactical V2.2)
+   * Исправлен баг со стыком диагоналей (Perfect Masking)
+===================================================================== */
+.person-card[data-id="14"] {
+    /* Левая часть: оружейная сталь. Правая: CS2 Orange */
+    background: linear-gradient(110deg, #141518 65%, #D36124 65%, #F49D2B 100%) !important;
+    border: 1px solid #232529 !important;
+    border-radius: 4px !important;
+    position: relative;
+    overflow: hidden;
+    
+    box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.6) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    z-index: 1;
+}
+
+.person-card[data-id="14"]:active {
+    transform: scale(0.98) translateY(2px);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* ТАКТИЧЕСКАЯ ТЕКСТУРА (Кевлар с идеальным срезом) */
+.person-card[data-id="14"]::before {
+    content: '';
+    position: absolute;
+    /* Растягиваем на всю ширину, обрезать будем маской */
+    top: 0; left: 0; right: 0; bottom: 0; 
+    
+    background: 
+        /* Тень слева (вместо проблемного box-shadow) */
+        linear-gradient(to right, rgba(0, 0, 0, 0.6) 0%, transparent 40%),
+        /* Диагональные микро-полосы кевлара */
+        repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 2px, transparent 2px, transparent 4px);
+    
+    /* ИДЕАЛЬНЫЙ СРЕЗ: Маска точно повторяет угол фона (110deg на 65%) */
+    -webkit-mask-image: linear-gradient(110deg, black 65%, transparent 65%);
+    mask-image: linear-gradient(110deg, black 65%, transparent 65%);
+    
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ИМЯ */
+.person-card[data-id="14"] .person-name-text {
+    color: #FFFFFF !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-size: 1.1rem !important;
+    font-weight: 900 !important;
+    font-style: italic !important;
+    letter-spacing: -0.2px !important;
+    text-transform: uppercase !important;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.9) !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* ПОДПИСЬ */
+.person-card[data-id="14"] .person-sub {
+    color: #7D8590 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* АВАТАРКА (Тайное / Золото) */
+.person-card[data-id="14"] .person-avatar {
+    border-radius: 2px !important;
+    border: 1px solid #32373D !important;
+    border-bottom: 4px solid #FFD700 !important; 
+    
+    background: radial-gradient(circle at top right, #3A414B 0%, #141518 100%) !important;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.8) !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* КНОПКА ТГ */
+.person-card[data-id="14"] .person-action-btn {
+    background: #141518 !important;
+    color: #F49D2B !important;
+    border: 2px solid #000000 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.1s ease, background 0.1s ease, color 0.1s ease;
+}
+
+.person-card[data-id="14"] .person-action-btn:active {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+    transform: scale(0.9);
+    border-color: #F49D2B !important; 
+}
+
+/* =====================================================================
+   FILE: css/custom/id-28.css
+   LINES: 71
+===================================================================== */
+
+/* =====================================================================
+   ID 28: Щепелин Сергей (Minecraft Style 3.0 - True Pixel Art)
+===================================================================== */
+
+.person-card[data-id="28"] {
+    /* Накладываем два фона: сверху пиксельная трава, снизу пиксельная земля */
+    background-image: 
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="4" fill="%2371C24A"/><path d="M0,4h4v4H0 M8,4h4v2H8 M12,4h4v6H12" fill="%2371C24A"/><path d="M4,4h4v6H4 M10,4h2v2H10" fill="%235A9B3A"/></svg>'),
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="%23866043"/><path d="M0,0h4v4H0 M8,4h4v4H8 M4,12h4v4H4 M12,8h4v4H12" fill="%23745237"/><path d="M4,0h4v4H4 M12,12h4v4H12 M0,8h4v4H0" fill="%235A3F2A"/><path d="M12,0h4v4H12 M0,12h4v4H0 M8,8h4v4H8" fill="%239B6E4C"/><path d="M2,2h2v2H2 M10,10h2v2H10" fill="%23B3B3B3"/></svg>') !important;
+    background-repeat: repeat-x, repeat !important;
+    background-position: top left, top left !important;
+    background-size: 64px 64px, 64px 64px !important; /* Увеличиваем пиксели в 4 раза */
+    
+    border: 3px solid #1e1e1e !important; /* Темная рамка блока */
+    border-radius: 0 !important; /* Убираем закругления полностью */
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4) !important; /* Жесткая плоская тень */
+    image-rendering: pixelated !important; /* Запрещаем браузеру мылить картинку */
+}
+
+/* Имя: Белый текст, жесткая тень как в чате Майна */
+.person-card[data-id="28"] .person-name-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 900;
+    font-size: 1.15rem;
+    color: #ffffff;
+    text-shadow: 2px 2px 0px #3f3f3f;
+    letter-spacing: -0.5px;
+}
+
+/* Подпись: Желтый Сплеш-текст */
+.person-card[data-id="28"] .person-sub {
+    color: #ffff55;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 0.95rem;
+    text-shadow: 2px 2px 0px #3f3f3f;
+}
+
+/* Аватарка в стиле слота инвентаря */
+.person-card[data-id="28"] .person-avatar {
+    border-radius: 0 !important; 
+    background: #8b8b8b !important; /* Фон слота */
+    border: 3px solid;
+    border-color: #373737 #ffffff #ffffff #373737; /* Эффект вдавленности инвентаря */
+    box-shadow: none !important;
+    color: #ffffff;
+    text-shadow: 2px 2px 0px #3f3f3f;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Кнопка ТГ: Игровая UI-кнопка */
+.person-card[data-id="28"] .person-action-btn {
+    background: #c6c6c6;
+    color: #ffffff;
+    border-radius: 0;
+    border: 3px solid;
+    border-color: #ffffff #555555 #555555 #ffffff; /* Свет сверху-слева, тень снизу-справа */
+    box-shadow: none;
+    transition: none; /* Никаких плавных переходов */
+}
+
+/* Кнопка нажата (Вдавливание) */
+.person-card[data-id="28"] .person-action-btn:active {
+    border-color: #555555 #ffffff #ffffff #555555; /* Инвертируем рамки для эффекта нажатия */
+    transform: none; /* Убираем сдвиг, работает только рамка */
+}
+
+/* Иконка в кнопке тоже с тенью */
+.person-card[data-id="28"] .person-action-btn svg {
+    filter: drop-shadow(2px 2px 0px #3f3f3f);
+}
+
+/* =====================================================================
+   FILE: css/custom/id-3.css
+   LINES: 118
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/custom/id-3.css
+===================================================================== */
+
+/* =====================================================================
+   ID 3: Бебия Баграт (Bendy & The Ink Machine - True Ink V4)
+===================================================================== */
+.person-card[data-id="3"] {
+    /* Фактура: Цвет старого пергамента + Виньетка (затемнение по краям) + Текстура пленки */
+    background-color: #DAB062 !important; 
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 20%, rgba(30, 20, 5, 0.6) 130%),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px) !important;
+    
+    border: 3px solid #111111 !important;
+    border-radius: 6px !important; /* Менее круглые углы, как у старых фотокарточек */
+    position: relative;
+    overflow: hidden;
+    
+    /* 3D эффект: Выпирание над фоном */
+    box-shadow: 
+        inset 0 0 15px rgba(0,0,0,0.3), /* Внутренняя грязь */
+        5px 5px 0px #111111 !important; /* Внешняя жесткая тень */
+        
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    z-index: 1;
+}
+
+/* Вдавливание всей карточки при клике */
+.person-card[data-id="3"]:active {
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0px #111111 !important;
+}
+
+/* ИДЕАЛЬНЫЕ ЧЕРНИЛЬНЫЕ ПОТЕКИ СВЕРХУ (SVG паттерн) */
+.person-card[data-id="3"]::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 25px;
+    /* Рукописный SVG контур тяжелых чернил, который бесшовно повторяется */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 25" preserveAspectRatio="none"><path d="M 0 0 L 100 0 L 100 5 C 90 5 85 20 75 20 C 65 20 60 5 50 5 C 40 5 35 15 25 15 C 15 15 10 5 0 5 Z" fill="%23111111"/></svg>');
+    background-size: 80px 25px; /* Ширина одного блока потеков */
+    background-repeat: repeat-x; /* Размножаем по всей ширине */
+    z-index: 0;
+    pointer-events: none;
+    /* Легкая тень от чернил на бумагу */
+    filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.4));
+}
+
+/* АВАТАРКА: Ретро-кадр с эффектом сепии и объемом */
+.person-card[data-id="3"] .person-avatar {
+    border: 3px solid #111111 !important;
+    border-radius: 8px !important; /* Почти квадрат */
+    background: #111111 !important;
+    
+    /* Жесткий фильтр: Желтит, повышает контраст */
+    filter: sepia(1) contrast(1.4) brightness(0.85) grayscale(0.2) !important;
+    
+    /* Выпирает над карточкой */
+    box-shadow: 3px 3px 0px rgba(17, 17, 17, 0.7) !important;
+    transform: rotate(-4deg); /* Небрежно приклеена */
+    position: relative;
+    z-index: 2;
+}
+
+/* ТЕКСТ ИМЕНИ: Эффект выдавленной типографской печати */
+.person-card[data-id="3"] .person-name-text {
+    color: #111111 !important;
+    font-family: 'Impact', 'Arial Black', sans-serif !important;
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    
+    /* Эффект эмбоссинга (вдавленности) */
+    text-shadow: 
+        1.5px 1.5px 0px rgba(17, 17, 17, 0.4), /* Темная краска снизу */
+        -1px -1px 0px rgba(255, 255, 255, 0.4) !important; /* Светлый блик сверху */
+        
+    position: relative;
+    z-index: 2;
+    margin-top: 8px; /* Отступ от чернил сверху */
+}
+
+/* ПОДПИСЬ: Старая печатная машинка */
+.person-card[data-id="3"] .person-sub {
+    color: #2F2112 !important; /* Очень темно-коричневый */
+    font-family: 'Courier New', Courier, monospace !important;
+    font-weight: 800 !important;
+    font-size: 0.85rem !important;
+    position: relative;
+    z-index: 2;
+    text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.2);
+}
+
+/* КНОПКА ТГ: Инвертированная винтажная печать */
+.person-card[data-id="3"] .person-action-btn {
+    background: #111111 !important;
+    color: #DAB062 !important; /* Цвет фона карточки */
+    border: 2px solid #DAB062 !important;
+    border-radius: 50% !important;
+    
+    /* Выпирает над карточкой */
+    box-shadow: 3px 3px 0px rgba(17, 17, 17, 0.6) !important;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.person-card[data-id="3"] .person-action-btn svg {
+    filter: drop-shadow(1px 1px 0px rgba(0,0,0,0.8));
+}
+
+/* Вдавливание кнопки ТГ */
+.person-card[data-id="3"] .person-action-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px rgba(17, 17, 17, 0) !important;
+}
+
+/* =====================================================================
+   FILE: css/custom/registry.css
+   LINES: 14
+===================================================================== */
+
+/* =====================================================================
+   РЕЕСТР КАСТОМНЫХ СТИЛЕЙ СТУДЕНТОВ И ПРЕПОДАВАТЕЛЕЙ
+   Как добавить новый?
+   1. Создайте файл id-XX.css в этой папке.
+   2. Добавьте строчку ниже: @import 'id-XX.css';
+   В HTML и sw.js лезть больше НЕ НАДО!
+===================================================================== */
+
+@import 'id-28.css'; /* Щепелин - Minecraft */
+@import 'id-3.css';  /* Бебия - Bendy & The Ink Machine */
+@import 'id-14.css';
+@import 'id-11.css';
+
+/* @import 'id-10.css';  <-- пример на будущее */
+
+/* =====================================================================
+   FILE: css/custom/valorant.css
+   LINES: 104
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/custom/id-14.css
+===================================================================== */
+
+/* =====================================================================
+   ID 14: Котовский Даниил (Valorant Tactical UI Style)
+===================================================================== */
+.person-card[data-id="14"] {
+    /* Фирменный темный фон Valorant с легкой тактической сеткой */
+    background-color: #0F1923 !important; 
+    background-image: 
+        linear-gradient(rgba(236, 232, 225, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(236, 232, 225, 0.03) 1px, transparent 1px) !important;
+    background-size: 16px 16px !important;
+    background-position: center center !important;
+
+    border: 1px solid rgba(236, 232, 225, 0.1) !important;
+    border-left: 4px solid #FF4655 !important; /* Яркий красный маркер слева */
+    border-radius: 0 !important; /* Никаких скруглений! */
+    
+    /* Знаменитый срезанный правый нижний угол */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+    position: relative;
+    box-shadow: none !important; 
+    transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+/* Эффект нажатия (микро-сжатие и затемнение) */
+.person-card[data-id="14"]:active {
+    transform: scale(0.98);
+    background-color: #162533 !important;
+}
+
+/* Декоративный UI-элемент (красный квадратик в правом верхнем углу) */
+.person-card[data-id="14"]::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 4px;
+    height: 4px;
+    background: #FF4655;
+    box-shadow: 0 0 6px rgba(255, 70, 85, 0.6);
+}
+
+/* ИМЯ: Строгое, белое, жирное */
+.person-card[data-id="14"] .person-name-text {
+    color: #ECE8E1 !important; 
+    font-family: 'Arial Black', Impact, sans-serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    font-size: 1.1rem !important;
+    text-shadow: none !important;
+}
+
+/* ПОДПИСЬ: Роль/Класс (Красный акцент, межбуквенный интервал) */
+.person-card[data-id="14"] .person-sub {
+    color: #FF4655 !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    font-size: 0.65rem !important;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+/* АВАТАРКА: Экран выбора агента (Острая рамка, красное основание) */
+.person-card[data-id="14"] .person-avatar {
+    border-radius: 0 !important; 
+    border: 1px solid rgba(236, 232, 225, 0.2) !important;
+    border-bottom: 3px solid #FF4655 !important; /* Имитация "выбранного агента" */
+    background: #1F2E3D !important;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5) !important;
+    position: relative;
+    /* Легкий геометрический срез для аватара */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+
+/* КНОПКА ТГ (В стиле кнопки "LOCK IN") */
+.person-card[data-id="14"] .person-action-btn {
+    background: #FF4655 !important;
+    color: #ECE8E1 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    width: 42px !important; /* Чуть шире стандартной, чтобы форма читалась */
+    height: 36px !important;
+    
+    /* Тоже срезанный уголок, чтобы поддерживать общую геометрию */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+    transition: background 0.1s ease, color 0.1s ease;
+}
+
+/* При нажатии кнопка инвертируется (Светлый фон, темная иконка) */
+.person-card[data-id="14"] .person-action-btn:active {
+    background: #ECE8E1 !important;
+    color: #0F1923 !important;
+    transform: none !important; /* Убираем стандартное смещение */
+}
+
+/* Сглаживаем иконку внутри жесткой кнопки */
+.person-card[data-id="14"] .person-action-btn svg {
+    transform: scale(0.9);
+} 
+
+/* =====================================================================
+   FILE: css/views/custom-cards.css
+   LINES: 112
+===================================================================== */
+
+/* =====================================================================
+   FILE: css/views/custom-cards.css
+   Кастомные стили для карточек студентов (по data-id) и преподов (по имени)
+===================================================================== */
+
+/* =====================================================================
+   ID 28: Щепелин Сергей (Minecraft Style)
+===================================================================== */
+.person-card[data-id="28"] {
+    background: #5D4037 !important; /* Цвет земли */
+    border: 2px solid #3E2723 !important; /* Темная окантовка земли */
+    border-top: 6px solid #4CAF50 !important; /* Трава сверху */
+    border-radius: 4px !important; /* Квадратный майнкрафт-стиль */
+    position: relative;
+    box-shadow: inset 0 -4px 10px rgba(0,0,0,0.3); /* Объем блока */
+}
+
+/* Стилизация текста имени под MC */
+.person-card[data-id="28"] .person-name-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-shadow: 2px 2px 0 #212121;
+    letter-spacing: -0.5px;
+}
+
+/* Стилизация подписи под MC */
+.person-card[data-id="28"] .person-sub {
+    color: #AED581; /* Светло-зеленый */
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 600;
+}
+
+/* Квадратная аватарка для майнкрафт-стиля */
+.person-card[data-id="28"] .person-avatar {
+    border-radius: 4px !important; 
+    border: 2px solid #3E2723;
+}
+
+/* Стилизация кнопки Telegram под дерево */
+.person-card[data-id="28"] .person-action-btn {
+    background: #795548;
+    color: #FFECB3;
+    border: 2px solid #3E2723;
+    border-radius: 4px;
+}
+.person-card[data-id="28"] .person-action-btn:active {
+    background: #5D4037;
+}
+
+/* =====================================================================
+   ID 3: Бебия Баграт (Bendy & The Ink Machine Style)
+===================================================================== */
+.person-card[data-id="3"] {
+    background: radial-gradient(circle, #f5e4bd 0%, #d4b872 100%) !important; /* Винтажная бумага/сепия */
+    border: 3px solid #1a1a1a !important; /* Толстый чернильный контур */
+    border-radius: 12px !important;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 4px 4px 0px #1a1a1a !important; /* Жесткая плоская тень в стиле ретро-анимации */
+}
+
+/* Эффект потеков чернил сверху (генерируется через SVG прямо в CSS) */
+.person-card[data-id="3"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,5 Q95,15 90,5 T80,10 T70,18 T60,8 T50,15 T40,5 T30,12 T20,4 T10,15 T0,5 Z" fill="%231a1a1a"/></svg>') repeat-x;
+    background-size: 60px 100%;
+    pointer-events: none; /* Чтобы не перекрывало клики */
+}
+
+/* Имя: черное, жирное, плакатное */
+.person-card[data-id="3"] .person-name-text {
+    font-weight: 900;
+    color: #1a1a1a;
+    letter-spacing: 0.5px;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.5);
+}
+
+/* Подзаголовок (если есть): темная сепия */
+.person-card[data-id="3"] .person-sub {
+    color: #4a3b22;
+    font-weight: 700;
+}
+
+/* Аватар: накладываем винтажный фильтр, чтобы стилизовать фото */
+.person-card[data-id="3"] .person-avatar {
+    border: 3px solid #1a1a1a;
+    filter: sepia(0.85) contrast(1.4) grayscale(0.2); 
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* Кнопка ТГ: инвертированная (Чернила + Сепия) */
+.person-card[data-id="3"] .person-action-btn {
+    background: #1a1a1a;
+    color: #f5e4bd;
+    border: 2px solid #1a1a1a;
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+/* При нажатии кнопка "вдавливается" */
+.person-card[data-id="3"] .person-action-btn:active {
+    transform: translate(2px, 2px) scale(0.95);
+    box-shadow: 0px 0px 0px rgba(0,0,0,0.4);
+    background: #000000;
+}
+
+/* =====================================================================
    FILE: css/views/events.css
-   LINES: 122
+   LINES: 291
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/views/events.css
-   ИСПРАВЛЕНИЕ: Идеальный mask-image без наползания текста
 ===================================================================== */
-.events-list { display: grid; gap: 16px; }
+.events-container { animation: fadeIn 0.3s ease; }
+
+.events-segmented-control { 
+    display: flex; position: relative; background: rgba(255, 255, 255, 0.05); 
+    border: var(--glass-border); border-radius: var(--radius-md); 
+    padding: 4px; width: 100%; height: 46px; margin-bottom: 20px; 
+}
+.events-segment-slider { 
+    position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); 
+    background: var(--theme-accent); border-radius: calc(var(--radius-md) - 2px); 
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background var(--transition-smooth); 
+    box-shadow: 0 4px 12px var(--theme-accent-glow); 
+}
+.events-segmented-control[data-active="holidays"] .events-segment-slider { transform: translateX(100%); }
+.events-segment-btn { 
+    flex: 1; border: none; background: transparent; color: var(--text-secondary); 
+    font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; 
+    transition: color 0.3s ease; font-family: inherit; 
+}
+.events-segment-btn.active { color: var(--text-on-accent); }
+
+.events-list-wrapper { transition: opacity 0.2s ease; }
+.events-list-wrapper.fading { opacity: 0; pointer-events: none; }
+
+.events-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+}
 
 .event-card { 
     background: var(--glass-bg); 
     border: var(--glass-border); 
-    border-radius: var(--radius-md); 
+    border-radius: var(--radius-lg); 
     overflow: hidden; 
     position: relative; 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    -webkit-font-smoothing: antialiased;
 }
 
-.event-image { 
-    height: 220px; 
-    background: transparent; /* Обязательно прозрачный, чтобы просвечивал фон карточки */
+.event-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.ev-image-wrapper { 
+    height: 180px; 
     position: relative; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
+    width: 100%;
+    background: var(--theme-bg-secondary);
 }
 
-.event-image img { 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
+.ev-image-wrapper img { 
     width: 100%; 
     height: 100%; 
     object-fit: cover; 
-    z-index: 1; 
-    
-    /* 
-       Градиент маски: начинается плотным до 40% высоты, 
-       и полностью растворяется на 95%. Низ картинки становится прозрачным. 
-    */
-    -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 95%);
-    mask-image: linear-gradient(to bottom, black 40%, transparent 95%);
-    
-    animation: imgFadeIn 0.4s ease forwards;
+    display: block;
+    animation: fadeIn 0.4s ease forwards;
 }
 
-@keyframes imgFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.ev-gradient-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(to top, var(--glass-bg) 0%, transparent 100%);
+    pointer-events: none;
 }
 
-.event-date-badge { 
+.ev-status-badge { 
     position: absolute; 
     top: 12px; 
     right: 12px; 
-    background: rgba(0,0,0,0.75); 
-    backdrop-filter: blur(10px); 
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(8px); 
+    -webkit-backdrop-filter: blur(8px);
     padding: 6px 12px; 
-    border-radius: 12px; 
-    text-align: center; 
-    border: 1px solid rgba(255,255,255,0.1); 
-    z-index: 3; 
-}
-
-.event-date-badge .day { 
-    font-size: 0.85rem; 
-    font-weight: 600; 
+    border-radius: 8px; 
+    font-size: 0.7rem; 
+    font-weight: 800; 
     color: #fff; 
-    line-height: 1; 
     text-transform: uppercase; 
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.event-body { 
-    padding: 0 16px 16px 16px; /* Убрал верхний паддинг, так как картинка и так прозрачная снизу */
-    position: relative; 
-    z-index: 3; 
-    margin-top: -15px; /* Аккуратный сдвиг, чтобы текст не висел в пустоте, но и не залезал на фото */
+.ev-content { 
+    padding: 16px 20px 20px 20px; 
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 14px; 
+    position: relative;
+    z-index: 2;
 }
 
-.event-title { 
-    font-size: 1.15rem; 
-    font-weight: 600; 
-    margin-bottom: 6px; 
+.ev-title { 
+    font-size: 1.2rem; 
+    font-weight: 700; 
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin: 0;
+    letter-spacing: -0.2px;
 }
 
-.event-desc { 
-    font-size: 0.85rem; 
-    color: var(--text-secondary); 
-    margin-bottom: 16px; 
-    line-height: 1.4; 
+.ev-tags-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
 }
 
-.event-footer { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    font-size: 0.85rem; 
-    color: var(--text-muted); 
-    margin-bottom: 16px; 
+.ev-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--overlay-bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
-.event-footer span { 
-    display: flex; 
-    align-items: center; 
-    gap: 6px; 
-}
-
-.event-btn {
-    display: block; 
-    width: 100%; 
-    padding: 10px;
-    background: var(--theme-accent-soft);
+.ev-tag.location {
     color: var(--theme-accent-text);
-    text-align: center; 
+    background: var(--theme-accent-soft);
+}
+
+.ev-tag.copyable {
+    cursor: pointer;
+    background: rgba(33, 150, 243, 0.15);
+    color: #64B5F6;
+    border: 1px dashed rgba(33, 150, 243, 0.4);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.ev-tag.copyable:active {
+    transform: scale(0.95);
+    background: rgba(33, 150, 243, 0.3);
+}
+
+.ev-desc { 
+    font-size: 0.9rem; 
+    color: var(--text-secondary); 
+    line-height: 1.5; 
+    margin: 0; 
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ev-action-btn {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    width: 100%; 
+    padding: 14px;
+    margin-top: auto; 
+    background: var(--overlay-bg); 
+    border: 1px solid var(--theme-accent-glow); 
+    color: var(--theme-accent-text); 
     border-radius: var(--radius-md);
     text-decoration: none; 
     font-weight: 600;
-    border: 1px solid var(--theme-accent-glow);
-    transition: all var(--transition-fast);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
 }
 
-.event-btn:active {
+.ev-action-btn:active {
+    background: var(--theme-accent-soft);
+    transform: scale(0.98);
+}
+
+/* ================= СПИСОК ПРАЗДНИКОВ (ДР, НГ) ================= */
+.holidays-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.holiday-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--overlay-bg); /* Тонкий темный фон по дефолту */
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Нейтральная рамка */
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, border-color 0.3s ease, background 0.3s ease;
+}
+
+.holiday-card:active {
+    transform: scale(0.98);
+}
+
+/* Если событие "Горит" (сегодня или меньше недели) */
+.holiday-card.near, .holiday-card.today {
+    background: linear-gradient(135deg, var(--theme-accent-soft) 0%, rgba(0,0,0,0.1) 100%);
+    border-color: var(--theme-accent-glow);
+    box-shadow: 0 8px 32px var(--theme-accent-soft);
+}
+
+.holiday-icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Свечение иконки для горящих событий */
+.holiday-card.near .holiday-icon, 
+.holiday-card.today .holiday-icon {
     background: var(--theme-accent);
     color: var(--text-on-accent);
-    transform: scale(0.98);
+    border-color: transparent;
+    box-shadow: 0 4px 15px var(--theme-accent-glow);
+}
+
+.holiday-card.today .holiday-icon {
+    animation: pulseHoliday 2s infinite;
+}
+
+@keyframes pulseHoliday {
+    0% { box-shadow: 0 0 0 0 var(--theme-accent-soft); }
+    70% { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+}
+
+.holiday-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.holiday-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.holiday-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Обычный бейдж (далеко) */
+.holiday-badge {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+/* Текст отсчета для горящих событий (как на главной) */
+.holiday-card.near .holiday-badge,
+.holiday-card.today .holiday-badge {
+    background: transparent;
+    color: var(--text-primary);
+    border: none;
+    padding: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
 }
 
 /* =====================================================================
@@ -1477,13 +2374,44 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/group.css
-   LINES: 115
+   LINES: 158
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/views/group.css
 ===================================================================== */
 .group-container { animation: fadeIn 0.3s ease; }
+
+.group-services {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.service-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: var(--glass-bg);
+    border: var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all var(--transition-fast);
+}
+.service-btn:active {
+    transform: scale(0.95);
+    background: var(--overlay-bg-active);
+}
+.service-btn svg {
+    color: var(--theme-accent-text);
+}
 
 .group-segmented-control { 
     display: flex; position: relative; background: rgba(255, 255, 255, 0.05); 
@@ -1513,6 +2441,20 @@ body.power-save-mode {
 
 .list-wrapper { transition: opacity 0.2s ease; }
 .list-wrapper.fading { opacity: 0; pointer-events: none; }
+
+.group-list-header {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 16px;
+    margin-bottom: 12px;
+    padding-left: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.group-list-header:first-of-type {
+    margin-top: 0;
+}
 
 .persons-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
 .person-card { 
@@ -1545,7 +2487,6 @@ body.power-save-mode {
     width: 100%;
 }
 
-/* Имя обрезается троеточием, если не хватает места */
 .person-name-text {
     white-space: nowrap; 
     overflow: hidden; 
@@ -1553,23 +2494,22 @@ body.power-save-mode {
     flex-shrink: 1; 
 }
 
-/* Обновленный дизайн бейджей */
+/* Обновленный дизайн бейджей: идеальное центрирование */
 .person-badge { 
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    line-height: 1; 
-    padding: 4px 8px; 
-    padding-top: 5px; /* Оптическая компенсация центра */
+    padding: 3px 8px;
     font-size: 0.65rem; 
     font-weight: 700; 
+    line-height: normal; /* Авто-высота для шрифта */
     text-transform: uppercase; 
     letter-spacing: 0.5px; 
     background: var(--theme-accent); 
     color: var(--text-on-accent); 
-    border-radius: 12px; 
+    border-radius: 10px; /* Более мягкие края плашки */
     box-shadow: 0 2px 8px var(--theme-accent-soft); 
-    flex-shrink: 0; /* Защита от сжатия */
+    flex-shrink: 0;
 }
 
 .person-badge.teacher-subject { 
@@ -1714,12 +2654,11 @@ body.power-save-mode {
 
 /* =====================================================================
    FILE: css/views/schedule.css
-   LINES: 123
+   LINES: 143
 ===================================================================== */
 
 /* =====================================================================
    FILE: css/views/schedule.css
-   ОПТИМИЗАЦИЯ: Исправлен баг проглатывания тапов на днях недели
 ===================================================================== */
 .live-widget { 
     background: var(--glass-bg); 
@@ -1761,42 +2700,73 @@ body.power-save-mode {
 .live-time { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 .live-subject { font-size: 1.1rem; margin-bottom: 12px; color: var(--text-primary); line-height: 1.2; }
 
-/* Прогресс-бар */
 .progress-track { width: 100%; height: 6px; background: var(--overlay-bg-active); border-radius: 4px; overflow: hidden; transform: translateZ(0); }
 .progress-fill { height: 100%; background: var(--theme-accent); width: 0%; border-radius: 4px; transition: width 1s linear, background var(--transition-smooth); }
 
+/* ================= COUNTDOWN WIDGET (Улучшенный дизайн) ================= */
+.countdown-widget {
+    background: linear-gradient(135deg, var(--theme-accent-soft) 0%, rgba(0,0,0,0.1) 100%);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--theme-accent-glow);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 8px 32px var(--theme-accent-soft);
+    animation: fadeIn 0.4s ease;
+}
+
+.countdown-icon {
+    width: 46px;
+    height: 46px;
+    background: var(--theme-accent);
+    color: var(--text-on-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px var(--theme-accent-glow);
+}
+
+.countdown-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.countdown-title {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.countdown-time {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+/* ==================================================== */
+
 .schedule-controls-container { display: flex; flex-direction: column; }
 
-/* ФИКС: Убрали overflow-x: auto, из-за которого браузер отменял тапы при микро-сдвигах пальца */
-.days-wrapper { 
-    margin: -8px 0 0; 
-    padding: 8px 0 16px; 
-}
+.days-wrapper { margin: -8px 0 0; padding: 8px 0 16px; }
 
-.days-group { 
-    display: flex; 
-    gap: 8px; 
-    width: 100%; 
-}
+.days-group { display: flex; gap: 8px; width: 100%; }
 
-/* ФИКС: Добавлены touch-action и user-select для мгновенного отклика кнопок */
 .day-tab { 
-    flex: 1; 
-    text-align: center; 
-    background: var(--theme-bg-secondary); 
-    border: var(--glass-border); 
-    color: var(--text-secondary); 
-    padding: 10px 0 12px; 
-    border-radius: var(--radius-md); 
-    font-weight: 500; 
-    font-size: 0.95rem; 
-    cursor: pointer; 
-    transition: all var(--transition-fast); 
-    position: relative; 
-    touch-action: manipulation; 
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    flex: 1; text-align: center; background: var(--theme-bg-secondary); border: var(--glass-border); 
+    color: var(--text-secondary); padding: 10px 0 12px; border-radius: var(--radius-md); 
+    font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: all var(--transition-fast); 
+    position: relative; touch-action: manipulation; user-select: none;
+    -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
 }
 .day-tab.active { background: var(--theme-accent); color: var(--text-on-accent); border-color: transparent; box-shadow: 0 4px 12px var(--theme-accent-glow); }
 .day-tab.today::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: var(--theme-accent); border-radius: 2px; transition: background var(--transition-smooth); }
@@ -1806,21 +2776,11 @@ body.power-save-mode {
 .segment-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--theme-accent); border-radius: calc(var(--radius-md) - 2px); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background var(--transition-smooth), box-shadow var(--transition-smooth); box-shadow: 0 4px 12px var(--theme-accent-glow); }
 .segmented-control[data-active="actual"] .segment-slider { transform: translateX(100%); }
 
-/* ФИКС: Оптимизация для переключателя "Обычное/Фактическое" */
 .segment-btn { 
-    flex: 1; 
-    border: none; 
-    background: transparent; 
-    color: var(--text-secondary); 
-    font-weight: 500; 
-    font-size: 0.9rem; 
-    z-index: 1; 
-    cursor: pointer; 
-    transition: color 0.3s ease; 
-    font-family: inherit; 
-    touch-action: manipulation;
-    user-select: none;
-    -webkit-user-select: none;
+    flex: 1; border: none; background: transparent; color: var(--text-secondary); 
+    font-weight: 500; font-size: 0.9rem; z-index: 1; cursor: pointer; 
+    transition: color 0.3s ease; font-family: inherit; touch-action: manipulation;
+    user-select: none; -webkit-user-select: none;
 }
 .segment-btn.active { color: var(--text-on-accent); }
 
@@ -2083,10 +3043,25 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: data/events.json
-   LINES: 22
+   LINES: 38
 ===================================================================== */
 
 [
+  {
+    "id": "minecraft_server",
+    "title": "Сервер Minecraft",
+    "description": "",
+    "date": "Актуально",
+    "time": "24/7",
+    "location": "Онлайн",
+    "badges": [
+      { "icon": "info", "text": "Версия 1.21.11" },
+      { "icon": "copy", "text": "104k.sosal.today", "copy": "104k.sosal.today" }
+    ],
+    "image": "img/minecraft.webp",
+    "link": "https://discord.gg/jkvPPs2RG",
+    "link_text": "Discord"
+  },
   {
     "id": "clash_royale",
     "title": "Клан Clash Royale",
@@ -2095,7 +3070,8 @@ button.settings-list-item:active { background: var(--overlay-bg); }
     "time": "24/7",
     "location": "",
     "image": "img/cr-clan.webp",
-    "link": "https://link.clashroyale.com/invite/clan/ru?tag=GRVJV2UR&token=x6cmxps6&platform=android"
+    "link": "https://link.clashroyale.com/invite/clan/ru?tag=GRVJV2UR&token=x6cmxps6&platform=android",
+    "link_text": "Подробнее / Вступить"
   },
   {
     "id": "volleyball",
@@ -2106,6 +3082,49 @@ button.settings-list-item:active { background: var(--overlay-bg); }
     "location": "Сп. зал",
     "image": "img/volleyball.webp",
     "link": ""
+  }
+]
+
+/* =====================================================================
+   FILE: data/holidays.json
+   LINES: 37
+===================================================================== */
+
+[
+  {
+    "id": "halloween",
+    "title": "До Хэллоуина 🎃",
+    "date": "31.10",
+    "icon": "bomb",
+    "showBeforeDays": 14
+  },
+  {
+    "id": "new_year",
+    "title": "До Нового года 🎄",
+    "date": "01.01",
+    "icon": "star",
+    "showBeforeDays": 30
+  },
+  {
+    "id": "bday_kazakov",
+    "title": "День рождения Казакова 🎈",
+    "date": "15.01",
+    "icon": "user",
+    "showBeforeDays": 7
+  },
+  {
+    "id": "bday_bagrat",
+    "title": "День рождения Баграта 🎂",
+    "date": "31.07",
+    "icon": "user",
+    "showBeforeDays": 7
+  },
+  {
+    "id": "bday_ivanov",
+    "title": "День рождения Иванова 🎁",
+    "date": "06.08",
+    "icon": "user",
+    "showBeforeDays": 7
   }
 ]
 
@@ -2155,117 +3174,120 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: data/students.json
-   LINES: 30
+   LINES: 29
 ===================================================================== */
 
 [
-  { "id": 1, "name": "Авдеев Кирилл", "nickname": "h9vwe_78", "tg": "h9vwe_147", "role": "", "avatar": "img/avatars/Авдеев Кирилл.png" },
-  { "id": 2, "name": "Ахмеров Сергей", "nickname": "Katsu", "tg": "Sergay1267", "role": "", "avatar": "" },
-  { "id": 3, "name": "Бебия Баграт", "nickname": "Bagerca", "tg": "bagerca", "role": "", "avatar": "img/avatars/Бебия Баграт.png" },
-  { "id": 4, "name": "Борисов Тимофей", "nickname": "Некто", "tg": "Lak33490", "role": "", "avatar": "img/avatars/Борисов Тимофей.png" },
-  { "id": 5, "name": "Григорьева Ангелина", "nickname": "xanax", "tg": "Boykovalinka", "role": "", "avatar": "img/avatars/Григорьева Ангелина.png" },
-  { "id": 6, "name": "Евдокимов Ян", "nickname": "ян", "tg": "YYaa3cls", "role": "", "avatar": "" },
-  { "id": 7, "name": "Ерофеев Михаил", "nickname": "Qnferenko", "tg": "Qnferenko", "role": "", "avatar": "" },
-  { "id": 8, "name": "Жаринов Александр", "nickname": "Саня", "tg": "", "role": "", "avatar": "" },
-  { "id": 9, "name": "Зайцева Виктория", "nickname": "𝕳𝖆𝖘𝖑)", "tg": "Kotova_Hasl", "role": "", "avatar": "" },
-  { "id": 10, "name": "Иванов Алексей", "nickname": "Алексей", "tg": "GupkaChek", "role": "", "avatar": "" },
-  { "id": 11, "name": "Казаков Максим", "nickname": "YaPonchick", "tg": "YaPonchick1487", "role": "Староста", "avatar": "" },
-  { "id": 12, "name": "Калачев Александр", "nickname": "§Motokife§", "tg": "Mafia_MOTO", "role": "", "avatar": "" },
-  { "id": 13, "name": "Коломин Никита", "nickname": "Чучхелка", "tg": "Shidou_gei", "role": "Зам. старосты", "avatar": "" },
-  { "id": 14, "name": "Котовский Даниил", "nickname": "Sharks", "tg": "Sharkss11", "role": "", "avatar": "img/avatars/Котовский Даниил.png" },
-  { "id": 15, "name": "Красько Данила", "nickname": "🕊", "tg": "Horseshock", "role": "", "avatar": "" },
-  { "id": 16, "name": "Мордвихин Алексей", "nickname": "Леша", "tg": "", "role": "", "avatar": "" },
-  { "id": 17, "name": "Москвин Матвей", "nickname": "SMERTY", "tg": "Smerty333", "role": "", "avatar": "" },
-  { "id": 18, "name": "Нефедовский Максим", "nickname": "Максим", "tg": "FFFFGOGOK", "role": "", "avatar": "" },
-  { "id": 19, "name": "Никольц Иван", "nickname": "Ванька", "tg": "vana_sperma", "role": "", "avatar": "" },
-  { "id": 20, "name": "Олейник Кирилл", "nickname": "Кирилл", "tg": "", "role": "", "avatar": "" },
-  { "id": 21, "name": "Павлов Дмитрий", "nickname": "Дима", "tg": "", "role": "", "avatar": "" },
-  { "id": 22, "name": "Павлов Никита", "nickname": "Никита", "tg": "", "role": "", "avatar": "" },
-  { "id": 23, "name": "Федин Андрей", "nickname": "Андрей", "tg": "", "role": "", "avatar": "" },
-  { "id": 24, "name": "Фролов Николай", "nickname": "Колябик", "tg": "", "role": "", "avatar": "img/avatars/Фролов Николай.png" },
-  { "id": 25, "name": "Хмыков Кирилл", "nickname": "ШĒノノøV", "tg": "", "role": "", "avatar": "" },
-  { "id": 26, "name": "Чепрасов Иван", "nickname": "Ваня", "tg": "", "role": "", "avatar": "" },
-  { "id": 27, "name": "Шагалов Денис", "nickname": "sphinx", "tg": "shponxxx", "role": "Зам. старосты", "avatar": "" },
-  { "id": 28, "name": "Щепелин Сергей", "nickname": "Trofi", "tg": "Flopik_Sq", "role": "", "avatar": "" }
+  { "id": 1, "name": "Авдеев Кирилл", "nickname": "", "tg": "h9vwe_147", "role": "", "avatar": "img/avatars/Авдеев Кирилл.png" },
+  { "id": 2, "name": "Ахмеров Сергей", "nickname": "", "tg": "Sergay1267", "role": "", "avatar": "" },
+  { "id": 3, "name": "Бебия Баграт", "nickname": "", "tg": "bagerca", "role": "", "avatar": "img/avatars/Бебия Баграт.png" },
+  { "id": 4, "name": "Борисов Тимофей", "nickname": "Спортивный 🏃‍♂️", "tg": "Lak33490", "role": "Зам. старосты", "avatar": "img/avatars/Борисов Тимофей.png" },
+  { "id": 5, "name": "Григорьева Ангелина", "nickname": "", "tg": "Boykovalinka", "role": "", "avatar": "img/avatars/Григорьева Ангелина.png" },
+  { "id": 6, "name": "Евдокимов Ян", "nickname": "", "tg": "YYaa3cls", "role": "", "avatar": "" },
+  { "id": 7, "name": "Ерофеев Михаил", "nickname": "", "tg": "Qnferenko", "role": "", "avatar": "" },
+  { "id": 8, "name": "Жаринов Александр", "nickname": "", "tg": "", "role": "", "avatar": "" },
+  { "id": 9, "name": "Зайцева Виктория", "nickname": "", "tg": "Kotova_Hasl", "role": "", "avatar": "" },
+  { "id": 10, "name": "Иванов Алексей", "nickname": "42 братуха 🤝", "tg": "GupkaChek", "role": "", "avatar": "" },
+  { "id": 11, "name": "Казаков Максим", "nickname": "Фанатик Айзека 💧", "tg": "YaPonchick1487", "role": "Староста", "avatar": "" },
+  { "id": 12, "name": "Калачев Александр", "nickname": "", "tg": "Mafia_MOTO", "role": "", "avatar": "" },
+  { "id": 13, "name": "Коломин Никита", "nickname": "Катает в хойку на мобиле 📱", "tg": "Shidou_gei", "role": "", "avatar": "" },
+  { "id": 14, "name": "Котовский Даниил", "nickname": "", "tg": "Sharkss11", "role": "", "avatar": "img/avatars/Котовский Даниил.png" },
+  { "id": 15, "name": "Красько Данила", "nickname": "", "tg": "Horseshock", "role": "", "avatar": "" },
+  { "id": 16, "name": "Мордвихин Алексей", "nickname": "", "tg": "", "role": "", "avatar": "" },
+  { "id": 17, "name": "Москвин Матвей", "nickname": "", "tg": "Smerty333", "role": "", "avatar": "" },
+  { "id": 18, "name": "Нефедовский Максим", "nickname": "", "tg": "FFFFGOGOK", "role": "", "avatar": "" },
+  { "id": 19, "name": "Никольц Иван", "nickname": "", "tg": "vana_sperma", "role": "", "avatar": "" },
+  { "id": 20, "name": "Олейник Кирилл", "nickname": "", "tg": "", "role": "", "avatar": "" },
+  { "id": 21, "name": "Павлов Дмитрий", "nickname": "", "tg": "", "role": "", "avatar": "" },
+  { "id": 22, "name": "Павлов Никита", "nickname": "", "tg": "", "role": "", "avatar": "" },
+  { "id": 23, "name": "Федин Андрей", "nickname": "", "tg": "", "role": "", "avatar": "" },
+  { "id": 25, "name": "Хмыков Кирилл", "nickname": "Рапунцель (береги волосы) ✂️", "tg": "", "role": "", "avatar": "" },
+  { "id": 26, "name": "Чепрасов Иван", "nickname": "", "tg": "", "role": "", "avatar": "" },
+  { "id": 27, "name": "Шагалов Денис", "nickname": "Главный художник 🎨", "tg": "shponxxx", "role": "Зам. старосты", "avatar": "" },
+  { "id": 28, "name": "Щепелин Сергей", "nickname": "Щепка 🪵", "tg": "Flopik_Sq", "role": "", "avatar": "" }
 ]
 
 /* =====================================================================
    FILE: data/teachers.json
-   LINES: 74
+   LINES: 78
 ===================================================================== */
 
 {
-  "Директор": {
-    "name": "Вшивков Сергей Михайлович",
-    "avatar": ""
+  "administration": {
+    "Директор": {
+      "name": "Вшивков Сергей Михайлович",
+      "avatar": ""
+    },
+    "Зам. директора": {
+      "name": "Виталий Игоревич",
+      "avatar": ""
+    },
+    "Заместитель директора": {
+      "name": "Елена Серафимовна",
+      "avatar": ""
+    },
+    "Классный руководитель": {
+      "name": "Горохова Ангелина Дмитриевна",
+      "avatar": "img/avatars/Горохова Ангелина Дмитриевна.png"
+    }
   },
-  "Зам. директора": {
-    "name": "Виталий Игоревич",
-    "avatar": ""
-  },
-  "Заместитель директора": {
-    "name": "Елена Серафимовна",
-    "avatar": ""
-  },
-  "Классный руководитель": {
-    "name": "Горохова Ангелина Дмитриевна",
-    "avatar": "img/avatars/Горохова Ангелина Дмитриевна.png"
-  },
-  "Математика": {
-    "name": "Сусоева Елена Валентиновна",
-    "avatar": ""
-  },
-  "Информатика": {
-    "name": "Вадим Викторович Нефедьев",
-    "avatar": ""
-  },
-  "Физика": {
-    "name": "Гребенкина Елена Анатольевна",
-    "avatar": "img/avatars/Гребенкина Елена Анатольевна.png"
-  },
-  "История": {
-    "name": "Успенская Людмила Семёновна",
-    "avatar": ""
-  },
-  "Русский язык": {
-    "name": "Ким Евгения Викторовна",
-    "avatar": "img/avatars/Ким Евгения....png"
-  },
-  "Литература": {
-    "name": "Ким Евгения Викторовна",
-    "avatar": "img/avatars/Ким Евгения....png"
-  },
-  "Обществознание": {
-    "name": "Софья Михайловна...",
-    "avatar": ""
-  },
-  "География": {
-    "name": "Тетерина...",
-    "avatar": ""
-  },
-  "Химия": {
-    "name": "Белобородова...",
-    "avatar": ""
-  },
-  "Биология": {
-    "name": "Белобородова...",
-    "avatar": ""
-  },
-  "Ангийский 1г": {
-    "name": "Федорова Светлана Николаевна",
-    "avatar": "img/avatars/Федорова Светлана Николаевна.png"
-  },
-  "Английский 2г": {
-    "name": "...",
-    "avatar": ""
-  },
-  "Физкультура": {
-    "name": "Крутиков Дмитрий Алексеевич",
-    "avatar": ""
-  },
-  "ОБиЗР": {
-    "name": "Шафранский Виктор Васильевич",
-    "avatar": ""
+  "teachers": {
+    "Математика": {
+      "name": "Сусоева Елена Валентиновна",
+      "avatar": ""
+    },
+    "Информатика": {
+      "name": "Вадим Викторович Нефедьев",
+      "avatar": ""
+    },
+    "Физика": {
+      "name": "Гребенкина Елена Анатольевна",
+      "avatar": "img/avatars/Гребенкина Елена Анатольевна.png"
+    },
+    "История": {
+      "name": "Успенская Людмила Семёновна",
+      "avatar": ""
+    },
+    "Русский язык": {
+      "name": "Ким Евгения Викторовна",
+      "avatar": "img/avatars/Ким Евгения....png"
+    },
+    "Литература": {
+      "name": "Ким Евгения Викторовна",
+      "avatar": "img/avatars/Ким Евгения....png"
+    },
+    "Обществознание": {
+      "name": "Софья Михайловна...",
+      "avatar": ""
+    },
+    "География": {
+      "name": "Тетерина...",
+      "avatar": ""
+    },
+    "Химия": {
+      "name": "Белобородова...",
+      "avatar": ""
+    },
+    "Биология": {
+      "name": "Белобородова...",
+      "avatar": ""
+    },
+    "Ангийский 1г": {
+      "name": "Федорова Светлана Николаевна",
+      "avatar": "img/avatars/Федорова Светлана Николаевна.png"
+    },
+    "Английский 2г": {
+      "name": "...",
+      "avatar": ""
+    },
+    "Физкультура": {
+      "name": "Крутиков Дмитрий Алексеевич",
+      "avatar": ""
+    },
+    "ОБиЗР": {
+      "name": "Шафранский Виктор Васильевич",
+      "avatar": ""
+    }
   }
 }
 
@@ -2495,6 +3517,68 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 }
 
 /* =====================================================================
+   FILE: data/overrides/13-10-2026.json
+   LINES: 9
+===================================================================== */
+
+{
+  "id": "13-10-2026",
+  "lessons": [
+    { "pair": 1, "subject": "Иностр. язык", "room": "2/16, 23" },
+    { "pair": 2, "subject": "Информатика", "room": "1/20" },
+    { "pair": 3, "subject": "Русский язык", "room": "1/17" },
+    { "pair": 4, "subject": "Информатика", "room": "1/20" }
+  ]
+}
+
+/* =====================================================================
+   FILE: data/overrides/14-10-2026.json
+   LINES: 9
+===================================================================== */
+
+{
+  "id": "14-10-2026",
+  "lessons": [
+    { "pair": 1, "subject": "История", "room": "2/18" },
+    { "pair": 2, "subject": "Обществознание", "room": "метод" },
+    { "pair": 3, "subject": "Физика", "room": "1/16" },
+    { "pair": 4, "subject": "Уборка территории", "room": "Территория" }
+  ]
+}
+
+/* =====================================================================
+   FILE: data/overrides/15-10-2026.json
+   LINES: 13
+===================================================================== */
+
+{
+  "id": "15-10-2026",
+  "lessons": [
+    {
+      "pair": 1,
+      "lesson1": null,
+      "lesson2": { "subject": "Информатика", "room": "1/20" }
+    },
+    { "pair": 2, "subject": "Литература", "room": "1/17" },
+    { "pair": 3, "subject": "Русский язык", "room": "1/17" },
+    { "pair": 4, "subject": "Химия", "room": "1/22" }
+  ]
+}
+
+/* =====================================================================
+   FILE: data/overrides/16-10-2026.json
+   LINES: 7
+===================================================================== */
+
+{
+  "id": "16-10-2026",
+  "lessons": [
+    { "pair": 1, "subject": "Информатика", "room": "1/20" },
+    { "pair": 2, "subject": "Литература", "room": "1/17" }
+  ]
+}
+
+/* =====================================================================
    FILE: data/overrides/23-09-2026.json
    LINES: 8
 ===================================================================== */
@@ -2617,7 +3701,7 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 155
+   LINES: 175
 ===================================================================== */
 
 /* =====================================================================
@@ -2638,8 +3722,7 @@ function renderBottomNav() {
     
     const prefs = Store.getState().prefs;
     const navOrder = prefs.navOrder || ['schedule', 'homework', 'group', 'events', 'games'];
-    const themeId = Store.getState().currentTheme;
-    const isSeasonal = themeId === 'halloween' || themeId === 'new-year';
+    const eventsCount = Store.getState().eventsCount || 0; // Получаем кол-во ивентов
 
     const navMap = {
         'schedule': { title: 'Уроки', icon: 'schedule' },
@@ -2650,13 +3733,21 @@ function renderBottomNav() {
     };
 
     navEl.innerHTML = navOrder.filter(id => navMap[id]).map(id => {
-        const iconKey = isSeasonal ? `nav-${id}-${themeId}` : `nav-${id}`;
+        const iconKey = `nav-${id}`;
         const isDisabled = id === 'homework';
+        
+        // Рисуем бейдж только если это вкладка ивентов и ивенты существуют
+        let badgeHtml = '';
+        if (id === 'events' && eventsCount > 0) {
+            badgeHtml = `<span class="nav-badge">${eventsCount}</span>`;
+        }
 
         if (isDisabled) {
             return `
                 <div class="nav-item nav-item-disabled" data-icon="${id}" data-title="${navMap[id].title}" aria-disabled="true" tabindex="-1">
-                    ${getIcon(iconKey, { size: 24 })}
+                    <div class="nav-icon-wrapper">
+                        ${getIcon(iconKey, { size: 24 })}
+                    </div>
                     <span>${navMap[id].title}</span>
                 </div>
             `;
@@ -2664,7 +3755,10 @@ function renderBottomNav() {
 
         return `
             <a href="#/${id}" class="nav-item" data-icon="${id}" data-title="${navMap[id].title}">
-                ${getIcon(iconKey, { size: 24 })}
+                <div class="nav-icon-wrapper">
+                    ${getIcon(iconKey, { size: 24 })}
+                    ${badgeHtml}
+                </div>
                 <span>${navMap[id].title}</span>
             </a>
         `;
@@ -2686,6 +3780,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ThemeManager.init();
         PrefsManager.applySettingsToDOM(); 
         
+        // Асинхронно запрашиваем ивенты в фоне при запуске
+        ApiService.getEvents().then(events => {
+            if (events && events.length > 0) {
+                Store.setState({ eventsCount: events.length }); // Триггерит перерисовку панели
+            }
+        }).catch(() => {});
+
         renderBottomNav();
         Store.subscribe((state, key) => {
             if (key === 'currentTheme' || key === 'pref_navOrder' || key === 'all') {
@@ -2730,7 +3831,6 @@ function initPullToRefresh() {
     let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null;
     
     document.addEventListener('touchstart', (e) => {
-        // Блокируем PTR если мы в игре
         if (document.body.classList.contains('game-mode-active')) return;
         
         if (document.querySelector('dialog[open]') || 
@@ -2768,6 +3868,10 @@ function initPullToRefresh() {
             PrefsManager.vibrate(20);
             ptrEl.classList.add('refreshing'); ptrEl.style.transform = `translateY(50px) rotate(360deg)`;
             ApiService.clearCache();
+            
+            // Также обновляем кол-во ивентов при свайпе вниз
+            ApiService.getEvents().then(ev => { if(ev) Store.setState({ eventsCount: ev.length }) });
+
             if (window.appRouter) await window.appRouter.handleRoute(true);
             ptrEl.classList.remove('refreshing'); ptrEl.style.transform = `translateY(-50px)`; ptrEl.style.opacity = '0';
         } else {
@@ -2947,16 +4051,20 @@ export class Router {
 
 /* =====================================================================
    FILE: js/store.js
-   LINES: 45
+   LINES: 49
 ===================================================================== */
 
+/* =====================================================================
+   FILE: js/store.js
+===================================================================== */
 export const Store = {
     state: {
         isOffline: !navigator.onLine,
         prefs: {}, 
         currentTheme: 'burgundy',
         homeworkTasks: JSON.parse(localStorage.getItem('sh_homework_state') || '{}'),
-        modalState: null
+        modalState: null,
+        eventsCount: 0 // <--- Сюда будем записывать кол-во ивентов
     },
     
     listeners: [],
@@ -3186,15 +4294,14 @@ export const Toast = {
 
 /* =====================================================================
    FILE: js/services/api.js
-   LINES: 86
+   LINES: 83
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/services/api.js
-   ОПТИМИЗАЦИЯ: Добавлено логирование ошибки протокола file://
 ===================================================================== */
 const cache = new Map();
-let globalCacheBuster = ''; // Уникальный токен для обхода кэша
+let globalCacheBuster = ''; 
 
 async function fetchJson(url, useCache = true, fetchOptions = {}) {
     const finalUrl = globalCacheBuster ? `${url}?bust=${globalCacheBuster}` : url;
@@ -3213,12 +4320,9 @@ async function fetchJson(url, useCache = true, fetchOptions = {}) {
         return data;
     } catch (error) {
         console.error(`[ApiService] Ошибка загрузки ${url}:`, error);
-        
-        // Диагностика протокола для локальной разработки
         if (window.location.protocol === 'file:') {
             console.warn('[ApiService] Внимание: Вы используете протокол file://. Fetch API блокирует запросы к файлам из-за CORS. Для тестирования используйте веб-сервер (например, VS Code Live Server).');
         }
-        
         return null; 
     }
 }
@@ -3234,6 +4338,7 @@ export const ApiService = {
     getStudents: () => fetchJson('data/students.json'),
     getTeachers: () => fetchJson('data/teachers.json'),
     getEvents: () => fetchJson('data/events.json', true, { cache: 'no-cache' }),
+    getHolidays: () => fetchJson('data/holidays.json', true, { cache: 'no-cache' }),
     
     getOverride: (dateStr) => fetchJson(`data/overrides/${dateStr}.json`, true, { cache: 'no-cache' }),
 
@@ -3458,7 +4563,7 @@ export const Game2048Template = {
 
 /* =====================================================================
    FILE: js/templates/EventsTemplate.js
-   LINES: 65
+   LINES: 125
 ===================================================================== */
 
 /* =====================================================================
@@ -3469,58 +4574,118 @@ import { getIcon } from '../utils/icons.js';
 export const EventsTemplate = {
     renderSkeletons() {
         return `
-            <div class="skeleton" style="height: 300px; width: 100%; margin-bottom: 16px;"></div>
-            <div class="skeleton" style="height: 250px; width: 100%;"></div>
+            <div class="skeleton" style="height: 46px; width: 100%; margin-bottom: 20px;"></div>
+            <div class="skeleton" style="height: 320px; width: 100%; margin-bottom: 16px;"></div>
+            <div class="skeleton" style="height: 280px; width: 100%;"></div>
         `;
     },
 
-    renderEmpty() {
-        return `<div class="placeholder-card" style="text-align: center; color: var(--text-muted)">Нет активных событий</div>`;
+    renderEmpty(message = 'Список пуст') {
+        return `<div class="placeholder-card" style="text-align: center; color: var(--text-muted)">${message}</div>`;
     },
 
     renderError() {
-        return `<div class="placeholder-card">Ошибка загрузки ивентов.</div>`;
+        return `<div class="placeholder-card">Ошибка загрузки данных.</div>`;
     },
 
-    renderList(events) {
+    renderBaseUI(currentTab) {
         return `
-            <div class="events-list">
-                ${events.map(ev => this.renderCard(ev)).join('')}
+            <div class="events-container">
+                <div class="events-segmented-control" id="events-toggle" data-active="${currentTab}">
+                    <div class="events-segment-slider"></div>
+                    <button class="events-segment-btn ${currentTab === 'events' ? 'active' : ''}" data-tab="events">Мероприятия</button>
+                    <button class="events-segment-btn ${currentTab === 'holidays' ? 'active' : ''}" data-tab="holidays">События и Даты</button>
+                </div>
+                
+                <div class="events-list-wrapper" id="events-list-wrapper">
+                    <!-- Сюда инжектится нужный список -->
+                </div>
             </div>
         `;
     },
 
-    renderCard(ev) {
+    renderEventsList(events) {
         return `
-            <article class="event-card">
-                <div class="event-image">
-                    ${ev.image ? `<img src="${ev.image}" alt="${ev.title}" loading="lazy" decoding="async">` : ''}
-                    <div class="event-date-badge">
-                        <div class="day">${ev.date}</div>
-                    </div>
-                </div>
-                <div class="event-body">
-                    <h3 class="event-title">${ev.title}</h3>
-                    ${ev.description ? `<p class="event-desc">${ev.description}</p>` : ''}
-                    
-                    ${(ev.location || ev.time) ? `
-                        <div class="event-footer">
-                            ${ev.location ? `
-                                <span>
-                                    ${getIcon('location', { size: 14 })}
-                                    ${ev.location}
-                                </span>
-                            ` : ''}
-                            ${ev.time ? `
-                                <span>
-                                    ${getIcon('clock', { size: 14 })}
-                                    ${ev.time}
-                                </span>
-                            ` : ''}
-                        </div>
-                    ` : ''}
+            <div class="events-list">
+                ${events.map(ev => this.renderEventCard(ev)).join('')}
+            </div>
+        `;
+    },
 
-                    ${ev.link ? `<a href="${ev.link}" target="_blank" class="event-btn">Подробнее / Вступить</a>` : ''}
+    renderEventCard(ev) {
+        const buttonText = ev.link_text || 'Перейти';
+        
+        let tagsHtml = '';
+        if (ev.date && ev.date.toLowerCase() !== 'актуально') {
+            tagsHtml += `<span class="ev-tag">${getIcon('clock', { size: 14 })} ${ev.date}</span>`;
+        }
+        if (ev.time && ev.time !== '24/7') {
+            tagsHtml += `<span class="ev-tag">${getIcon('clock', { size: 14 })} ${ev.time}</span>`;
+        }
+        if (ev.location) {
+            tagsHtml += `<span class="ev-tag location">${getIcon('location', { size: 14 })} ${ev.location}</span>`;
+        }
+        
+        if (ev.badges && ev.badges.length > 0) {
+            ev.badges.forEach(b => {
+                if (b.copy) {
+                    tagsHtml += `<span class="ev-tag copyable" data-copy="${b.copy}">${getIcon(b.icon || 'copy', { size: 14 })} ${b.text}</span>`;
+                } else {
+                    tagsHtml += `<span class="ev-tag">${getIcon(b.icon || 'info', { size: 14 })} ${b.text}</span>`;
+                }
+            });
+        }
+
+        const badgeHtml = (ev.date && ev.date.toLowerCase() === 'актуально') 
+            ? `<div class="ev-status-badge">Актуально</div>` 
+            : '';
+
+        return `
+            <article class="event-card slide-left">
+                <div class="ev-image-wrapper">
+                    ${ev.image ? `<img src="${ev.image}" alt="${ev.title}" loading="lazy" decoding="async">` : ''}
+                    <div class="ev-gradient-overlay"></div>
+                    ${badgeHtml}
+                </div>
+                <div class="ev-content">
+                    <h3 class="ev-title">${ev.title}</h3>
+                    ${tagsHtml ? `<div class="ev-tags-group">${tagsHtml}</div>` : ''}
+                    ${ev.description ? `<p class="ev-desc">${ev.description}</p>` : ''}
+                    ${ev.link ? `
+                        <a href="${ev.link}" target="_blank" class="ev-action-btn">
+                            <span>${buttonText}</span>
+                        </a>
+                    ` : ''}
+                </div>
+            </article>
+        `;
+    },
+
+    renderHolidaysList(holidays) {
+        return `
+            <div class="holidays-list slide-right">
+                ${holidays.map(h => this.renderHolidayCard(h)).join('')}
+            </div>
+        `;
+    },
+
+    renderHolidayCard(h) {
+        // Динамический класс состояния (Сегодня / Близко / Обычное)
+        let stateClass = '';
+        if (h.diffDays === 0) stateClass = 'today';
+        else if (h.isNear) stateClass = 'near';
+
+        return `
+            <article class="holiday-card ${stateClass}">
+                <div class="holiday-icon">
+                    ${getIcon(h.icon || 'star', { size: 24 })}
+                </div>
+                <div class="holiday-info">
+                    <div class="holiday-title">${h.title}</div>
+                    <div class="holiday-date">${h.formattedDate}</div>
+                </div>
+                <div class="holiday-badge">
+                    ${h.timeLeftText}
                 </div>
             </article>
         `;
@@ -3672,7 +4837,7 @@ export const GamesTemplate = {
 
 /* =====================================================================
    FILE: js/templates/GroupTemplate.js
-   LINES: 63
+   LINES: 77
 ===================================================================== */
 
 /* =====================================================================
@@ -3683,9 +4848,9 @@ import { getIcon } from '../utils/icons.js';
 export const GroupTemplate = {
     renderSkeletons() {
         return `
+            <div class="skeleton" style="height: 78px; width: 100%; margin-bottom: 20px;"></div>
             <div class="skeleton" style="height: 46px; width: 100%; margin-bottom: 20px;"></div>
             <div class="skeleton" style="height: 60px; width: 100%; margin-bottom: 20px;"></div>
-            <div class="skeleton" style="height: 72px; width: 100%; margin-bottom: 12px;"></div>
             <div class="skeleton" style="height: 72px; width: 100%; margin-bottom: 12px;"></div>
             <div class="skeleton" style="height: 72px; width: 100%; margin-bottom: 12px;"></div>
         `;
@@ -3694,6 +4859,17 @@ export const GroupTemplate = {
     renderBaseUI(currentTab) {
         return `
             <div class="group-container">
+                <div class="group-services">
+                    <a href="https://college.obr.lenreg.ru/security/#/login" target="_blank" class="service-btn">
+                        ${getIcon('academic-cap', { size: 28 })}
+                        <span>Журнал / Оценки</span>
+                    </a>
+                    <a href="https://znanium.ru/" target="_blank" class="service-btn">
+                        ${getIcon('book-open', { size: 28 })}
+                        <span>Библиотека</span>
+                    </a>
+                </div>
+
                 <div class="group-segmented-control" id="group-toggle" data-active="${currentTab}">
                     <div class="group-segment-slider"></div>
                     <button class="group-segment-btn ${currentTab === 'students' ? 'active' : ''}" data-tab="students">Студенты</button>
@@ -3716,23 +4892,26 @@ export const GroupTemplate = {
         return `<span>Преподавателей: <strong>${count}</strong></span><span>104к</span>`;
     },
 
-    renderPerson(name, subText, avatarHtml, roleHtml = '', actionBtnHtml = '') {
-        // Подключаем иконку телеграма, если это кнопка ТГ
+    // ДОБАВЛЕН ПАРАМЕТР id
+    renderPerson(id, name, subText, avatarHtml, roleHtml = '', actionBtnHtml = '') {
         if (actionBtnHtml === 'TG_BTN') {
             actionBtnHtml = `<a href="https://t.me/${subText.replace('@','')}" target="_blank" class="person-action-btn">${getIcon('telegram', { size: 18 })}</a>`;
         }
         
+        const subTextHtml = subText ? `
+            <div class="person-sub" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: ${roleHtml.includes('teacher-subject') ? '6px' : '2px'}; white-space: normal;">
+                ${subText}
+            </div>` : '';
+
         return `
-            <li class="person-card">
+            <li class="person-card" data-id="${id}"> <!-- ТЕПЕРЬ ТУТ ЕСТЬ ИДЕНТИФИКАТОР -->
                 ${avatarHtml}
                 <div class="person-info">
                     <div class="person-name-row">
                         <span class="person-name-text">${name}</span>
                         ${roleHtml}
                     </div>
-                    <div class="person-sub" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: ${roleHtml.includes('teacher-subject') ? '6px' : '2px'}; white-space: normal;">
-                        ${subText}
-                    </div>
+                    ${subTextHtml}
                 </div>
                 ${actionBtnHtml}
             </li>`;
@@ -3890,10 +5069,14 @@ export const HomeworkTemplate = {
 
 /* =====================================================================
    FILE: js/templates/ScheduleTemplate.js
-   LINES: 96
+   LINES: 114
 ===================================================================== */
 
+/* =====================================================================
+   FILE: js/templates/ScheduleTemplate.js
+===================================================================== */
 import { formatMinutes } from '../utils/time.js';
+import { getIcon } from '../utils/icons.js';
 
 export const ScheduleTemplate = {
     renderList(dayScheduleArray, bellsData, userSubgroup) {
@@ -3987,6 +5170,20 @@ export const ScheduleTemplate = {
         
         const nextLsn = this.getLessonDetails(status.nextPairData, 1);
         return `<article class="live-widget widget-idle"><div class="live-header"><div class="live-status-group"><div class="pulse-dot"></div><span class="live-status">До начала</span></div><span class="live-time" id="widget-time">${formatMinutes(status.timeToNext)}</span></div>${nextLsn.subj !== 'Урок' ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px;">Первая: ${nextLsn.subj}</div>` : ''}</article>`;
+    }, // <-- ВОТ ТУТ БЫЛА ПРОПУЩЕНА ЗАПЯТАЯ
+    
+    renderCountdown(holiday, timeText) {
+        return `
+            <div class="countdown-widget">
+                <div class="countdown-icon">
+                    ${getIcon(holiday.icon || 'star', { size: 24 })}
+                </div>
+                <div class="countdown-info">
+                    <span class="countdown-title">${holiday.title}</span>
+                    <span class="countdown-time" id="countdown-time-val">${timeText}</span>
+                </div>
+            </div>
+        `;
     }
 };
 
@@ -4246,7 +5443,7 @@ export const SnakeTemplate = {
 
 /* =====================================================================
    FILE: js/utils/icons.js
-   LINES: 62
+   LINES: 63
 ===================================================================== */
 
 /* =====================================================================
@@ -4256,8 +5453,10 @@ export const SnakeTemplate = {
 ===================================================================== */
 
 const ICONS = {
+    'academic-cap': '<path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"></path><path d="M6 12v5c0 1.66 4 3 10 0v-5"></path>',
     'admin': '<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>',
     'back': '<polyline points="15 18 9 12 15 6"></polyline>',
+    'book-open': '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>',
     'check': '<polyline points="20 6 9 17 4 12"></polyline>',
     'chevron-down': '<polyline points="6 9 12 15 18 9"></polyline>',
     'chevron-right': '<polyline points="9 18 15 12 9 6"></polyline>',
@@ -4310,7 +5509,6 @@ export const getIcon = (name, options = {}) => {
         </svg>
     `.trim();
 };
-
 
 /* =====================================================================
    FILE: js/utils/prefs.js
@@ -4821,7 +6019,7 @@ export const ThemeManager = {
 
 /* =====================================================================
    FILE: js/utils/time.js
-   LINES: 90
+   LINES: 141
 ===================================================================== */
 
 /* =====================================================================
@@ -4862,6 +6060,58 @@ export function getDateStringForDay(targetDayNum) {
     return `${dd}-${mm}-${yyyy}`;
 }
 
+export function getPlural(number, one, two, five) {
+    let n = Math.abs(number);
+    n %= 100;
+    if (n >= 5 && n <= 20) return five;
+    n %= 10;
+    if (n === 1) return one;
+    if (n >= 2 && n <= 4) return two;
+    return five;
+}
+
+// Единый вычислитель для праздников и дней рождений (Формат ДД.ММ)
+export function getHolidayStatus(dateStr) {
+    const now = new Date();
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Парсим простую строку вида "31.07"
+    const [dayStr, monthStr] = dateStr.split('.');
+    const month = parseInt(monthStr, 10) - 1; // Месяцы в JS начинаются с 0
+    const day = parseInt(dayStr, 10);
+
+    // Создаем дату (текущий год, нужный месяц и день, 00:00:00)
+    let target = new Date(now.getFullYear(), month, day, 0, 0, 0);
+
+    // Если дата в этом году УЖЕ прошла — перекидываем событие на следующий год
+    if (target.getTime() < nowDay.getTime()) {
+        target.setFullYear(now.getFullYear() + 1);
+    }
+
+    const isToday = nowDay.getTime() === new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+    const diffMs = target.getTime() - now.getTime();
+
+    const diffTotalMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffTotalMins / 60);
+    const diffMins = diffTotalMins % 60;
+    
+    // Округляем вверх, так как если осталось 25 часов, это "2 дня"
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    let timeText = '';
+    
+    if (isToday) {
+        timeText = 'Сегодня!';
+    } else if (diffHours >= 0 && diffHours < 24 && diffDays <= 1) {
+        // Осталось меньше 24 часов до полуночи — включаем точные часы и минуты
+        timeText = `${diffHours} ч ${diffMins} мин`;
+    } else {
+        timeText = `${diffDays} ${getPlural(diffDays, 'день', 'дня', 'дней')}`;
+    }
+
+    return { isToday, diffMs, diffDays, timeText, targetDate: target };
+}
+
 export function getCurrentScheduleStatus(bellsData) {
     const now = new Date();
     const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -4880,7 +6130,6 @@ export function getCurrentScheduleStatus(bellsData) {
             
             const prevEndSecs = parseTimeToMinutes(bellsData[i - 1].end) * 60;
             if (currentTotalSeconds >= prevEndSecs) {
-                // Вычисляем процент прохождения перемены
                 const progressPercent = ((currentTotalSeconds - prevEndSecs) / (startSecs - prevEndSecs)) * 100;
                 return { status: 'break', nextPair: bell, timeToNext: startMins - currentMinutes, progressPercent };
             }
@@ -4917,12 +6166,11 @@ export function getCurrentScheduleStatus(bellsData) {
 
 /* =====================================================================
    FILE: js/utils/ui.js
-   LINES: 12
+   LINES: 74
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/utils/ui.js
-   Глобальные визуальные утилиты
 ===================================================================== */
 export const UIUtils = {
     getAvatarGradient(text) {
@@ -4930,6 +6178,69 @@ export const UIUtils = {
         const charCode = text.charCodeAt(0) + (text.charCodeAt(1) || 0) + (text.charCodeAt(2) || 0);
         const hue = charCode % 360;
         return `linear-gradient(135deg, hsl(${hue}, 70%, 60%), hsl(${hue + 40}, 70%, 40%))`;
+    },
+
+    shootConfetti() {
+        if (document.body.classList.contains('power-save-mode')) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:99999;';
+        document.body.appendChild(canvas);
+        
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ['#FF4D7D', '#93002E', '#007AFF', '#FFAB00', '#4CAF50', '#ffffff'];
+
+        // Создаем 80 частичек, которые вылетают из нижних углов экрана
+        for (let i = 0; i < 80; i++) {
+            particles.push({
+                x: Math.random() < 0.5 ? 0 : canvas.width, 
+                y: canvas.height,
+                vx: (Math.random() * 15 + 5) * (Math.random() < 0.5 ? 1 : -1),
+                vy: -(Math.random() * 18 + 10), 
+                size: Math.random() * 8 + 6,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                rot: Math.random() * 360,
+                rotSpeed: (Math.random() - 0.5) * 10
+            });
+            
+            // Направляем частицы внутрь экрана
+            if (particles[i].x === 0) particles[i].vx = Math.abs(particles[i].vx);
+            else particles[i].vx = -Math.abs(particles[i].vx);
+        }
+
+        let animationId;
+        const draw = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let active = false;
+            
+            particles.forEach(p => {
+                p.vy += 0.4; // Гравитация
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rot += p.rotSpeed;
+                
+                // Если хоть одна частица на экране — продолжаем анимацию
+                if (p.y < canvas.height + 20) active = true;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                ctx.restore();
+            });
+
+            if (active) {
+                animationId = requestAnimationFrame(draw);
+            } else {
+                canvas.remove(); // Убираем canvas после завершения
+            }
+        };
+        draw();
     }
 };
 
@@ -5288,7 +6599,7 @@ export class BaseGameView {
 
 /* =====================================================================
    FILE: js/views/EventsView.js
-   LINES: 39
+   LINES: 133
 ===================================================================== */
 
 /* =====================================================================
@@ -5296,38 +6607,132 @@ export class BaseGameView {
 ===================================================================== */
 import { ApiService } from '../services/api.js';
 import { EventsTemplate } from '../templates/EventsTemplate.js';
+import { Toast } from '../components/Toast.js';
+import { PrefsManager } from '../utils/prefs.js';
+import { getHolidayStatus } from '../utils/time.js';
 
 export class EventsView {
     constructor(container) {
         this.container = container;
         this.isMounted = false;
+        this.currentTab = 'events'; 
+        
+        this.eventsData = [];
+        this.holidaysData = [];
+        
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
     }
 
     async mount() {
         this.isMounted = true;
         this.container.innerHTML = EventsTemplate.renderSkeletons();
         
+        this.container.addEventListener('click', this.handleGlobalClick);
+        
         try {
-            const events = await ApiService.getEvents();
+            const [events, holidays] = await Promise.all([
+                ApiService.getEvents(),
+                ApiService.getHolidays()
+            ]);
             
             if (!this.isMounted) return;
 
-            if (!events || events.length === 0) {
-                this.container.innerHTML = EventsTemplate.renderEmpty();
-                return;
-            }
+            this.eventsData = events || [];
+            this.holidaysData = this.processHolidays(holidays || []);
 
-            this.container.innerHTML = EventsTemplate.renderList(events);
+            this.container.innerHTML = EventsTemplate.renderBaseUI(this.currentTab);
+            this.renderCurrentList();
 
         } catch (error) {
             if (!this.isMounted) return;
-            console.error('[EventsView] Ошибка загрузки ивентов:', error);
+            console.error('[EventsView] Ошибка загрузки:', error);
             this.container.innerHTML = EventsTemplate.renderError();
+        }
+    }
+
+    processHolidays(rawHolidays) {
+        const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+
+        return rawHolidays.map(h => {
+            const status = getHolidayStatus(h.date);
+            const d = status.targetDate;
+
+            return {
+                ...h,
+                diffDays: status.isToday ? 0 : status.diffDays,
+                isNear: status.diffDays <= 7 || status.isToday,
+                timeLeftText: status.timeText,
+                formattedDate: `${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()} г.`
+            };
+        }).sort((a, b) => a.diffDays - b.diffDays);
+    }
+
+    renderCurrentList() {
+        if (!this.isMounted) return;
+        const wrapper = document.getElementById('events-list-wrapper');
+        if (!wrapper) return;
+
+        if (this.currentTab === 'events') {
+            if (this.eventsData.length === 0) {
+                wrapper.innerHTML = EventsTemplate.renderEmpty('Нет активных мероприятий');
+            } else {
+                wrapper.innerHTML = EventsTemplate.renderEventsList(this.eventsData);
+            }
+        } else {
+            if (this.holidaysData.length === 0) {
+                wrapper.innerHTML = EventsTemplate.renderEmpty('Нет ближайших событий');
+            } else {
+                wrapper.innerHTML = EventsTemplate.renderHolidaysList(this.holidaysData);
+            }
+        }
+    }
+
+    handleGlobalClick(e) {
+        const copyTag = e.target.closest('.ev-tag.copyable');
+        if (copyTag) {
+            PrefsManager.vibrate(10);
+            const textToCopy = copyTag.getAttribute('data-copy');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    Toast.show('Скопировано!', 'success', 2000);
+                }).catch(() => Toast.show('Ошибка', 'warning', 2000));
+            }
+            return;
+        }
+
+        const btn = e.target.closest('.events-segment-btn');
+        if (btn) {
+            const targetTab = btn.getAttribute('data-tab');
+            if (this.currentTab === targetTab) return; 
+            
+            PrefsManager.vibrate(15);
+            this.currentTab = targetTab;
+
+            const toggle = document.getElementById('events-toggle');
+            const wrapper = document.getElementById('events-list-wrapper');
+            
+            if (toggle) toggle.setAttribute('data-active', this.currentTab);
+            
+            this.container.querySelectorAll('.events-segment-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (wrapper) {
+                requestAnimationFrame(() => {
+                    if (!this.isMounted) return;
+                    wrapper.classList.add('fading');
+                    setTimeout(() => {
+                        if (!this.isMounted) return;
+                        this.renderCurrentList();
+                        wrapper.classList.remove('fading');
+                    }, 200); 
+                });
+            }
         }
     }
 
     unmount() {
         this.isMounted = false;
+        this.container.removeEventListener('click', this.handleGlobalClick);
     }
 }
 
@@ -5532,7 +6937,7 @@ export class GamesView {
 
 /* =====================================================================
    FILE: js/views/GroupView.js
-   LINES: 141
+   LINES: 159
 ===================================================================== */
 
 /* =====================================================================
@@ -5548,10 +6953,30 @@ export class GroupView {
         this.container = container;
         this.currentTab = 'students'; 
         this.studentsData = [];
+        this.adminData = [];
         this.teachersData = [];
         this.isMounted = false;
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
+    }
+
+    _processPersons(sourceObject) {
+        const grouped = {};
+        Object.entries(sourceObject).forEach(([role, data]) => {
+            const rawName = data.name;
+            if (!grouped[rawName]) {
+                grouped[rawName] = {
+                    name: rawName,
+                    rawName: rawName, 
+                    avatar: data.avatar || '',
+                    roles: []
+                };
+            }
+            grouped[rawName].roles.push(role);
+        });
+        const finalArray = Object.values(grouped);
+        finalArray.sort((a, b) => a.name.localeCompare(b.name));
+        return finalArray;
     }
 
     async mount(params = {}) {
@@ -5561,7 +6986,7 @@ export class GroupView {
         this.container.addEventListener('click', this.handleGlobalClick);
         
         try {
-            const [students, teachers] = await Promise.all([
+            const [students, staff] = await Promise.all([
                 ApiService.getStudents(),
                 ApiService.getTeachers()
             ]);
@@ -5570,24 +6995,11 @@ export class GroupView {
 
             this.studentsData = students || [];
             
-            if (teachers) {
-                const groupedTeachers = {};
-                Object.entries(teachers).forEach(([subject, data]) => {
-                    const rawName = data.name;
-
-                    if (!groupedTeachers[rawName]) {
-                        groupedTeachers[rawName] = {
-                            name: rawName,
-                            rawName: rawName, 
-                            avatar: data.avatar || '',
-                            subjects: []
-                        };
-                    }
-                    groupedTeachers[rawName].subjects.push(subject);
-                });
-
-                this.teachersData = Object.values(groupedTeachers);
-                this.teachersData.sort((a, b) => a.name.localeCompare(b.name));
+            if (staff && staff.administration) {
+                this.adminData = this._processPersons(staff.administration);
+            }
+            if (staff && staff.teachers) {
+                this.teachersData = this._processPersons(staff.teachers);
             }
 
             this.container.innerHTML = GroupTemplate.renderBaseUI(this.currentTab);
@@ -5618,23 +7030,34 @@ export class GroupView {
                     `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${st.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${st.name}" loading="lazy" decoding="async"></div>`;
                 
                 const role = st.role ? `<span class="person-badge">${st.role}</span>` : '';
+                const subText = st.nickname ? st.nickname : '';
+                const tgLink = st.tg ? `@${st.tg}` : ''; 
                 
-                // Передаем маркер TG_BTN, шаблон сам подставит иконку из icons.js
-                return GroupTemplate.renderPerson(st.name, `@${st.nickname}`, avatar, role, st.tg ? 'TG_BTN' : '');
+                // Передаем st.id первым аргументом
+                return GroupTemplate.renderPerson(st.id, st.name, subText, avatar, role, tgLink ? 'TG_BTN' : '');
             }).join('');
         } 
         else if (this.currentTab === 'teachers') {
-            statsContainer.innerHTML = GroupTemplate.renderStats('teachers', this.teachersData.length);
+            const totalTeachers = this.adminData.length + this.teachersData.length;
+            statsContainer.innerHTML = GroupTemplate.renderStats('teachers', totalTeachers);
 
-            html = this.teachersData.map(tch => {
-                const initial = tch.name.charAt(0).toUpperCase();
-                const avatar = !tch.avatar ? 
-                    `<div class="person-avatar" style="background: ${UIUtils.getAvatarGradient(tch.rawName)}">${initial}</div>` : 
-                    `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${tch.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${tch.name}" loading="lazy" decoding="async"></div>`;
-                
-                const subjectsHtml = tch.subjects.map(subj => `<span class="person-badge teacher-subject">${subj}</span>`).join('');
-                return GroupTemplate.renderPerson(tch.name, subjectsHtml, avatar);
-            }).join('');
+            const renderSection = (title, data) => {
+                let sectionHtml = `<h3 class="group-list-header">${title}</h3>`;
+                sectionHtml += data.map(person => {
+                    const initial = person.name.charAt(0).toUpperCase();
+                    const avatar = !person.avatar ? 
+                        `<div class="person-avatar" style="background: ${UIUtils.getAvatarGradient(person.rawName)}">${initial}</div>` : 
+                        `<div class="person-avatar" style="padding: 0; overflow: hidden;"><img src="${person.avatar}" style="width: 100%; height: 100%; object-fit: cover;" alt="${person.name}" loading="lazy" decoding="async"></div>`;
+                    
+                    const rolesHtml = person.roles.map(role => `<span class="person-badge teacher-subject">${role}</span>`).join('');
+                    // Передаем rawName в качестве ID, чтобы можно было стилизовать и преподов
+                    return GroupTemplate.renderPerson(person.rawName, person.name, rolesHtml, avatar);
+                }).join('');
+                return sectionHtml;
+            };
+            
+            if (this.adminData.length > 0) html += renderSection('Администрация', this.adminData);
+            if (this.teachersData.length > 0) html += renderSection('Преподавательский состав', this.teachersData);
         }
 
         listContainer.innerHTML = html || `<li class="placeholder-card" style="text-align:center;">Список пуст</li>`;
@@ -6047,28 +7470,30 @@ export class MinesweeperView extends BaseGameView {
 
 /* =====================================================================
    FILE: js/views/ScheduleView.js
-   LINES: 383
+   LINES: 449
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/ScheduleView.js
 ===================================================================== */
 import { ApiService } from '../services/api.js';
-import { getCurrentScheduleStatus, getDateStringForDay, formatMinutes } from '../utils/time.js';
+import { getCurrentScheduleStatus, getDateStringForDay, formatMinutes, getHolidayStatus } from '../utils/time.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Store } from '../store.js';
 import { ScheduleTemplate } from '../templates/ScheduleTemplate.js';
+import { UIUtils } from '../utils/ui.js';
 
 export class ScheduleView {
     constructor(container) {
         this.container = container;
         this.liveTimerId = null;
         this.unsubscribeStore = null;
-        this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
+        this.cached = { widgetContainer: null, countdownContainer: null, timeEl: null, progressEl: null, countdownTimeEl: null, pairCards: [] };
         this.currentWidgetState = null; 
+        this.activeHolidayId = null;
         this.isMounted = false;
         this.state = {
-            bells: [], base: {}, currentDayNum: 1, selectedDay: 1,
+            bells: [], base: {}, holidays: [], currentDayNum: 1, selectedDay: 1,
             selectedDayOverride: null, todayOverride: null, showActual: true
         };
         
@@ -6094,19 +7519,20 @@ export class ScheduleView {
         });
 
         try {
-            const [bells, baseSchedule] = await Promise.all([
+            const [bells, baseSchedule, holidays] = await Promise.all([
                 ApiService.getBells(),
-                ApiService.getSchedule()
+                ApiService.getSchedule(),
+                ApiService.getHolidays()
             ]);
 
             if (!this.isMounted) return;
 
             this.state.bells = bells || [];
             this.state.base = baseSchedule || {};
+            this.state.holidays = holidays || [];
             
             const currentDayReal = new Date().getDay();
             this.state.currentDayNum = (currentDayReal >= 1 && currentDayReal <= 5) ? currentDayReal : 1;
-            
             this.state.selectedDay = params.day ? Number(params.day) : this.state.currentDayNum;
 
             const todayStr = getDateStringForDay(this.state.currentDayNum);
@@ -6143,8 +7569,9 @@ export class ScheduleView {
         if (this.liveTimerId) clearInterval(this.liveTimerId);
         if (this.unsubscribeStore) this.unsubscribeStore();
         
-        this.cached = { widgetContainer: null, timeEl: null, progressEl: null, pairCards: [] };
+        this.cached = { widgetContainer: null, countdownContainer: null, timeEl: null, progressEl: null, countdownTimeEl: null, pairCards: [] };
         this.currentWidgetState = null;
+        this.activeHolidayId = null;
         this.container.removeEventListener('click', this.handleGlobalClick);
     }
 
@@ -6170,6 +7597,7 @@ export class ScheduleView {
 
     renderLayout() {
         this.container.innerHTML = `
+            <section id="countdown-widget-container"></section>
             <section id="live-widget-container"></section>
             
             <div class="schedule-controls-container">
@@ -6193,6 +7621,7 @@ export class ScheduleView {
             <ul id="schedule-list" class="schedule-list"></ul>
         `;
         this.cached.widgetContainer = document.getElementById('live-widget-container');
+        this.cached.countdownContainer = document.getElementById('countdown-widget-container');
     }
 
     async changeDay(newDay, direction) {
@@ -6361,15 +7790,71 @@ export class ScheduleView {
 
     renderWidgetHTML(status) {
         if (!this.cached.widgetContainer) return;
-        
         this.cached.widgetContainer.innerHTML = ScheduleTemplate.renderWidget(status);
         this.cached.timeEl = document.getElementById('widget-time');
         this.cached.progressEl = document.getElementById('widget-progress');
     }
 
+    // НОВЫЙ АЛГОРИТМ ОБНОВЛЕНИЯ ВИДЖЕТА ПРАЗДНИКА
+    updateCountdownWidget() {
+        if (!this.cached.countdownContainer || !this.state.holidays.length) return;
+
+        let closestHoliday = null;
+        let minDiffMs = Infinity;
+        let isHolidayToday = false;
+
+        for (const h of this.state.holidays) {
+            const status = getHolidayStatus(h.date);
+
+            // Если праздник сегодня — он получает высший приоритет
+            if (status.isToday) {
+                closestHoliday = { ...h, status };
+                isHolidayToday = true;
+                break; 
+            }
+
+            // Иначе ищем ближайший в будущем (учитываем параметр showBeforeDays)
+            if (status.diffDays <= h.showBeforeDays && status.diffMs > 0 && status.diffMs < minDiffMs) {
+                minDiffMs = status.diffMs;
+                closestHoliday = { ...h, status };
+            }
+        }
+
+        if (!closestHoliday) {
+            if (this.activeHolidayId) {
+                this.cached.countdownContainer.innerHTML = '';
+                this.activeHolidayId = null;
+            }
+            return;
+        }
+
+        const timeText = closestHoliday.status.timeText;
+
+        if (this.activeHolidayId !== closestHoliday.id) {
+            this.cached.countdownContainer.innerHTML = ScheduleTemplate.renderCountdown(closestHoliday, timeText);
+            this.cached.countdownTimeEl = document.getElementById('countdown-time-val');
+            this.activeHolidayId = closestHoliday.id;
+
+            // Триггерим конфетти один раз за сессию в день праздника
+            if (isHolidayToday) {
+                const confKey = `sh_confetti_${closestHoliday.id}_${new Date().getFullYear()}`;
+                if (!sessionStorage.getItem(confKey)) {
+                    UIUtils.shootConfetti();
+                    sessionStorage.setItem(confKey, 'true');
+                }
+            }
+        } else {
+            if (this.cached.countdownTimeEl && this.cached.countdownTimeEl.textContent !== timeText) {
+                this.cached.countdownTimeEl.textContent = timeText;
+            }
+        }
+    }
+
     refreshLiveState() {
         if (!this.isMounted) return;
         
+        this.updateCountdownWidget();
+
         const now = new Date();
         const realDay = now.getDay();
         
@@ -6393,7 +7878,11 @@ export class ScheduleView {
         }
 
         if (realDay === 0 || realDay === 6) {
-            this.renderWidgetHTML({ status: 'weekend' });
+            if (this.currentWidgetState !== 'weekend') {
+                this.renderWidgetHTML({ status: 'weekend' });
+                this.currentWidgetState = 'weekend';
+                this.updatePairCardsHighlight({ status: 'weekend' });
+            }
             return;
         }
         
@@ -7196,12 +8685,21 @@ export class TicTacToeView extends BaseGameView {
 }
 
 /* =====================================================================
+   FILE: src_icons/academic-cap.svg
+   LINES: 3
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <path d=
+</svg>
+
+/* =====================================================================
    FILE: src_icons/admin.svg
    LINES: 3
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7210,7 +8708,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <polyline points="15 18 9 12 15 6"></polyline>
+    <polyline points=
 </svg>
 
 /* =====================================================================
@@ -7223,12 +8721,21 @@ export class TicTacToeView extends BaseGameView {
 </svg>
 
 /* =====================================================================
+   FILE: src_icons/book-open.svg
+   LINES: 3
+===================================================================== */
+
+<svg viewBox="0 0 24 24">
+    <path d=
+</svg>
+
+/* =====================================================================
    FILE: src_icons/check.svg
    LINES: 3
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <polyline points="20 6 9 17 4 12"></polyline>
+    <polyline points=
 </svg>
 
 /* =====================================================================
@@ -7237,7 +8744,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <polyline points="6 9 12 15 18 9"></polyline>
+    <polyline points=
 </svg>
 
 /* =====================================================================
@@ -7246,7 +8753,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <polyline points="9 18 15 12 9 6"></polyline>
+    <polyline points=
 </svg>
 
 /* =====================================================================
@@ -7255,7 +8762,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+    <circle cx=
 </svg>
 
 /* =====================================================================
@@ -7264,7 +8771,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+    <line x1=
 </svg>
 
 /* =====================================================================
@@ -7273,7 +8780,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7282,7 +8789,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
+    <circle cx=
 </svg>
 
 /* =====================================================================
@@ -7291,7 +8798,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7309,7 +8816,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <circle cx="9" cy="12" r="4"/><path d="M11 12h4l2-2v4z"/><rect x="18" y="2" width="4" height="8"/><rect x="18" y="16" width="4" height="6"/>
+    <circle cx=
 </svg>
 
 /* =====================================================================
@@ -7318,7 +8825,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line>
+    <rect x=
 </svg>
 
 /* =====================================================================
@@ -7348,7 +8855,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7357,27 +8864,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-events-halloween.svg
-   LINES: 3
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <path d="M12 2 L6 16 L2 16 L2 20 L22 20 L22 16 L18 16 Z"></path>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-events-new-year.svg
-   LINES: 5
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <circle cx="12" cy="14" r="6"></circle>
-    <rect x="10" y="6" width="4" height="2"></rect>
-    <line x1="12" y1="2" x2="12" y2="6"></line>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7386,145 +8873,43 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-games-halloween.svg
-   LINES: 5
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
-    <line x1="2" y1="6" x2="8" y2="10"></line><line x1="22" y1="6" x2="16" y2="10"></line>
-    <line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-games-new-year.svg
-   LINES: 6
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
-    <line x1="12" y1="6" x2="12" y2="18"></line>
-    <line x1="8" y1="2" x2="12" y2="6"></line>
-    <line x1="16" y1="2" x2="12" y2="6"></line>
+    <polygon points=
 </svg>
 
 /* =====================================================================
    FILE: src_icons/nav-games.svg
-   LINES: 7
+   LINES: 3
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
-    <line x1="6" y1="12" x2="10" y2="12"></line>
-    <line x1="8" y1="10" x2="8" y2="14"></line>
-    <line x1="15" y1="13" x2="15.01" y2="13"></line>
-    <line x1="18" y1="11" x2="18.01" y2="11"></line>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-group-halloween.svg
-   LINES: 4
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <path d="M9 22 V12 A5 5 0 0 1 19 12 V22 L17 20 L15 22 L13 20 L11 22 L9 20 Z"></path>
-    <circle cx="12" cy="10" r="1"></circle><circle cx="16" cy="10" r="1"></circle>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-group-new-year.svg
-   LINES: 5
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <circle cx="12" cy="8" r="3"></circle>
-    <circle cx="12" cy="16" r="5"></circle>
-    <path d="M9 8 H15"></path>
+    <rect x=
 </svg>
 
 /* =====================================================================
    FILE: src_icons/nav-group.svg
-   LINES: 6
+   LINES: 3
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-homework-halloween.svg
-   LINES: 5
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-    <circle cx="10" cy="14" r="1"></circle><circle cx="14" cy="14" r="1"></circle>
-    <path d="M10 17 L12 16 L14 17"></path>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-homework-new-year.svg
-   LINES: 5
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-    <path d="M12 10 L9 14 H15 L12 10 Z"></path>
-    <path d="M12 14 L8 18 H16 L12 14 Z"></path>
+    <path d=
 </svg>
 
 /* =====================================================================
    FILE: src_icons/nav-homework.svg
-   LINES: 7
+   LINES: 3
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-    <polyline points="14 2 14 8 20 8"></polyline>
-    <line x1="16" y1="13" x2="8" y2="13"></line>
-    <line x1="16" y1="17" x2="8" y2="17"></line>
-    <polyline points="10 9 9 9 8 9"></polyline>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-schedule-halloween.svg
-   LINES: 4
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
-    <line x1="12" y1="10" x2="12" y2="16"></line><circle cx="12" cy="17" r="1"></circle>
-</svg>
-
-/* =====================================================================
-   FILE: src_icons/nav-schedule-new-year.svg
-   LINES: 6
-===================================================================== */
-
-<svg viewBox="0 0 24 24">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
-    <line x1="12" y1="13" x2="12" y2="19"></line>
-    <line x1="9.5" y1="14.5" x2="14.5" y2="17.5"></line>
-    <line x1="9.5" y1="17.5" x2="14.5" y2="14.5"></line>
+    <path d=
 </svg>
 
 /* =====================================================================
    FILE: src_icons/nav-schedule.svg
-   LINES: 6
+   LINES: 3
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-    <line x1="16" y1="2" x2="16" y2="6"></line>
-    <line x1="8" y1="2" x2="8" y2="6"></line>
-    <line x1="3" y1="10" x2="21" y2="10"></line>
+    <rect x=
 </svg>
 
 /* =====================================================================
@@ -7533,7 +8918,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M1 1l22 22"></path><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7542,7 +8927,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+    <line x1=
 </svg>
 
 /* =====================================================================
@@ -7551,7 +8936,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7560,7 +8945,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    <circle cx=
 </svg>
 
 /* =====================================================================
@@ -7578,7 +8963,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M4 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M2 14v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4"/><circle cx="18" cy="10" r="1"/>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7587,7 +8972,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
+    <circle cx=
 </svg>
 
 /* =====================================================================
@@ -7596,7 +8981,7 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+    <path d=
 </svg>
 
 /* =====================================================================
@@ -7627,5 +9012,5 @@ export class TicTacToeView extends BaseGameView {
 ===================================================================== */
 
 <svg viewBox="0 0 24 24">
-    <path d="M10.29 3.86L1.82 18A2 2 0 0 0 3.53 21H20.47A2 2 0 0 0 22.18 18L13.71 3.86A2 2 0 0 0 10.29 3.86Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+    <path d=
 </svg>

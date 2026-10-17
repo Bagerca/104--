@@ -1,5 +1,20 @@
 [
   {
+    "id": "minecraft_server",
+    "title": "Сервер Minecraft",
+    "description": "",
+    "date": "Актуально",
+    "time": "24/7",
+    "location": "Онлайн",
+    "badges": [
+      { "icon": "info", "text": "Версия 1.21.11" },
+      { "icon": "copy", "text": "104k.sosal.today", "copy": "104k.sosal.today" }
+    ],
+    "image": "img/minecraft.webp",
+    "link": "https://discord.gg/jkvPPs2RG",
+    "link_text": "Discord"
+  },
+  {
     "id": "clash_royale",
     "title": "Клан Clash Royale",
     "description": "",
@@ -7,7 +22,8 @@
     "time": "24/7",
     "location": "",
     "image": "img/cr-clan.webp",
-    "link": "https://link.clashroyale.com/invite/clan/ru?tag=GRVJV2UR&token=x6cmxps6&platform=android"
+    "link": "https://link.clashroyale.com/invite/clan/ru?tag=GRVJV2UR&token=x6cmxps6&platform=android",
+    "link_text": "Подробнее / Вступить"
   },
   {
     "id": "volleyball",

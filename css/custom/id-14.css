@@ -1,0 +1,102 @@
+/* =====================================================================
+   FILE: css/custom/id-14.css
+===================================================================== */
+
+/* =====================================================================
+   ID 14: Котовский Даниил (Counter-Strike 2 - True Tactical V2.2)
+   * Исправлен баг со стыком диагоналей (Perfect Masking)
+===================================================================== */
+.person-card[data-id="14"] {
+    /* Левая часть: оружейная сталь. Правая: CS2 Orange */
+    background: linear-gradient(110deg, #141518 65%, #D36124 65%, #F49D2B 100%) !important;
+    border: 1px solid #232529 !important;
+    border-radius: 4px !important;
+    position: relative;
+    overflow: hidden;
+    
+    box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.6) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    z-index: 1;
+}
+
+.person-card[data-id="14"]:active {
+    transform: scale(0.98) translateY(2px);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* ТАКТИЧЕСКАЯ ТЕКСТУРА (Кевлар с идеальным срезом) */
+.person-card[data-id="14"]::before {
+    content: '';
+    position: absolute;
+    /* Растягиваем на всю ширину, обрезать будем маской */
+    top: 0; left: 0; right: 0; bottom: 0; 
+    
+    background: 
+        /* Тень слева (вместо проблемного box-shadow) */
+        linear-gradient(to right, rgba(0, 0, 0, 0.6) 0%, transparent 40%),
+        /* Диагональные микро-полосы кевлара */
+        repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 2px, transparent 2px, transparent 4px);
+    
+    /* ИДЕАЛЬНЫЙ СРЕЗ: Маска точно повторяет угол фона (110deg на 65%) */
+    -webkit-mask-image: linear-gradient(110deg, black 65%, transparent 65%);
+    mask-image: linear-gradient(110deg, black 65%, transparent 65%);
+    
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ИМЯ */
+.person-card[data-id="14"] .person-name-text {
+    color: #FFFFFF !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-size: 1.1rem !important;
+    font-weight: 900 !important;
+    font-style: italic !important;
+    letter-spacing: -0.2px !important;
+    text-transform: uppercase !important;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.9) !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* ПОДПИСЬ */
+.person-card[data-id="14"] .person-sub {
+    color: #7D8590 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* АВАТАРКА (Тайное / Золото) */
+.person-card[data-id="14"] .person-avatar {
+    border-radius: 2px !important;
+    border: 1px solid #32373D !important;
+    border-bottom: 4px solid #FFD700 !important; 
+    
+    background: radial-gradient(circle at top right, #3A414B 0%, #141518 100%) !important;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.8) !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* КНОПКА ТГ */
+.person-card[data-id="14"] .person-action-btn {
+    background: #141518 !important;
+    color: #F49D2B !important;
+    border: 2px solid #000000 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.1s ease, background 0.1s ease, color 0.1s ease;
+}
+
+.person-card[data-id="14"] .person-action-btn:active {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+    transform: scale(0.9);
+    border-color: #F49D2B !important; 
+}

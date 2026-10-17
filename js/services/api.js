@@ -1,9 +1,8 @@
 /* =====================================================================
    FILE: js/services/api.js
-   ОПТИМИЗАЦИЯ: Добавлено логирование ошибки протокола file://
 ===================================================================== */
 const cache = new Map();
-let globalCacheBuster = ''; // Уникальный токен для обхода кэша
+let globalCacheBuster = ''; 
 
 async function fetchJson(url, useCache = true, fetchOptions = {}) {
     const finalUrl = globalCacheBuster ? `${url}?bust=${globalCacheBuster}` : url;
@@ -22,12 +21,9 @@ async function fetchJson(url, useCache = true, fetchOptions = {}) {
         return data;
     } catch (error) {
         console.error(`[ApiService] Ошибка загрузки ${url}:`, error);
-        
-        // Диагностика протокола для локальной разработки
         if (window.location.protocol === 'file:') {
             console.warn('[ApiService] Внимание: Вы используете протокол file://. Fetch API блокирует запросы к файлам из-за CORS. Для тестирования используйте веб-сервер (например, VS Code Live Server).');
         }
-        
         return null; 
     }
 }
@@ -43,6 +39,7 @@ export const ApiService = {
     getStudents: () => fetchJson('data/students.json'),
     getTeachers: () => fetchJson('data/teachers.json'),
     getEvents: () => fetchJson('data/events.json', true, { cache: 'no-cache' }),
+    getHolidays: () => fetchJson('data/holidays.json', true, { cache: 'no-cache' }),
     
     getOverride: (dateStr) => fetchJson(`data/overrides/${dateStr}.json`, true, { cache: 'no-cache' }),
 

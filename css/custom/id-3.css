@@ -1,0 +1,118 @@
+/* =====================================================================
+   FILE: css/custom/id-3.css
+===================================================================== */
+
+/* =====================================================================
+   ID 3: Бебия Баграт (Bendy & The Ink Machine - True Ink V4)
+===================================================================== */
+.person-card[data-id="3"] {
+    /* Фактура: Цвет старого пергамента + Виньетка (затемнение по краям) + Текстура пленки */
+    background-color: #DAB062 !important; 
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 20%, rgba(30, 20, 5, 0.6) 130%),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px) !important;
+    
+    border: 3px solid #111111 !important;
+    border-radius: 6px !important; /* Менее круглые углы, как у старых фотокарточек */
+    position: relative;
+    overflow: hidden;
+    
+    /* 3D эффект: Выпирание над фоном */
+    box-shadow: 
+        inset 0 0 15px rgba(0,0,0,0.3), /* Внутренняя грязь */
+        5px 5px 0px #111111 !important; /* Внешняя жесткая тень */
+        
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    z-index: 1;
+}
+
+/* Вдавливание всей карточки при клике */
+.person-card[data-id="3"]:active {
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0px #111111 !important;
+}
+
+/* ИДЕАЛЬНЫЕ ЧЕРНИЛЬНЫЕ ПОТЕКИ СВЕРХУ (SVG паттерн) */
+.person-card[data-id="3"]::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 25px;
+    /* Рукописный SVG контур тяжелых чернил, который бесшовно повторяется */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 25" preserveAspectRatio="none"><path d="M 0 0 L 100 0 L 100 5 C 90 5 85 20 75 20 C 65 20 60 5 50 5 C 40 5 35 15 25 15 C 15 15 10 5 0 5 Z" fill="%23111111"/></svg>');
+    background-size: 80px 25px; /* Ширина одного блока потеков */
+    background-repeat: repeat-x; /* Размножаем по всей ширине */
+    z-index: 0;
+    pointer-events: none;
+    /* Легкая тень от чернил на бумагу */
+    filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.4));
+}
+
+/* АВАТАРКА: Ретро-кадр с эффектом сепии и объемом */
+.person-card[data-id="3"] .person-avatar {
+    border: 3px solid #111111 !important;
+    border-radius: 8px !important; /* Почти квадрат */
+    background: #111111 !important;
+    
+    /* Жесткий фильтр: Желтит, повышает контраст */
+    filter: sepia(1) contrast(1.4) brightness(0.85) grayscale(0.2) !important;
+    
+    /* Выпирает над карточкой */
+    box-shadow: 3px 3px 0px rgba(17, 17, 17, 0.7) !important;
+    transform: rotate(-4deg); /* Небрежно приклеена */
+    position: relative;
+    z-index: 2;
+}
+
+/* ТЕКСТ ИМЕНИ: Эффект выдавленной типографской печати */
+.person-card[data-id="3"] .person-name-text {
+    color: #111111 !important;
+    font-family: 'Impact', 'Arial Black', sans-serif !important;
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    
+    /* Эффект эмбоссинга (вдавленности) */
+    text-shadow: 
+        1.5px 1.5px 0px rgba(17, 17, 17, 0.4), /* Темная краска снизу */
+        -1px -1px 0px rgba(255, 255, 255, 0.4) !important; /* Светлый блик сверху */
+        
+    position: relative;
+    z-index: 2;
+    margin-top: 8px; /* Отступ от чернил сверху */
+}
+
+/* ПОДПИСЬ: Старая печатная машинка */
+.person-card[data-id="3"] .person-sub {
+    color: #2F2112 !important; /* Очень темно-коричневый */
+    font-family: 'Courier New', Courier, monospace !important;
+    font-weight: 800 !important;
+    font-size: 0.85rem !important;
+    position: relative;
+    z-index: 2;
+    text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.2);
+}
+
+/* КНОПКА ТГ: Инвертированная винтажная печать */
+.person-card[data-id="3"] .person-action-btn {
+    background: #111111 !important;
+    color: #DAB062 !important; /* Цвет фона карточки */
+    border: 2px solid #DAB062 !important;
+    border-radius: 50% !important;
+    
+    /* Выпирает над карточкой */
+    box-shadow: 3px 3px 0px rgba(17, 17, 17, 0.6) !important;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.person-card[data-id="3"] .person-action-btn svg {
+    filter: drop-shadow(1px 1px 0px rgba(0,0,0,0.8));
+}
+
+/* Вдавливание кнопки ТГ */
+.person-card[data-id="3"] .person-action-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px rgba(17, 17, 17, 0) !important;
+}

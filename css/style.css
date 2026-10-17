@@ -22,7 +22,6 @@ body {
     transition: background-color var(--transition-smooth);
 }
 
-/* Игровой режим на весь экран (Fullscreen Immersive) */
 body.game-mode-active {
     overflow: hidden !important;
     touch-action: none !important;
@@ -154,6 +153,7 @@ main { padding: var(--spacing-main); }
     border-radius: var(--radius-md);
 }
 
+/* ================= NAV BAR ================= */
 .bottom-nav {
     position: fixed;
     bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
@@ -171,7 +171,36 @@ main { padding: var(--spacing-main); }
     transition: color var(--transition-fast); width: 25%;
 }
 
-.nav-item svg { margin-bottom: 4px; transition: transform var(--transition-fast), stroke var(--transition-fast); }
+.nav-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    background: #FF3B30; /* Красный цвет iOS */
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    height: 16px;
+    min-width: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    pointer-events: none;
+    z-index: 2;
+    animation: popIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.nav-item svg { transition: transform var(--transition-fast), stroke var(--transition-fast); }
 .nav-item.active { color: var(--theme-accent); }
 .nav-item.active svg { transform: translateY(-2px); stroke: var(--theme-accent); }
 
