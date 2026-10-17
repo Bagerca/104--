@@ -1,128 +1,51 @@
 /* =====================================================================
-   FILE: css/custom/id-11.css
-===================================================================== */
-
-/* =====================================================================
-   ID 11: Казаков Максим (The Binding of Isaac - HUD Style V2)
+   ID 11: Казаков Максим (Custom Image Background)
 ===================================================================== */
 .person-card[data-id="11"] {
-    /* Цвет пола + Создаем сетку из пиксельных квадратных плит подвала */
-    background-color: #3b2723 !important; 
+    /* 
+      Тут меняем путь на нужную картинку. 
+      Градиент rgba(0,0,0,0.7) делает левую часть темнее, чтобы белый текст читался.
+    */
     background-image: 
-        linear-gradient(#1a110f 2px, transparent 2px),
-        linear-gradient(90deg, #1a110f 2px, transparent 2px) !important;
-    background-size: 32px 32px !important;
-    background-position: center center !important;
+        linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%), 
+        url('../../img/kazakov-bg.jpg') !important;
     
-    border: 3px solid #000000 !important;
-    border-radius: 0 !important; /* Строгий прямоугольник */
-    position: relative;
-    overflow: hidden;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
     
-    /* Густая виньетка (мрак подвала) внутри + Жесткая тень снаружи */
-    box-shadow: 
-        inset 0 0 50px rgba(0, 0, 0, 1), 
-        4px 4px 0px rgba(0, 0, 0, 0.8) !important;
-        
-    transition: transform 0.1s ease;
-    z-index: 1;
-    image-rendering: pixelated !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-/* Эффект получения урона (Нажатие) */
 .person-card[data-id="11"]:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8) !important;
+    transform: scale(0.98);
 }
 
-/* ИМЯ: Острая пиксельная обводка (Без мыла!) */
+/* Делаем текст чисто белым с тенью для читаемости */
 .person-card[data-id="11"] .person-name-text {
-    color: #F4F0E6 !important; /* Костяной белый */
-    font-family: 'Courier New', monospace, sans-serif !important;
-    font-size: 1.15rem !important;
-    font-weight: 900 !important;
-    text-transform: uppercase !important;
-    
-    /* Идеально ровный 1px черный контур + тень вниз */
-    text-shadow: 
-        -1px -1px 0 #000, 1px -1px 0 #000,
-        -1px 1px 0 #000, 1px 1px 0 #000,
-        2px 2px 0 #000 !important;
-        
-    position: relative;
-    z-index: 2;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.9) !important;
 }
 
-/* ПОДПИСЬ И РОЛЬ (Стиль статов: DMG, SPEED) */
-.person-card[data-id="11"] .person-sub,
-.person-card[data-id="11"] .person-badge {
-    color: #A3A3A3 !important; /* Серый цвет статов */
-    font-family: 'Courier New', monospace !important;
-    font-weight: 900 !important;
-    font-size: 0.85rem !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    
-    /* Пиксельная тень */
-    text-shadow: 
-        -1px -1px 0 #000, 1px -1px 0 #000,
-        -1px 1px 0 #000, 1px 1px 0 #000,
-        1.5px 1.5px 0 #000 !important;
-        
-    position: relative;
-    z-index: 2;
+.person-card[data-id="11"] .person-sub {
+    color: rgba(255, 255, 255, 0.85) !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9) !important;
 }
 
-/* Роль выделяем красным (Как ХП / Health Bar) */
-.person-card[data-id="11"] .person-badge {
-    color: #E53935 !important;
-    margin-left: 6px !important;
-}
-
-/* АВАТАРКА: Идеальный слот активного предмета */
-.person-card[data-id="11"] .person-avatar {
-    border-radius: 0 !important; 
-    background: #000000 !important; /* Черная пустота внутри */
-    
-    /* Внутренняя (темная) и внешняя (светлая) рамка слота */
-    border: 3px solid #1a1a1a !important;
-    box-shadow: 
-        0 0 0 3px #4a4a4a, 
-        inset 0 0 10px rgba(0,0,0,1) !important;
-    
-    position: relative;
-    z-index: 2;
-    margin: 3px 10px 3px 3px !important; /* Отступы, чтобы рамка не резалась */
-    color: #FFF !important;
-    font-family: 'Courier New', monospace !important;
-    font-weight: 900 !important;
-}
-
-/* КНОПКА ТГ: Слот пилюли/карты (Q) */
+/* Стеклянная кнопка ТГ, чтобы гармонировала с фоном */
 .person-card[data-id="11"] .person-action-btn {
-    background: #000000 !important;
-    color: #F4F0E6 !important;
-    border-radius: 0 !important;
-    
-    /* Двойная рамка слота */
-    border: 3px solid #1a1a1a !important;
-    box-shadow: 0 0 0 3px #4a4a4a !important;
-    
-    position: relative;
-    z-index: 2;
-    margin: 3px !important;
-    transition: transform 0.1s;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Нажатие кнопки ТГ (Использование предмета) */
 .person-card[data-id="11"] .person-action-btn:active {
-    transform: scale(0.85);
-    background: #111111 !important;
-}
-
-/* Жесткая тень на иконке для эффекта пиксельного спрайта */
-.person-card[data-id="11"] .person-action-btn svg {
-    filter: drop-shadow(2px 2px 0px #000);
+    background: rgba(255, 255, 255, 0.25) !important;
+    transform: scale(0.9);
 }
