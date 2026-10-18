@@ -1,17 +1,6 @@
 /* =====================================================================
    FILE: js/router.js
-===================================================================== */
-import { ScheduleView } from './views/ScheduleView.js';
-import { GroupView } from './views/GroupView.js';
-import { HomeworkView } from './views/HomeworkView.js';
-import { EventsView } from './views/EventsView.js';
-import { SettingsView } from './views/SettingsView.js';
-import { GamesView } from './views/GamesView.js';
-import { SnakeView } from './views/SnakeView.js';
-import { Game2048View } from './views/2048View.js';
-import { FlappyView } from './views/FlappyView.js';
-import { MinesweeperView } from './views/MinesweeperView.js';
-import { TicTacToeView } from './views/TicTacToeView.js';
+==================================================================== */
 import { PrefsManager } from './utils/prefs.js';
 import { Store } from './store.js';
 import { Lightbox } from './components/Lightbox.js';
@@ -22,19 +11,24 @@ export class Router {
         this.contentContainer = document.getElementById('app-content');
         this.pageTitle = document.getElementById('page-title');
         
-        this.views = {
-            '/schedule': new ScheduleView(this.contentContainer),
-            '/group': new GroupView(this.contentContainer),
-            '/homework': new HomeworkView(this.contentContainer),
-            '/events': new EventsView(this.contentContainer),
-            '/settings': new SettingsView(this.contentContainer),
-            '/games': new GamesView(this.contentContainer),
-            '/games/snake': new SnakeView(this.contentContainer),
-            '/games/2048': new Game2048View(this.contentContainer),
-            '/games/flappy': new FlappyView(this.contentContainer),
-            '/games/minesweeper': new MinesweeperView(this.contentContainer),
-            '/games/tictactoe': new TicTacToeView(this.contentContainer)
+        // PERFORMANCE BOOST: Динамические импорты (Code Splitting).
+        // Скрипты экранов и игр скачиваются и компилируются только при первом заходе.
+        this.viewLoaders = {
+            '/schedule': () => import('./views/ScheduleView.js').then(m => m.ScheduleView),
+            '/group': () => import('./views/GroupView.js').then(m => m.GroupView),
+            '/homework': () => import('./views/HomeworkView.js').then(m => m.HomeworkView),
+            '/events': () => import('./views/EventsView.js').then(m => m.EventsView),
+            '/settings': () => import('./views/SettingsView.js').then(m => m.SettingsView),
+            '/games': () => import('./views/GamesView.js').then(m => m.GamesView),
+            '/games/snake': () => import('./views/SnakeView.js').then(m => m.SnakeView),
+            '/games/2048': () => import('./views/2048View.js').then(m => m.Game2048View),
+            '/games/flappy': () => import('./views/FlappyView.js').then(m => m.FlappyView),
+            '/games/minesweeper': () => import('./views/MinesweeperView.js').then(m => m.MinesweeperView),
+            '/games/tictactoe': () => import('./views/TicTacToeView.js').then(m => m.TicTacToeView)
         };
+        
+        // Кэш уже инициализированных экранов
+        this.views = {};
         
         this.currentViewName = null;
         this.currentView = null;
@@ -84,7 +78,6 @@ export class Router {
             return;
         }
 
-        const view = this.views[path];
         const currentRenderId = ++this.renderId;
 
         if (path.startsWith('/games/') && path !== '/games') {
@@ -117,6 +110,14 @@ export class Router {
 
             if (this.currentView && typeof this.currentView.unmount === 'function') {
                 this.currentView.unmount();
+            }
+
+            // Динамическая инициализация View из кэша или загрузка
+            let view = this.views[path];
+            if (!view && this.viewLoaders[path]) {
+                const ViewClass = await this.viewLoaders[path]();
+                view = new ViewClass(this.contentContainer);
+                this.views[path] = view;
             }
 
             if (view) {

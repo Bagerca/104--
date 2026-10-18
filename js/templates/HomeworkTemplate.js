@@ -1,7 +1,6 @@
 /* =====================================================================
    FILE: js/templates/HomeworkTemplate.js
-   Шаблоны для раздела Домашних заданий
-===================================================================== */
+==================================================================== */
 import { getIcon } from '../utils/icons.js';
 
 export const HomeworkTemplate = {
@@ -59,9 +58,10 @@ export const HomeworkTemplate = {
             if (hasImages) {
                 extraHtml += `<div class="hw-image-grid">`;
                 task.images.forEach(img => {
+                    // PERFORMANCE BOOST: loading="lazy" + decoding="async"
                     extraHtml += `
                         <div class="hw-image-thumb interactive-element" data-full="${img.url}">
-                            <img src="${img.url}" loading="lazy" onerror="this.parentElement.classList.add('hw-broken'); this.remove();">
+                            <img src="${img.url}" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('hw-broken'); this.remove();">
                         </div>
                     `;
                 });

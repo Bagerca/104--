@@ -1,3 +1,6 @@
+/* =====================================================================
+   FILE: css/style.css
+===================================================================== */
 html { scrollbar-width: none; }
 
 * {
@@ -153,7 +156,10 @@ main { padding: var(--spacing-main); }
 /* ================= NAV BAR ================= */
 .bottom-nav {
     position: fixed;
-    bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+    bottom: calc(20px + env(safe-area-inset-bottom)); 
+    left: 50%; 
+    /* ФИКС: Объединили центрирование по X и вынос на GPU по Z */
+    transform: translateX(-50%) translateZ(0); 
     width: calc(100% - 32px); max-width: 568px;
     display: flex; justify-content: space-around;
     padding: 12px 0; border-radius: 30px; 
@@ -164,7 +170,7 @@ main { padding: var(--spacing-main); }
 .nav-item {
     display: flex; flex-direction: column; align-items: center;
     text-decoration: none; color: var(--text-secondary);
-    font-size: 0.62rem; /* Уменьшено на 5% */
+    font-size: 0.62rem;
     font-weight: 500;
     transition: color var(--transition-fast); width: 25%;
 }
@@ -179,9 +185,9 @@ main { padding: var(--spacing-main); }
 
 .nav-badge {
     position: absolute;
-    top: -3px; /* Пододвинуто ближе из-за уменьшенной иконки */
-    right: -6px; /* Пододвинуто ближе из-за уменьшенной иконки */
-    background: #FF3B30; /* Красный цвет iOS */
+    top: -3px;
+    right: -6px;
+    background: #FF3B30;
     color: #ffffff;
     font-size: 0.65rem;
     font-weight: 700;
@@ -202,7 +208,6 @@ main { padding: var(--spacing-main); }
 .nav-item.active { color: var(--theme-accent); }
 .nav-item.active svg { transform: translateY(-2px); stroke: var(--theme-accent); }
 
-/* Заблокированная кнопка навигации */
 .nav-item.nav-item-disabled {
     pointer-events: none !important;
     cursor: not-allowed !important;
@@ -228,7 +233,7 @@ main { padding: var(--spacing-main); }
     position: absolute;
     top: 14px;
     left: 50%;
-    width: 26px; /* Чуть уменьшил зачеркивание */
+    width: 26px;
     height: 2px;
     background-color: var(--theme-accent-text);
     transform: translateX(-50%) rotate(-45deg);
@@ -285,4 +290,20 @@ body.power-save-mode #seasonal-fx-container {
     width: 100%;
     height: 100%;
     display: block;
+}
+
+/* =====================================================================
+   PERFORMANCE BOOST (Hardware Acceleration & Layout Optimization)
+===================================================================== */
+.pair-card, .person-card, .event-card, .holiday-card, .hw-subject-card, .game-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 150px;
+}
+
+/* ФИКС: Включаем аппаратное ускорение только через will-change. 
+   Мы убрали жесткий transform: translateZ(0) отсюда, чтобы не затирать 
+   позиционирование (translateX / translateY) у панелей и модалок */
+.app-header, .bottom-nav, .glass, .custom-theme-modal, .toast-notification {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
 }

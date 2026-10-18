@@ -1,3 +1,6 @@
+/* =====================================================================
+   FILE: js/app.js
+==================================================================== */
 import { Router } from './router.js';
 import { ThemeManager } from './utils/theme.js';
 import { PrefsManager } from './utils/prefs.js';
@@ -26,7 +29,6 @@ function renderBottomNav() {
     navEl.innerHTML = navOrder.filter(id => navMap[id]).map(id => {
         const iconKey = `nav-${id}`;
         
-        // РАЗБЛОКИРОВКА ДЛЯ АДМИНА: Если это ДЗ и пользователь НЕ админ - блокируем
         const isDisabled = id === 'homework' && !PrefsManager.isAdmin();
         
         let badgeHtml = '';
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initPullToRefresh() {
-    let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null;
+    let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null, ptrRaf = null;
     
     document.addEventListener('touchstart', (e) => {
         if (document.body.classList.contains('game-mode-active')) return;
@@ -145,16 +147,23 @@ function initPullToRefresh() {
         if (!isPtrActive || !ptrEl) return;
         ptrCurrentY = e.touches[0].clientY;
         const diff = ptrCurrentY - ptrStartY;
+        
         if (diff > 0 && window.scrollY === 0) {
-            const pull = Math.min(diff * 0.4, 60);
-            ptrEl.style.transform = `translateY(${pull}px) rotate(${pull * 3}deg)`;
-            ptrEl.style.opacity = Math.min(pull / 60, 1);
+            // PERFORMANCE BOOST: rAF Debouncing
+            if (ptrRaf) cancelAnimationFrame(ptrRaf);
+            ptrRaf = requestAnimationFrame(() => {
+                const pull = Math.min(diff * 0.4, 60);
+                ptrEl.style.transform = `translateY(${pull}px) rotate(${pull * 3}deg)`;
+                ptrEl.style.opacity = Math.min(pull / 60, 1);
+            });
         }
     }, {passive: true});
 
     document.addEventListener('touchend', async () => {
         if (!isPtrActive || !ptrEl) return;
         isPtrActive = false;
+        if (ptrRaf) cancelAnimationFrame(ptrRaf);
+        
         if (ptrCurrentY - ptrStartY > 120 && window.scrollY === 0) {
             PrefsManager.vibrate(20);
             ptrEl.classList.add('refreshing'); ptrEl.style.transform = `translateY(50px) rotate(360deg)`;

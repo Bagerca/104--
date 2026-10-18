@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: js/templates/GamesTemplate.js
-===================================================================== */
+==================================================================== */
 export const GamesTemplate = {
     renderList(games) {
         return `
@@ -14,7 +14,8 @@ export const GamesTemplate = {
         return `
             <article class="game-card">
                 <div class="game-cover">
-                    <img src="${game.cover}" alt="${game.title}" class="game-cover-img" loading="lazy">
+                    <!-- PERFORMANCE BOOST: decoding="async" -->
+                    <img src="${game.cover}" alt="${game.title}" class="game-cover-img" loading="lazy" decoding="async">
                 </div>
                 <div class="game-body">
                     <div class="game-title-row">

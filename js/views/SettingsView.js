@@ -1,6 +1,6 @@
 /* =====================================================================
    FILE: js/views/SettingsView.js
-===================================================================== */
+==================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Modal } from '../components/Modal.js';
@@ -272,6 +272,7 @@ export class SettingsView {
         let clone = null;
         let offsetX = 0;
         let offsetY = 0;
+        let moveRaf = null;
 
         const getEvent = (e) => e.touches ? e.touches[0] : e;
 
@@ -312,32 +313,37 @@ export class SettingsView {
         const onMove = (e) => {
             if (!activeItem || !clone) return;
             e.preventDefault(); 
-            
             const evt = getEvent(e);
             
-            clone.style.left = `${evt.clientX - offsetX}px`;
-            clone.style.top = `${evt.clientY - offsetY}px`;
+            // PERFORMANCE BOOST: rAF Debouncing для Drag & Drop
+            if (moveRaf) cancelAnimationFrame(moveRaf);
+            moveRaf = requestAnimationFrame(() => {
+                clone.style.left = `${evt.clientX - offsetX}px`;
+                clone.style.top = `${evt.clientY - offsetY}px`;
 
-            const hoveredEl = document.elementFromPoint(evt.clientX, evt.clientY);
-            if (!hoveredEl) return;
+                const hoveredEl = document.elementFromPoint(evt.clientX, evt.clientY);
+                if (!hoveredEl) return;
 
-            const targetItem = hoveredEl.closest('.nav-reorder-item:not(.drag-placeholder)');
-            
-            if (targetItem && targetItem.parentNode === listContainer) {
-                const targetRect = targetItem.getBoundingClientRect();
-                const targetCenter = targetRect.top + (targetRect.height / 2);
+                const targetItem = hoveredEl.closest('.nav-reorder-item:not(.drag-placeholder)');
                 
-                if (evt.clientY < targetCenter) {
-                    listContainer.insertBefore(activeItem, targetItem);
-                } else {
-                    listContainer.insertBefore(activeItem, targetItem.nextSibling);
+                if (targetItem && targetItem.parentNode === listContainer) {
+                    const targetRect = targetItem.getBoundingClientRect();
+                    const targetCenter = targetRect.top + (targetRect.height / 2);
+                    
+                    if (evt.clientY < targetCenter) {
+                        listContainer.insertBefore(activeItem, targetItem);
+                    } else {
+                        listContainer.insertBefore(activeItem, targetItem.nextSibling);
+                    }
+                    if (navigator.vibrate) navigator.vibrate(5);
                 }
-                if (navigator.vibrate) navigator.vibrate(5);
-            }
+            });
         };
 
         const onEnd = () => {
             if (!activeItem) return;
+            if (moveRaf) cancelAnimationFrame(moveRaf);
+            
             if (clone) clone.remove();
             clone = null;
 
@@ -366,6 +372,7 @@ export class SettingsView {
         const slider = document.getElementById('theme-scroll-wrapper');
         if (!slider) return;
         let isDown = false, startX, scrollLeft;
+        let scrollRaf = null;
         this.isDragging = false; 
 
         slider.addEventListener('mousedown', (e) => { isDown = true; this.isDragging = false; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
@@ -374,9 +381,14 @@ export class SettingsView {
         slider.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
-            const walk = (e.pageX - slider.offsetLeft - startX) * 2; 
-            if (Math.abs(walk) > 5) this.isDragging = true;
-            slider.scrollLeft = scrollLeft - walk;
+            
+            // PERFORMANCE BOOST: rAF Debouncing для слайдера тем
+            if (scrollRaf) cancelAnimationFrame(scrollRaf);
+            scrollRaf = requestAnimationFrame(() => {
+                const walk = (e.pageX - slider.offsetLeft - startX) * 2; 
+                if (Math.abs(walk) > 5) this.isDragging = true;
+                slider.scrollLeft = scrollLeft - walk;
+            });
         });
     }
 }
