@@ -1,6 +1,3 @@
-/* =====================================================================
-   FILE: js/app.js
-===================================================================== */
 import { Router } from './router.js';
 import { ThemeManager } from './utils/theme.js';
 import { PrefsManager } from './utils/prefs.js';
@@ -41,7 +38,7 @@ function renderBottomNav() {
             return `
                 <div class="nav-item nav-item-disabled" data-icon="${id}" data-title="${navMap[id].title}" aria-disabled="true" tabindex="-1">
                     <div class="nav-icon-wrapper">
-                        ${getIcon(iconKey, { size: 24 })}
+                        ${getIcon(iconKey, { size: 22 })}
                     </div>
                     <span>${navMap[id].title}</span>
                 </div>
@@ -51,7 +48,7 @@ function renderBottomNav() {
         return `
             <a href="#/${id}" class="nav-item" data-icon="${id}" data-title="${navMap[id].title}">
                 <div class="nav-icon-wrapper">
-                    ${getIcon(iconKey, { size: 24 })}
+                    ${getIcon(iconKey, { size: 22 })}
                     ${badgeHtml}
                 </div>
                 <span>${navMap[id].title}</span>

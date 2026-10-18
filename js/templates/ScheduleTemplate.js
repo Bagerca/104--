@@ -1,6 +1,3 @@
-/* =====================================================================
-   FILE: js/templates/ScheduleTemplate.js
-===================================================================== */
 import { formatMinutes } from '../utils/time.js';
 import { getIcon } from '../utils/icons.js';
 
@@ -48,15 +45,14 @@ export const ScheduleTemplate = {
                     </div>
                 </div>`;
 
-            // Умное слияние (Smart Merging) с отображением обоих звонков
+            // Умное слияние (Сэндвич: Урок 1 сверху, Предмет посередине, Урок 2 снизу)
             const renderMergedRow = (num1, num2, time1, time2, subj, room) => {
-                const timeMerged = (time1 && time2) ? `${time1}, ${time2}` : (time1 || time2);
-
                 return `
                 <div class="lesson-row merged">
                     <div class="lesson-details">
-                        <span class="lesson-num" style="color: var(--theme-accent-text);">Уроки ${num1} и ${num2} &bull; ${timeMerged}</span>
-                        <span class="pair-subject" style="font-size: 1.05rem;">${subj}</span>
+                        <span class="lesson-num">Урок ${num1} &bull; ${time1}</span>
+                        <span class="pair-subject" style="font-size: 1.05rem; margin: 4px 0;">${subj}</span>
+                        <span class="lesson-num" style="margin-bottom: 0;">Урок ${num2} &bull; ${time2}</span>
                     </div>
                     ${room ? `<span class="pair-room">${room}</span>` : ''}
                 </div>`;
@@ -66,10 +62,10 @@ export const ScheduleTemplate = {
             let lessonsHtml = '';
 
             if (shouldMerge) {
-                // Если предметы и кабинеты совпадают — рендерим объединенную версию без разделителя
+                // Если предметы и кабинеты совпадают — рендерим "сэндвич"
                 lessonsHtml = renderMergedRow(pairItem.pair * 2 - 1, pairItem.pair * 2, l1Time, l2Time, l1Subj, l1Room);
             } else {
-                // Иначе классический рендер
+                // Иначе классический рендер с полоской разделителя
                 const htmlL1 = renderRow(hasL1, pairItem.pair * 2 - 1, l1Time, l1Subj, l1Room);
                 const htmlL2 = renderRow(hasL2, pairItem.pair * 2, l2Time, l2Subj, l2Room);
                 lessonsHtml = `${htmlL1}<div class="lesson-divider"></div>${htmlL2}`;

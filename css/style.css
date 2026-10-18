@@ -1,6 +1,3 @@
-/* =====================================================================
-   FILE: css/style.css
-===================================================================== */
 html { scrollbar-width: none; }
 
 * {
@@ -167,7 +164,8 @@ main { padding: var(--spacing-main); }
 .nav-item {
     display: flex; flex-direction: column; align-items: center;
     text-decoration: none; color: var(--text-secondary);
-    font-size: 0.65rem; font-weight: 500;
+    font-size: 0.62rem; /* Уменьшено на 5% */
+    font-weight: 500;
     transition: color var(--transition-fast); width: 25%;
 }
 
@@ -181,8 +179,8 @@ main { padding: var(--spacing-main); }
 
 .nav-badge {
     position: absolute;
-    top: -4px;
-    right: -8px;
+    top: -3px; /* Пододвинуто ближе из-за уменьшенной иконки */
+    right: -6px; /* Пододвинуто ближе из-за уменьшенной иконки */
     background: #FF3B30; /* Красный цвет iOS */
     color: #ffffff;
     font-size: 0.65rem;
@@ -230,7 +228,7 @@ main { padding: var(--spacing-main); }
     position: absolute;
     top: 14px;
     left: 50%;
-    width: 28px;
+    width: 26px; /* Чуть уменьшил зачеркивание */
     height: 2px;
     background-color: var(--theme-accent-text);
     transform: translateX(-50%) rotate(-45deg);
