@@ -1,3 +1,6 @@
+/* =====================================================================
+   FILE: js/templates/ScheduleTemplate.js
+===================================================================== */
 import { formatMinutes } from '../utils/time.js';
 import { getIcon } from '../utils/icons.js';
 
@@ -49,10 +52,10 @@ export const ScheduleTemplate = {
             const renderMergedRow = (num1, num2, time1, time2, subj, room) => {
                 return `
                 <div class="lesson-row merged">
-                    <div class="lesson-details">
-                        <span class="lesson-num">Урок ${num1} &bull; ${time1}</span>
-                        <span class="pair-subject" style="font-size: 1.05rem; margin: 4px 0;">${subj}</span>
-                        <span class="lesson-num" style="margin-bottom: 0;">Урок ${num2} &bull; ${time2}</span>
+                    <div class="lesson-details" style="gap: 4px;">
+                        <span class="lesson-num" style="margin: 0; line-height: 1;">Урок ${num1} &bull; ${time1}</span>
+                        <span class="pair-subject" style="font-size: 1.05rem; margin: 0; line-height: 1.2;">${subj}</span>
+                        <span class="lesson-num" style="margin: 0; line-height: 1;">Урок ${num2} &bull; ${time2}</span>
                     </div>
                     ${room ? `<span class="pair-room">${room}</span>` : ''}
                 </div>`;

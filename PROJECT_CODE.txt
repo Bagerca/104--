@@ -1,6 +1,6 @@
 ================================================================================
   ПОЛНЫЙ СБОРНИК КОДА ПРОЕКТА: STUDENT HUB (104к)
-  Дата сборки: 18.10.2026 11:22:09
+  Дата сборки: 25.10.2026 15:44:25
 ================================================================================
 
 
@@ -132,7 +132,7 @@
 /* =====================================================================
    FILE: sw.js
 ===================================================================== */
-const CACHE_NAME = 'student-hub-v32';
+const CACHE_NAME = 'student-hub-v33';
 
 /* =====================================================================
    Фрагмент sw.js (массив ASSETS)
@@ -425,9 +425,12 @@ self.addEventListener('fetch', (event) => {
 
 /* =====================================================================
    FILE: css/style.css
-   LINES: 288
+   LINES: 309
 ===================================================================== */
 
+/* =====================================================================
+   FILE: css/style.css
+===================================================================== */
 html { scrollbar-width: none; }
 
 * {
@@ -583,7 +586,10 @@ main { padding: var(--spacing-main); }
 /* ================= NAV BAR ================= */
 .bottom-nav {
     position: fixed;
-    bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+    bottom: calc(20px + env(safe-area-inset-bottom)); 
+    left: 50%; 
+    /* ФИКС: Объединили центрирование по X и вынос на GPU по Z */
+    transform: translateX(-50%) translateZ(0); 
     width: calc(100% - 32px); max-width: 568px;
     display: flex; justify-content: space-around;
     padding: 12px 0; border-radius: 30px; 
@@ -594,7 +600,7 @@ main { padding: var(--spacing-main); }
 .nav-item {
     display: flex; flex-direction: column; align-items: center;
     text-decoration: none; color: var(--text-secondary);
-    font-size: 0.62rem; /* Уменьшено на 5% */
+    font-size: 0.62rem;
     font-weight: 500;
     transition: color var(--transition-fast); width: 25%;
 }
@@ -609,9 +615,9 @@ main { padding: var(--spacing-main); }
 
 .nav-badge {
     position: absolute;
-    top: -3px; /* Пододвинуто ближе из-за уменьшенной иконки */
-    right: -6px; /* Пододвинуто ближе из-за уменьшенной иконки */
-    background: #FF3B30; /* Красный цвет iOS */
+    top: -3px;
+    right: -6px;
+    background: #FF3B30;
     color: #ffffff;
     font-size: 0.65rem;
     font-weight: 700;
@@ -632,7 +638,6 @@ main { padding: var(--spacing-main); }
 .nav-item.active { color: var(--theme-accent); }
 .nav-item.active svg { transform: translateY(-2px); stroke: var(--theme-accent); }
 
-/* Заблокированная кнопка навигации */
 .nav-item.nav-item-disabled {
     pointer-events: none !important;
     cursor: not-allowed !important;
@@ -658,7 +663,7 @@ main { padding: var(--spacing-main); }
     position: absolute;
     top: 14px;
     left: 50%;
-    width: 26px; /* Чуть уменьшил зачеркивание */
+    width: 26px;
     height: 2px;
     background-color: var(--theme-accent-text);
     transform: translateX(-50%) rotate(-45deg);
@@ -715,6 +720,22 @@ body.power-save-mode #seasonal-fx-container {
     width: 100%;
     height: 100%;
     display: block;
+}
+
+/* =====================================================================
+   PERFORMANCE BOOST (Hardware Acceleration & Layout Optimization)
+===================================================================== */
+.pair-card, .person-card, .event-card, .holiday-card, .hw-subject-card, .game-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 150px;
+}
+
+/* ФИКС: Включаем аппаратное ускорение только через will-change. 
+   Мы убрали жесткий transform: translateZ(0) отсюда, чтобы не затирать 
+   позиционирование (translateX / translateY) у панелей и модалок */
+.app-header, .bottom-nav, .glass, .custom-theme-modal, .toast-notification {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
 }
 
 /* =====================================================================
@@ -3453,6 +3474,25 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 }
 
 /* =====================================================================
+   FILE: data/overrides/26-10-2026.json
+   LINES: 13
+===================================================================== */
+
+{
+  "id": "26-10-2026",
+  "lessons": [
+    {
+      "pair": 1,
+      "lesson1": { "subject": "Информатика", "room": "1/20" },
+      "lesson2": { "subject": "Разговоры о важном", "room": "2/22" }
+    },
+    { "pair": 2, "subject": "География", "room": "2/20" },
+    { "pair": 3, "subject": "Биология", "room": "1/22" },
+    { "pair": 4, "subject": "История", "room": "2/18" }
+  ]
+}
+
+/* =====================================================================
    FILE: data/overrides/30-09-2026.json
    LINES: 9
 ===================================================================== */
@@ -3534,9 +3574,12 @@ button.settings-list-item:active { background: var(--overlay-bg); }
 
 /* =====================================================================
    FILE: js/app.js
-   LINES: 171
+   LINES: 180
 ===================================================================== */
 
+/* =====================================================================
+   FILE: js/app.js
+==================================================================== */
 import { Router } from './router.js';
 import { ThemeManager } from './utils/theme.js';
 import { PrefsManager } from './utils/prefs.js';
@@ -3565,7 +3608,6 @@ function renderBottomNav() {
     navEl.innerHTML = navOrder.filter(id => navMap[id]).map(id => {
         const iconKey = `nav-${id}`;
         
-        // РАЗБЛОКИРОВКА ДЛЯ АДМИНА: Если это ДЗ и пользователь НЕ админ - блокируем
         const isDisabled = id === 'homework' && !PrefsManager.isAdmin();
         
         let badgeHtml = '';
@@ -3658,7 +3700,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initPullToRefresh() {
-    let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null;
+    let ptrStartY = 0, ptrCurrentY = 0, isPtrActive = false, ptrEl = null, ptrRaf = null;
     
     document.addEventListener('touchstart', (e) => {
         if (document.body.classList.contains('game-mode-active')) return;
@@ -3684,16 +3726,23 @@ function initPullToRefresh() {
         if (!isPtrActive || !ptrEl) return;
         ptrCurrentY = e.touches[0].clientY;
         const diff = ptrCurrentY - ptrStartY;
+        
         if (diff > 0 && window.scrollY === 0) {
-            const pull = Math.min(diff * 0.4, 60);
-            ptrEl.style.transform = `translateY(${pull}px) rotate(${pull * 3}deg)`;
-            ptrEl.style.opacity = Math.min(pull / 60, 1);
+            // PERFORMANCE BOOST: rAF Debouncing
+            if (ptrRaf) cancelAnimationFrame(ptrRaf);
+            ptrRaf = requestAnimationFrame(() => {
+                const pull = Math.min(diff * 0.4, 60);
+                ptrEl.style.transform = `translateY(${pull}px) rotate(${pull * 3}deg)`;
+                ptrEl.style.opacity = Math.min(pull / 60, 1);
+            });
         }
     }, {passive: true});
 
     document.addEventListener('touchend', async () => {
         if (!isPtrActive || !ptrEl) return;
         isPtrActive = false;
+        if (ptrRaf) cancelAnimationFrame(ptrRaf);
+        
         if (ptrCurrentY - ptrStartY > 120 && window.scrollY === 0) {
             PrefsManager.vibrate(20);
             ptrEl.classList.add('refreshing'); ptrEl.style.transform = `translateY(50px) rotate(360deg)`;
@@ -3711,23 +3760,12 @@ function initPullToRefresh() {
 
 /* =====================================================================
    FILE: js/router.js
-   LINES: 164
+   LINES: 165
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/router.js
-===================================================================== */
-import { ScheduleView } from './views/ScheduleView.js';
-import { GroupView } from './views/GroupView.js';
-import { HomeworkView } from './views/HomeworkView.js';
-import { EventsView } from './views/EventsView.js';
-import { SettingsView } from './views/SettingsView.js';
-import { GamesView } from './views/GamesView.js';
-import { SnakeView } from './views/SnakeView.js';
-import { Game2048View } from './views/2048View.js';
-import { FlappyView } from './views/FlappyView.js';
-import { MinesweeperView } from './views/MinesweeperView.js';
-import { TicTacToeView } from './views/TicTacToeView.js';
+==================================================================== */
 import { PrefsManager } from './utils/prefs.js';
 import { Store } from './store.js';
 import { Lightbox } from './components/Lightbox.js';
@@ -3738,19 +3776,24 @@ export class Router {
         this.contentContainer = document.getElementById('app-content');
         this.pageTitle = document.getElementById('page-title');
         
-        this.views = {
-            '/schedule': new ScheduleView(this.contentContainer),
-            '/group': new GroupView(this.contentContainer),
-            '/homework': new HomeworkView(this.contentContainer),
-            '/events': new EventsView(this.contentContainer),
-            '/settings': new SettingsView(this.contentContainer),
-            '/games': new GamesView(this.contentContainer),
-            '/games/snake': new SnakeView(this.contentContainer),
-            '/games/2048': new Game2048View(this.contentContainer),
-            '/games/flappy': new FlappyView(this.contentContainer),
-            '/games/minesweeper': new MinesweeperView(this.contentContainer),
-            '/games/tictactoe': new TicTacToeView(this.contentContainer)
+        // PERFORMANCE BOOST: Динамические импорты (Code Splitting).
+        // Скрипты экранов и игр скачиваются и компилируются только при первом заходе.
+        this.viewLoaders = {
+            '/schedule': () => import('./views/ScheduleView.js').then(m => m.ScheduleView),
+            '/group': () => import('./views/GroupView.js').then(m => m.GroupView),
+            '/homework': () => import('./views/HomeworkView.js').then(m => m.HomeworkView),
+            '/events': () => import('./views/EventsView.js').then(m => m.EventsView),
+            '/settings': () => import('./views/SettingsView.js').then(m => m.SettingsView),
+            '/games': () => import('./views/GamesView.js').then(m => m.GamesView),
+            '/games/snake': () => import('./views/SnakeView.js').then(m => m.SnakeView),
+            '/games/2048': () => import('./views/2048View.js').then(m => m.Game2048View),
+            '/games/flappy': () => import('./views/FlappyView.js').then(m => m.FlappyView),
+            '/games/minesweeper': () => import('./views/MinesweeperView.js').then(m => m.MinesweeperView),
+            '/games/tictactoe': () => import('./views/TicTacToeView.js').then(m => m.TicTacToeView)
         };
+        
+        // Кэш уже инициализированных экранов
+        this.views = {};
         
         this.currentViewName = null;
         this.currentView = null;
@@ -3800,7 +3843,6 @@ export class Router {
             return;
         }
 
-        const view = this.views[path];
         const currentRenderId = ++this.renderId;
 
         if (path.startsWith('/games/') && path !== '/games') {
@@ -3833,6 +3875,14 @@ export class Router {
 
             if (this.currentView && typeof this.currentView.unmount === 'function') {
                 this.currentView.unmount();
+            }
+
+            // Динамическая инициализация View из кэша или загрузка
+            let view = this.views[path];
+            if (!view && this.viewLoaders[path]) {
+                const ViewClass = await this.viewLoaders[path]();
+                view = new ViewClass(this.contentContainer);
+                this.views[path] = view;
             }
 
             if (view) {
@@ -4633,12 +4683,12 @@ export const GameShellTemplate = {
 
 /* =====================================================================
    FILE: js/templates/GamesTemplate.js
-   LINES: 33
+   LINES: 34
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/templates/GamesTemplate.js
-===================================================================== */
+==================================================================== */
 export const GamesTemplate = {
     renderList(games) {
         return `
@@ -4652,7 +4702,8 @@ export const GamesTemplate = {
         return `
             <article class="game-card">
                 <div class="game-cover">
-                    <img src="${game.cover}" alt="${game.title}" class="game-cover-img" loading="lazy">
+                    <!-- PERFORMANCE BOOST: decoding="async" -->
+                    <img src="${game.cover}" alt="${game.title}" class="game-cover-img" loading="lazy" decoding="async">
                 </div>
                 <div class="game-body">
                     <div class="game-title-row">
@@ -4760,8 +4811,7 @@ export const GroupTemplate = {
 
 /* =====================================================================
    FILE: js/templates/HomeworkTemplate.js
-   Шаблоны для раздела Домашних заданий
-===================================================================== */
+==================================================================== */
 import { getIcon } from '../utils/icons.js';
 
 export const HomeworkTemplate = {
@@ -4819,9 +4869,10 @@ export const HomeworkTemplate = {
             if (hasImages) {
                 extraHtml += `<div class="hw-image-grid">`;
                 task.images.forEach(img => {
+                    // PERFORMANCE BOOST: loading="lazy" + decoding="async"
                     extraHtml += `
                         <div class="hw-image-thumb interactive-element" data-full="${img.url}">
-                            <img src="${img.url}" loading="lazy" onerror="this.parentElement.classList.add('hw-broken'); this.remove();">
+                            <img src="${img.url}" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('hw-broken'); this.remove();">
                         </div>
                     `;
                 });
@@ -7783,12 +7834,12 @@ export class ScheduleView {
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
-   LINES: 382
+   LINES: 394
 ===================================================================== */
 
 /* =====================================================================
    FILE: js/views/SettingsView.js
-===================================================================== */
+==================================================================== */
 import { ThemeManager } from '../utils/theme.js';
 import { PrefsManager } from '../utils/prefs.js';
 import { Modal } from '../components/Modal.js';
@@ -8060,6 +8111,7 @@ export class SettingsView {
         let clone = null;
         let offsetX = 0;
         let offsetY = 0;
+        let moveRaf = null;
 
         const getEvent = (e) => e.touches ? e.touches[0] : e;
 
@@ -8100,32 +8152,37 @@ export class SettingsView {
         const onMove = (e) => {
             if (!activeItem || !clone) return;
             e.preventDefault(); 
-            
             const evt = getEvent(e);
             
-            clone.style.left = `${evt.clientX - offsetX}px`;
-            clone.style.top = `${evt.clientY - offsetY}px`;
+            // PERFORMANCE BOOST: rAF Debouncing для Drag & Drop
+            if (moveRaf) cancelAnimationFrame(moveRaf);
+            moveRaf = requestAnimationFrame(() => {
+                clone.style.left = `${evt.clientX - offsetX}px`;
+                clone.style.top = `${evt.clientY - offsetY}px`;
 
-            const hoveredEl = document.elementFromPoint(evt.clientX, evt.clientY);
-            if (!hoveredEl) return;
+                const hoveredEl = document.elementFromPoint(evt.clientX, evt.clientY);
+                if (!hoveredEl) return;
 
-            const targetItem = hoveredEl.closest('.nav-reorder-item:not(.drag-placeholder)');
-            
-            if (targetItem && targetItem.parentNode === listContainer) {
-                const targetRect = targetItem.getBoundingClientRect();
-                const targetCenter = targetRect.top + (targetRect.height / 2);
+                const targetItem = hoveredEl.closest('.nav-reorder-item:not(.drag-placeholder)');
                 
-                if (evt.clientY < targetCenter) {
-                    listContainer.insertBefore(activeItem, targetItem);
-                } else {
-                    listContainer.insertBefore(activeItem, targetItem.nextSibling);
+                if (targetItem && targetItem.parentNode === listContainer) {
+                    const targetRect = targetItem.getBoundingClientRect();
+                    const targetCenter = targetRect.top + (targetRect.height / 2);
+                    
+                    if (evt.clientY < targetCenter) {
+                        listContainer.insertBefore(activeItem, targetItem);
+                    } else {
+                        listContainer.insertBefore(activeItem, targetItem.nextSibling);
+                    }
+                    if (navigator.vibrate) navigator.vibrate(5);
                 }
-                if (navigator.vibrate) navigator.vibrate(5);
-            }
+            });
         };
 
         const onEnd = () => {
             if (!activeItem) return;
+            if (moveRaf) cancelAnimationFrame(moveRaf);
+            
             if (clone) clone.remove();
             clone = null;
 
@@ -8154,6 +8211,7 @@ export class SettingsView {
         const slider = document.getElementById('theme-scroll-wrapper');
         if (!slider) return;
         let isDown = false, startX, scrollLeft;
+        let scrollRaf = null;
         this.isDragging = false; 
 
         slider.addEventListener('mousedown', (e) => { isDown = true; this.isDragging = false; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
@@ -8162,9 +8220,14 @@ export class SettingsView {
         slider.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
-            const walk = (e.pageX - slider.offsetLeft - startX) * 2; 
-            if (Math.abs(walk) > 5) this.isDragging = true;
-            slider.scrollLeft = scrollLeft - walk;
+            
+            // PERFORMANCE BOOST: rAF Debouncing для слайдера тем
+            if (scrollRaf) cancelAnimationFrame(scrollRaf);
+            scrollRaf = requestAnimationFrame(() => {
+                const walk = (e.pageX - slider.offsetLeft - startX) * 2; 
+                if (Math.abs(walk) > 5) this.isDragging = true;
+                slider.scrollLeft = scrollLeft - walk;
+            });
         });
     }
 }
