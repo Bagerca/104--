@@ -22,11 +22,7 @@
     { "pair": 4, "subject": "Математика", "room": "1/27" }
   ],
   "4": [
-    {
-      "pair": 1,
-      "lesson1": null,
-      "lesson2": { "subject": "Информатика", "room": "1/20" }
-    },
+    { "pair": 1, "subject": "Информатика", "room": "1/20" },
     { "pair": 2, "subject": "Литература", "room": "1/17" },
     { "pair": 3, "subject": "Математика", "room": "1/27" },
     { "pair": 4, "subject": "Химия", "room": "1/22" }
