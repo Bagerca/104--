@@ -1,0 +1,18 @@
+{
+  "id": "02-11-2026",
+  "lessons": [
+    {
+      "pair": 1,
+      "lesson1": null,
+      "lesson2": { "subject": "Информатика", "room": "1/20" }
+    },
+    { "pair": 2, "subject": "Математика", "room": "1/27" },
+    { "pair": 3, "subject": "Биология", "room": "1/22" },
+    { "pair": 4, "subject": "История", "room": "2/18" },
+    {
+      "pair": 5,
+      "lesson1": { "subject": "Физика", "room": "1/16" },
+      "lesson2": null
+    }
+  ]
+}
